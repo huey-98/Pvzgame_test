@@ -20,7 +20,7 @@
 <body>
   <main id="game-shell">
     <canvas id="game" width="360" height="640" aria-label="街区警戒线游戏画面"></canvas>
-    <div id="start-hint">点击画面开始 · 升级时点击卡片选择词条</div>
+    <div id="start-hint">点击画面开始 · 战斗中点击调整方向 · 升级时点击卡片</div>
   </main>
   <script>
     "use strict";
@@ -62,7 +62,7 @@
     let player, bullets, enemies, game;
 
     function resetGame() {
-      player = { x: W / 2, y: H - 76, maxHp: 100, hp: 100, damage: 18, fireInterval: .52, fireTimer: .05, burst: 0, spread: 0, pierce: 0, bulletRadius: 4, crit: .08, critDamage: 1.5, burn: 0, freeze: 0, level: 1, xp: 0, nextXp: 50, traits: {} };
+      player = { x: W / 2, y: H - 76, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 18, fireInterval: .52, fireTimer: .05, burst: 0, spread: 0, pierce: 0, bulletRadius: 4, crit: .08, critDamage: 1.5, burn: 0, freeze: 0, level: 1, xp: 0, nextXp: 50, traits: {} };
       bullets = []; enemies = []; particles = []; texts = [];
       game = { elapsed: 0, wave: 1, spawnCount: 0, spawnTimer: .25, bossSpawned: false, wavePause: 0, kills: 0, message: "", messageTimer: 0 };
     }
@@ -91,11 +91,29 @@
       game.spawnTimer = plan.interval * rand(.7, 1.15);
     }
 
+    function updateAim(dt) {
+      if (player.manualAimTimer > 0) { player.manualAimTimer -= dt; return; }
+      let target = null, bestDistance = Infinity;
+      for (const e of enemies) {
+        if (e.y > player.y + 40) continue;
+        const distance = (e.x - player.x) ** 2 + (e.y - player.y) ** 2;
+        if (distance < bestDistance) { bestDistance = distance; target = e; }
+      }
+      player.aimAngle = target ? Math.atan2(target.y - player.y, target.x - player.x) : -Math.PI / 2;
+    }
+
+    function setManualAim(x, y) {
+      const dx = x - player.x, dy = y - player.y;
+      if (dx * dx + dy * dy < 16) return;
+      player.aimAngle = Math.atan2(dy, dx);
+      player.manualAimTimer = 2.5;
+      game.message = "手动瞄准"; game.messageTimer = .7;
+    }
     function fire() {
       const count = 1 + player.burst, lanes = 1 + player.spread * 2;
       for (let b = 0; b < count; b++) {
         for (let lane = 0; lane < lanes; lane++) {
-          const angle = lanes === 1 ? -Math.PI / 2 : -Math.PI / 2 + (lane - (lanes - 1) / 2) * .18;
+          const angle = player.aimAngle + (lanes === 1 ? 0 : (lane - (lanes - 1) / 2) * .18);
           const critical = Math.random() < player.crit;
           bullets.push({ x: player.x + (b - (count - 1) / 2) * 8, y: player.y - 21, vx: Math.cos(angle) * 300, vy: Math.sin(angle) * 300, damage: player.damage * (critical ? player.critDamage : 1), critical, radius: player.bulletRadius, pierce: player.pierce });
         }
@@ -159,6 +177,7 @@
         if (game.spawnTimer <= 0) spawnWaveEnemy();
         if (plan.boss && !game.bossSpawned && game.spawnCount >= plan.total && enemies.filter(e => e.type !== "boss").length < 8) { spawnEnemy("boss"); game.bossSpawned = true; game.message = "尸潮领主出现！"; game.messageTimer = 2.6; }
       }
+      updateAim(dt);
       player.fireTimer -= dt; if (player.fireTimer <= 0) fire();
 
       for (let i = bullets.length - 1; i >= 0; i--) {
@@ -181,9 +200,15 @@
         if (e.burn > 0) { e.burn -= dt; e.hp -= (10 + player.burn * 3) * dt; if (e.hp <= 0) { killEnemy(i); continue; } }
         e.slow = Math.max(0, e.slow - dt);
         const speed = info.speed * (e.slow > 0 ? .58 : 1) * (e.type === "boss" && e.hp < e.maxHp * .5 ? 1.5 : 1);
-        const dx = player.x - e.x, dy = player.y - e.y, d = Math.hypot(dx,dy) || 1;
-        if (d > info.radius + 19) { e.x += dx / d * speed * dt; e.y += dy / d * speed * dt; }
-        else if (e.attackTimer <= 0) { player.hp -= info.damage; e.attackTimer = e.type === "boss" ? .65 : 1.0; burst(player.x, player.y, 4, COLORS.red); addText(player.x, player.y - 25, `-${info.damage}`, COLORS.red); if (player.hp <= 0) { player.hp = 0; state = "defeat"; } }
+        const attackY = player.y - info.radius - 19;
+        const inPlayerLane = Math.abs(e.x - player.x) <= info.radius + 19;
+        if (inPlayerLane && e.y >= attackY) {
+          e.y = attackY;
+          if (e.attackTimer <= 0) { player.hp -= info.damage; e.attackTimer = e.type === "boss" ? .65 : 1.0; burst(player.x, player.y, 4, COLORS.red); addText(player.x, player.y - 25, `-${info.damage}`, COLORS.red); if (player.hp <= 0) { player.hp = 0; state = "defeat"; } }
+        } else {
+          e.y += speed * dt;
+          if (e.y > H + info.radius + 24) { enemies.splice(i, 1); continue; }
+        }
       }
       updateEffects(dt);
       if (state === "playing" && plan && game.spawnCount >= plan.total && enemies.length === 0 && (!plan.boss || game.bossSpawned)) {
@@ -215,7 +240,7 @@
       if (!player) return; const x=player.x,y=player.y;
       ctx.save(); ctx.translate(x,y); ctx.fillStyle="rgba(0,0,0,.3)"; ctx.beginPath();ctx.ellipse(0,17,29,8,0,0,TAU);ctx.fill();
       ctx.fillStyle="#4a8fb4"; ctx.beginPath();ctx.arc(0,4,18,0,TAU);ctx.fill(); ctx.fillStyle="#a9d9eb";ctx.beginPath();ctx.arc(0,-8,10,0,TAU);ctx.fill();
-      ctx.fillStyle="#253746";ctx.fillRect(-10,-15,20,6); ctx.fillStyle="#f7cc78";ctx.fillRect(-2,-38,4,25);ctx.fillStyle="#ffd166";ctx.beginPath();ctx.arc(0,-40,4,0,TAU);ctx.fill();
+      ctx.fillStyle="#253746";ctx.fillRect(-10,-15,20,6); ctx.save();ctx.rotate(player.aimAngle + Math.PI / 2);ctx.fillStyle="#f7cc78";ctx.fillRect(-2,-38,4,25);ctx.fillStyle="#ffd166";ctx.beginPath();ctx.arc(0,-40,4,0,TAU);ctx.fill();ctx.restore();
       ctx.restore();
     }
     function drawBullets() { for (const b of bullets) { ctx.fillStyle=b.critical?COLORS.yellow:COLORS.cyan; ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(b.x,b.y,b.radius,0,TAU);ctx.fill();ctx.shadowBlur=0; } }
@@ -241,7 +266,7 @@
     }
 
     function overlay(){ctx.fillStyle="rgba(3,9,13,.78)";ctx.fillRect(0,0,W,H);}
-    function drawMenu(){overlay();ctx.textAlign="center";ctx.fillStyle=COLORS.yellow;ctx.font="bold 30px Segoe UI, Microsoft YaHei";ctx.fillText("街区警戒线",W/2,170);ctx.fillStyle=COLORS.text;ctx.font="15px Segoe UI, Microsoft YaHei";ctx.fillText("竖屏僵尸生存射击",W/2,199);ctx.fillStyle=COLORS.muted;ctx.font="12px Segoe UI, Microsoft YaHei";ctx.fillText("幸存者会自动向上射击",W/2,245);ctx.fillText("击杀僵尸获得经验，升级选择强化词条",W/2,267);button(W/2-82,318,164,48,"开始战斗",COLORS.green);ctx.fillStyle=COLORS.muted;ctx.font="11px Segoe UI, Microsoft YaHei";ctx.fillText("共 5 波 · 最后一波击败 Boss 即可胜利",W/2,402);}
+    function drawMenu(){overlay();ctx.textAlign="center";ctx.fillStyle=COLORS.yellow;ctx.font="bold 30px Segoe UI, Microsoft YaHei";ctx.fillText("街区警戒线",W/2,170);ctx.fillStyle=COLORS.text;ctx.font="15px Segoe UI, Microsoft YaHei";ctx.fillText("竖屏僵尸生存射击",W/2,199);ctx.fillStyle=COLORS.muted;ctx.font="12px Segoe UI, Microsoft YaHei";ctx.fillText("步枪会自动锁定最近目标",W/2,245);ctx.fillText("战斗中点击画面可手动调整射击方向",W/2,267);button(W/2-82,318,164,48,"开始战斗",COLORS.green);ctx.fillStyle=COLORS.muted;ctx.font="11px Segoe UI, Microsoft YaHei";ctx.fillText("共 5 波 · 最后一波击败 Boss 即可胜利",W/2,402);}
     function button(x,y,w,h,label,color){roundedRect(x,y,w,h,12,color);ctx.textAlign="center";ctx.fillStyle="#071217";ctx.font="bold 15px Segoe UI, Microsoft YaHei";ctx.fillText(label,x+w/2,y+h/2+5);}
     function drawUpgrade(){overlay();ctx.textAlign="center";ctx.fillStyle=COLORS.yellow;ctx.font="bold 25px Segoe UI, Microsoft YaHei";ctx.fillText("等级提升！",W/2,112);ctx.fillStyle=COLORS.text;ctx.font="12px Segoe UI, Microsoft YaHei";ctx.fillText("选择一项强化，战斗将继续",W/2,137);
       const cardW=98,gap=8,start=(W-cardW*3-gap*2)/2; upgradeCards.forEach((t,i)=>{const x=start+i*(cardW+gap),y=190,lv=player.traits[t.id]||0;roundedRect(x,y,cardW,218,14,"#163343","rgba(165,219,232,.25)");ctx.fillStyle=t.rarity==="稀有"?COLORS.purple:COLORS.cyan;ctx.font="bold 31px Segoe UI, Microsoft YaHei";ctx.fillText(t.icon,x+cardW/2,y+50);ctx.fillStyle=COLORS.text;ctx.font="bold 14px Segoe UI, Microsoft YaHei";ctx.fillText(t.name,x+cardW/2,y+82);ctx.fillStyle=t.rarity==="稀有"?COLORS.purple:COLORS.green;ctx.font="bold 11px Segoe UI, Microsoft YaHei";ctx.fillText(`${t.rarity} · Lv.${lv+1}/${t.max}`,x+cardW/2,y+104);ctx.fillStyle=COLORS.muted;ctx.font="11px Segoe UI, Microsoft YaHei";wrapText(t.desc,x+cardW/2,y+135,78,16);roundedRect(x+17,y+181,64,27,8,"#24546a");ctx.fillStyle=COLORS.text;ctx.font="bold 11px Segoe UI, Microsoft YaHei";ctx.fillText("选择",x+cardW/2,y+199);});
@@ -253,7 +278,8 @@
     canvas.addEventListener("pointerdown", ev=>{ev.preventDefault();const p=pointerPosition(ev);
       if(state==="menu"){if(p.x>W/2-100&&p.x<W/2+100&&p.y>290&&p.y<390)startGame();return;}
       if(state==="upgrade"){const cardW=98,gap=8,start=(W-cardW*3-gap*2)/2;for(let i=0;i<3;i++){const x=start+i*(cardW+gap);if(p.x>=x&&p.x<=x+cardW&&p.y>=175&&p.y<=430){chooseTrait(i);return;}}return;}
-      if(state==="victory"||state==="defeat"){if(p.x>W/2-105&&p.x<W/2+105&&p.y>290&&p.y<390)restart();}
+      if(state==="victory"||state==="defeat"){if(p.x>W/2-105&&p.x<W/2+105&&p.y>290&&p.y<390)restart();return;}
+      if(state==="playing") setManualAim(p.x, p.y);
     });
 
     function loop(time){const dt=Math.min(.033,(time-lastTime)/1000||0);lastTime=time;update(dt);draw();raf=requestAnimationFrame(loop);}
@@ -261,3 +287,5 @@
   </script>
 </body>
 </html>
+
+
