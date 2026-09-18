@@ -5,7 +5,34 @@
   Game.spawnEnemy = function (type) { var info = C.enemies[type], enemy = { type: type, x: U.rand(22, C.width - 22), y: -info.radius - 8, hp: info.hp, maxHp: info.hp, slow: 0, burn: 0, hitFlash: 0, attackTimer: 0 }; if (type === "boss") enemy.x = C.width / 2; S.enemies.push(enemy); };
   Game.updateAim = function (dt) { var p = S.player; if (p.manualAimTimer > 0) { p.manualAimTimer -= dt; return; } var target = null, bestDistance = Infinity; S.enemies.forEach(function (enemy) { if (enemy.y > p.y + 40) return; var distance = Math.pow(enemy.x - p.x, 2) + Math.pow(enemy.y - p.y, 2); if (distance < bestDistance) { bestDistance = distance; target = enemy; } }); p.aimAngle = target ? Math.atan2(target.y - p.y, target.x - p.x) : -Math.PI / 2; };
   Game.setManualAim = function (x, y) { var p = S.player, dx = x - p.x, dy = y - p.y; if (dx * dx + dy * dy < 16) return; p.aimAngle = Math.atan2(dy, dx); p.manualAimTimer = 2.5; S.session.message = "手动瞄准"; S.session.messageTimer = .7; };
-  Game.fire = function () { var p = S.player, count = 1 + p.burst, lanes = 1 + p.spread * 2; for (var b = 0; b < count; b++) { for (var lane = 0; lane < lanes; lane++) { var angle = p.aimAngle + (lanes === 1 ? 0 : (lane - (lanes - 1) / 2) * .18), critical = Math.random() < p.crit; S.bullets.push({ x: p.x + (b - (count - 1) / 2) * 8, y: p.y - 21, vx: Math.cos(angle) * 300, vy: Math.sin(angle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce }); } } p.fireTimer = p.fireInterval; for (var i = 0; i < 3; i++) S.particles.push({ x: p.x + U.rand(-5, 5), y: p.y - 25, vx: U.rand(-20, 20), vy: U.rand(-65, -25), life: .18, maxLife: .18, color: C.colors.yellow, size: U.rand(2, 4) }); };
+  Game.getWeaponMuzzle = function (p, distance, angle) { var muzzleDistance = distance || 40, shotAngle = angle === undefined ? p.aimAngle : angle; return { x: p.x + Math.cos(shotAngle) * muzzleDistance, y: p.y + Math.sin(shotAngle) * muzzleDistance }; };
+  Game.fireShot = function (p, shotAngle) {
+    var lanes = 1 + p.spread;
+    var muzzle = Game.getWeaponMuzzle(p, 40, shotAngle);
+    var perpendicularX = -Math.sin(shotAngle), perpendicularY = Math.cos(shotAngle);
+    var bulletColor = p.bulletType === "ice" ? C.colors.ice : p.bulletType === "fire" ? C.colors.fire : "#ffffff";
+    // 齐射只改变平行弹道数量，不再改变子弹角度。
+    for (var lane = 0; lane < lanes; lane++) {
+      var offset = (lane - (lanes - 1) / 2) * 8, critical = Math.random() < p.crit;
+      S.bullets.push({ x: muzzle.x + perpendicularX * offset, y: muzzle.y + perpendicularY * offset, vx: Math.cos(shotAngle) * 300, vy: Math.sin(shotAngle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce, color: bulletColor });
+    }
+    for (var i = 0; i < 3; i++) S.particles.push({ x: muzzle.x + U.rand(-3, 3), y: muzzle.y + U.rand(-3, 3), vx: U.rand(-20, 20), vy: U.rand(-65, -25), life: .18, maxLife: .18, color: bulletColor, size: U.rand(2, 4) });
+  };
+  Game.fire = function () {
+    var p = S.player;
+    p.burstAngle = p.aimAngle;
+    Game.fireShot(p, p.burstAngle);
+    p.fireTimer = p.fireInterval;
+    p.burstShotsRemaining = p.burst;
+    p.burstTimer = p.burst > 0 ? Math.max(.06, p.fireInterval * .2) : 0;
+  };
+  Game.fireBurstShot = function () {
+    var p = S.player;
+    if (p.burstShotsRemaining <= 0) return;
+    Game.fireShot(p, p.burstAngle);
+    p.burstShotsRemaining--;
+    if (p.burstShotsRemaining > 0) p.burstTimer = Math.max(.06, p.fireInterval * .2);
+  };
   Game.gainXp = function (amount) { var p = S.player; if (p.level >= C.maxLevel) return; p.xp += amount; while (p.xp >= p.nextXp && p.level < C.maxLevel) { p.xp -= p.nextXp; p.level++; p.nextXp = Math.floor(p.nextXp * 1.22 + 10); S.screen = "upgrade"; S.upgradeCards = Game.rollTraits(); break; } };
   Game.rollTraits = function () { var p = S.player, pool = C.traits.filter(function (trait) { return (p.traits[trait.id] || 0) < trait.max; }).slice(), cards = []; while (pool.length && cards.length < 3) cards.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); return cards; };
   Game.chooseTrait = function (index) { if (S.screen !== "upgrade" || !S.upgradeCards[index]) return; var trait = S.upgradeCards[index], p = S.player; p.traits[trait.id] = (p.traits[trait.id] || 0) + 1; trait.apply(p); Game.addText(p.x, p.y - 38, trait.name + " Lv." + p.traits[trait.id], C.colors.green); S.screen = "playing"; };
