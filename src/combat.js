@@ -5,10 +5,10 @@
   Game.spawnEnemy = function (type) { var info = C.enemies[type], enemy = { type: type, x: U.rand(22, C.width - 22), y: -info.radius - 8, hp: info.hp, maxHp: info.hp, slow: 0, burn: 0, hitFlash: 0, attackTimer: 0 }; if (type === "boss") enemy.x = C.width / 2; S.enemies.push(enemy); };
   Game.updateAim = function (dt) { var p = S.player; if (p.manualAimTimer > 0) { p.manualAimTimer -= dt; return; } var target = null, bestDistance = Infinity; S.enemies.forEach(function (enemy) { if (enemy.y > p.y + 40) return; var distance = Math.pow(enemy.x - p.x, 2) + Math.pow(enemy.y - p.y, 2); if (distance < bestDistance) { bestDistance = distance; target = enemy; } }); p.aimAngle = target ? Math.atan2(target.y - p.y, target.x - p.x) : -Math.PI / 2; };
   Game.setManualAim = function (x, y) { var p = S.player, dx = x - p.x, dy = y - p.y; if (dx * dx + dy * dy < 16) return; p.aimAngle = Math.atan2(dy, dx); p.manualAimTimer = 2.5; S.session.message = "手动瞄准"; S.session.messageTimer = .7; };
-  Game.getWeaponMuzzle = function (p, distance, angle) { var muzzleDistance = distance || 40, shotAngle = angle === undefined ? p.aimAngle : angle; return { x: p.x + Math.cos(shotAngle) * muzzleDistance, y: p.y + Math.sin(shotAngle) * muzzleDistance }; };
+  Game.getWeaponMuzzle = function (p, distance, angle) { var muzzleDistance = distance || 40, shotAngle = angle === undefined ? p.aimAngle : angle, sideOffset = 6, perpendicularX = -Math.sin(shotAngle), perpendicularY = Math.cos(shotAngle); return { x: p.x + Math.cos(shotAngle) * muzzleDistance + perpendicularX * sideOffset, y: p.y + Math.sin(shotAngle) * muzzleDistance + perpendicularY * sideOffset }; };
   Game.fireShot = function (p, shotAngle) {
     var lanes = 1 + p.spread;
-    var muzzle = Game.getWeaponMuzzle(p, 40, shotAngle);
+    var muzzle = Game.getWeaponMuzzle(p, 66, shotAngle);
     var perpendicularX = -Math.sin(shotAngle), perpendicularY = Math.cos(shotAngle);
     var bulletColor = p.bulletType === "ice" ? C.colors.ice : p.bulletType === "fire" ? C.colors.fire : "#ffffff";
     // 齐射只改变平行弹道数量，不再改变子弹角度。

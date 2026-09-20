@@ -96,104 +96,146 @@
     var x = p.x, y = p.y;
     ctx.save();
     ctx.translate(x, y);
-    var bodyGradient = ctx.createLinearGradient(-16, 0, 16, 0);
-    bodyGradient.addColorStop(0, "#211a1d"); bodyGradient.addColorStop(.42, "#86533b"); bodyGradient.addColorStop(1, "#2a2228");
-    var legGradient = ctx.createLinearGradient(-11, 0, 11, 0);
-    legGradient.addColorStop(0, "#25232a"); legGradient.addColorStop(.5, "#76645c"); legGradient.addColorStop(1, "#29252b");
+    var bodyGradient = ctx.createLinearGradient(-17, -6, 17, 10);
+    bodyGradient.addColorStop(0, "#17161b"); bodyGradient.addColorStop(.3, "#5c3b32"); bodyGradient.addColorStop(.58, "#9a6242"); bodyGradient.addColorStop(1, "#251e24");
+    var legGradient = ctx.createLinearGradient(-13, 0, 13, 0);
+    legGradient.addColorStop(0, "#20242a"); legGradient.addColorStop(.45, "#6c5d55"); legGradient.addColorStop(.7, "#827165"); legGradient.addColorStop(1, "#252128");
+    var skinGradient = ctx.createLinearGradient(-10, -44, 10, -21);
+    skinGradient.addColorStop(0, "#ffe2b7"); skinGradient.addColorStop(.58, "#d4956e"); skinGradient.addColorStop(1, "#9b5b4b");
+    var hairGradient = ctx.createLinearGradient(-14, -50, 12, -28);
+    hairGradient.addColorStop(0, "#fff3af"); hairGradient.addColorStop(.42, "#e3b35e"); hairGradient.addColorStop(1, "#81502f");
+    var aimX = Math.cos(p.aimAngle), aimY = Math.sin(p.aimAngle), sideX = -aimY, sideY = aimX;
+    var frontHandX = Math.max(-28, Math.min(28, aimX * 37 + sideX * 6));
+    var frontHandY = Math.max(-42, Math.min(16, aimY * 37 + sideY * 6));
+    var rearHandX = Math.max(-22, Math.min(24, aimX * 17 + sideX * 6));
+    var rearHandY = Math.max(-24, Math.min(16, aimY * 17 + sideY * 6));
+    var drawHead = function () {
+      // 参考图采用侧身背影：脸部只露出一小块，金色头发成为人物主轮廓。
+      ctx.save();
+      ctx.translate(-3, 0);
+      ctx.fillStyle = skinGradient;
+      ctx.beginPath(); ctx.ellipse(-3, -35, 10.5, 11.5, -.08, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(126, 69, 57, .45)";
+      ctx.beginPath(); ctx.ellipse(2, -34, 6.8, 9, -.2, -.9, 1.35); ctx.fill();
+      ctx.fillStyle = "#f2c28c";
+      ctx.beginPath(); ctx.arc(-11, -34, 2.1, -.8, 1.1); ctx.fill();
+      ctx.fillStyle = "#513332";
+      ctx.beginPath(); ctx.arc(-8, -36, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = hairGradient;
+      ctx.beginPath(); ctx.moveTo(-14, -34); ctx.quadraticCurveTo(-15, -45, -7, -49); ctx.quadraticCurveTo(2, -53, 10, -45); ctx.quadraticCurveTo(14, -40, 9, -33); ctx.lineTo(5, -36); ctx.lineTo(2, -40); ctx.lineTo(-2, -35); ctx.lineTo(-6, -40); ctx.lineTo(-10, -35); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#fff4bd";
+      ctx.beginPath(); ctx.moveTo(-10, -44); ctx.quadraticCurveTo(-2, -49, 6, -46); ctx.lineTo(3, -43); ctx.lineTo(-7, -42); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#b8783b";
+      ctx.beginPath(); ctx.moveTo(-12, -35); ctx.lineTo(-10, -26); ctx.lineTo(-7, -34); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(255, 227, 181, .72)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(-3, -35, 10.5, 11.5, -.08, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    };
 
-    // 地面投影和双腿的明暗分面。
+    // 地面投影和分开的战斗站姿：一条腿支撑，一条腿向后屈曲。
     ctx.fillStyle = "rgba(0, 0, 0, .5)";
-    ctx.beginPath(); ctx.ellipse(0, 22, 30, 8, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = legGradient; ctx.lineWidth = 9; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(-7, 12); ctx.lineTo(-10, 26); ctx.moveTo(7, 12); ctx.lineTo(10, 26); ctx.stroke();
-    ctx.strokeStyle = "#ab9181"; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(-14, 27); ctx.lineTo(-4, 27); ctx.moveTo(5, 27); ctx.lineTo(15, 27); ctx.stroke();
-    ctx.fillStyle = "#1d1b21"; ctx.fillRect(-14, 27, 10, 3); ctx.fillRect(5, 27, 10, 3);
+    ctx.beginPath(); ctx.ellipse(1, 29, 29, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#1a1b20"; ctx.lineWidth = 12; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(-6, 9); ctx.lineTo(-14, 20); ctx.lineTo(-9, 29); ctx.moveTo(6, 9); ctx.lineTo(13, 19); ctx.lineTo(8, 29); ctx.stroke();
+    ctx.strokeStyle = legGradient; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(-6, 9); ctx.lineTo(-14, 20); ctx.lineTo(-9, 29); ctx.moveTo(6, 9); ctx.lineTo(13, 19); ctx.lineTo(8, 29); ctx.stroke();
+    ctx.strokeStyle = "rgba(211, 180, 151, .72)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-13, 20); ctx.lineTo(-8, 22); ctx.moveTo(8, 19); ctx.lineTo(13, 20); ctx.stroke();
+    U.roundedRect(ctx, -16, 27, 11, 5, 2, "#1b1a20", "#8a766b");
+    U.roundedRect(ctx, 4, 27, 12, 5, 2, "#1b1a20", "#8a766b");
 
-    // 背包在身体后侧露出一层，增加角色的前后关系。
-    U.roundedRect(ctx, 8, -4, 10, 23, 4, "#2c2425", "#845441");
+    // 背包位于身体后侧。
+    U.roundedRect(ctx, 8, -4, 10, 23, 4, "#211c20", "#845441");
     U.roundedRect(ctx, 11, 0, 5, 12, 2, "#634032");
     U.roundedRect(ctx, 11, 14, 5, 4, 2, "#d29650");
 
-    // 立体躯干：先画偏移后的背壳，再画向前凸出的胸甲。
-    U.roundedRect(ctx, -11, -5, 30, 30, 8, "#1c171d", "rgba(7, 9, 13, .8)");
-    U.roundedRect(ctx, -15, -8, 30, 30, 8, bodyGradient, "#a87352");
+    // 身体位于头部下方，使用背壳、胸甲和腹部高光表现立体感。
+    U.roundedRect(ctx, -11, -16, 29, 33, 8, "#171419", "rgba(7, 9, 13, .8)");
+    U.roundedRect(ctx, -15, -19, 29, 33, 8, bodyGradient, "#a87352");
     ctx.fillStyle = "rgba(245, 187, 118, .25)";
-    ctx.beginPath(); ctx.moveTo(-14, -2); ctx.lineTo(-8, -7); ctx.lineTo(11, -7); ctx.lineTo(15, -2); ctx.lineTo(15, 13); ctx.lineTo(10, 19); ctx.lineTo(-11, 19); ctx.lineTo(-15, 13); ctx.closePath(); ctx.fill();
-    U.roundedRect(ctx, -9, -3, 18, 20, 5, "rgba(91, 55, 42, .92)", "rgba(218, 159, 103, .35)");
-    ctx.fillStyle = "rgba(255, 209, 133, .48)"; ctx.fillRect(-6, -1, 12, 2);
-    ctx.fillStyle = "rgba(25, 17, 21, .55)"; ctx.fillRect(-9, 13, 18, 4);
-    ctx.fillStyle = "#f0b557"; ctx.fillRect(-4, 5, 8, 6);
-    ctx.fillStyle = "#261d22"; ctx.fillRect(-14, 17, 28, 5);
-    ctx.fillStyle = "#cda37b"; ctx.fillRect(-9, 18, 4, 2); ctx.fillRect(5, 18, 4, 2);
+    ctx.beginPath(); ctx.moveTo(-14, -11); ctx.lineTo(-8, -18); ctx.lineTo(10, -18); ctx.lineTo(14, -11); ctx.lineTo(14, 6); ctx.lineTo(9, 12); ctx.lineTo(-11, 12); ctx.lineTo(-15, 6); ctx.closePath(); ctx.fill();
+    U.roundedRect(ctx, -9, -14, 18, 22, 5, "rgba(58, 45, 43, .94)", "rgba(218, 159, 103, .35)");
+    ctx.fillStyle = "rgba(255, 209, 133, .48)"; ctx.fillRect(-6, -11, 12, 2);
+    ctx.fillStyle = "rgba(25, 17, 21, .55)"; ctx.fillRect(-9, 4, 18, 4);
+    ctx.fillStyle = "#e4a24e"; ctx.fillRect(-4, -4, 8, 6);
+    ctx.strokeStyle = "rgba(225, 183, 128, .5)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-11, -12); ctx.lineTo(-7, 8); ctx.moveTo(10, -11); ctx.lineTo(7, 8); ctx.stroke();
+    ctx.fillStyle = "#261d22"; ctx.fillRect(-14, 9, 28, 5);
+    ctx.fillStyle = "#cda37b"; ctx.fillRect(-9, 10, 4, 2); ctx.fillRect(5, 10, 4, 2);
 
-    // 肩甲让手臂和身体之间有清晰的层次。
+    // 短颈隐藏在衣领后，让头部与身体紧密结合。
+    U.roundedRect(ctx, -5, -23, 8, 5, 3, "#a96754", "#6e4038");
+
+    // 肩甲位于手臂后侧。
     ctx.fillStyle = "#714a38"; ctx.strokeStyle = "#bd875e"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.ellipse(-14, -3, 5, 7, -.25, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(14, -3, 5, 7, .25, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(-14, -13, 5, 7, -.25, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(14, -13, 5, 7, .25, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // 角色结构从上到下固定为：头部、身体、手臂。
-    // 头部上移后，即使角色向上索敌，手臂也不会穿过面部。
-    var headX = -3, headY = -29;
-    var skinGradient = ctx.createLinearGradient(-9, -39, 9, -22);
-    skinGradient.addColorStop(0, "#ffe0b4"); skinGradient.addColorStop(1, "#ba765d");
-    ctx.fillStyle = skinGradient;
-    ctx.beginPath(); ctx.arc(headX, headY, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "rgba(128, 71, 61, .48)";
-    ctx.beginPath(); ctx.arc(1, -28, 6, -.9, 1.2); ctx.fill();
-    ctx.strokeStyle = "rgba(255, 227, 181, .7)"; ctx.lineWidth = 1; ctx.stroke();
-    var hairGradient = ctx.createLinearGradient(-12, -42, 9, -29);
-    hairGradient.addColorStop(0, "#fff1b0"); hairGradient.addColorStop(.48, "#d5a255"); hairGradient.addColorStop(1, "#754833");
-    ctx.fillStyle = hairGradient;
-    ctx.beginPath(); ctx.moveTo(-13, -31); ctx.quadraticCurveTo(-14, -41, -5, -44); ctx.quadraticCurveTo(7, -44, 8, -33); ctx.lineTo(3, -36); ctx.lineTo(0, -31); ctx.lineTo(-4, -36); ctx.lineTo(-8, -31); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff0a8"; ctx.fillRect(-10, -38, 8, 2);
-    ctx.fillStyle = "#4b2d2b"; ctx.fillRect(-11, -24, 5, 3);
-
-    // 双手仍然跟随枪械，但手部始终保持在身体下半部，形成“头部-身体-手臂”的垂直轮廓。
-    var aimX = Math.cos(p.aimAngle), aimY = Math.sin(p.aimAngle), sideX = -aimY, sideY = aimX;
-    var frontHandX = Math.max(-18, Math.min(24, aimX * 26 + sideX * 3));
-    var frontHandY = Math.max(4, aimY * 26 + sideY * 3);
-    var rearHandX = Math.max(-18, Math.min(20, aimX * 17 - sideX * 3));
-    var rearHandY = Math.max(6, aimY * 17 - sideY * 3);
-    ctx.strokeStyle = "#241c20";
-    ctx.lineWidth = 9;
-    ctx.beginPath(); ctx.moveTo(-10, -1); ctx.lineTo(rearHandX, rearHandY); ctx.moveTo(10, -1); ctx.lineTo(frontHandX, frontHandY); ctx.stroke();
-    ctx.strokeStyle = "#8a573f"; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(rearHandX, rearHandY); ctx.moveTo(10, -2); ctx.lineTo(frontHandX, frontHandY); ctx.stroke();
-    ctx.fillStyle = skinGradient;
-    ctx.beginPath(); ctx.arc(rearHandX, rearHandY, 3.5, 0, Math.PI * 2); ctx.arc(frontHandX, frontHandY, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#f4c994";
-    ctx.beginPath(); ctx.arc(rearHandX, rearHandY, 1.5, 0, Math.PI * 2); ctx.arc(frontHandX, frontHandY, 1.5, 0, Math.PI * 2); ctx.fill();
-
-    // 步枪的枪口中心与 combat.js 中的子弹生成点保持同一条轴线。
+    // 枪械放在人物右侧，先绘制让双臂压在枪械上方。
     ctx.save();
+    ctx.translate(sideX * 6, sideY * 6);
     ctx.rotate(p.aimAngle + Math.PI / 2);
     var rifleGradient = ctx.createLinearGradient(-6, 0, 6, 0);
-    rifleGradient.addColorStop(0, "#111d24"); rifleGradient.addColorStop(.45, "#6f8585"); rifleGradient.addColorStop(1, "#202f35");
-    ctx.shadowColor = "rgba(0, 0, 0, .6)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
-    ctx.fillStyle = "#513324"; ctx.fillRect(-3, -22, 6, 11);
-    ctx.fillStyle = rifleGradient; ctx.fillRect(-5, -32, 10, 14);
-    ctx.fillStyle = "#111c22"; ctx.fillRect(-2, -40, 4, 14);
-    ctx.fillStyle = "#c1d7cf"; ctx.fillRect(-3, -41, 6, 3);
-    ctx.fillStyle = "#18262c"; ctx.fillRect(-4, -26, 8, 4);
-    ctx.fillStyle = "#8da7a4"; ctx.fillRect(-2, -35, 3, 6);
-    ctx.fillStyle = "#17242b"; ctx.fillRect(-6, -30, 3, 7);
+    rifleGradient.addColorStop(0, "#11181b"); rifleGradient.addColorStop(.45, "#596865"); rifleGradient.addColorStop(1, "#1c2829");
+    ctx.shadowColor = "rgba(0, 0, 0, .62)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+
+    // M4 枪托：短枪托、缓冲管和后部肩托。
+    ctx.fillStyle = "#20292a";
+    ctx.beginPath(); ctx.moveTo(-4, -16); ctx.lineTo(4, -16); ctx.lineTo(5, -8); ctx.lineTo(2, -5); ctx.lineTo(-5, -8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#394847"; ctx.fillRect(-5, -11, 10, 4);
+    ctx.fillStyle = "#11181b"; ctx.fillRect(-5, -8, 10, 3);
+
+    // M4 机匣、扳机护圈、手枪握把和弹匣。
+    ctx.fillStyle = rifleGradient;
+    ctx.beginPath(); ctx.moveTo(-5, -32); ctx.lineTo(5, -32); ctx.lineTo(5, -17); ctx.lineTo(3, -14); ctx.lineTo(-4, -14); ctx.lineTo(-5, -18); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#101719"; ctx.fillRect(-4, -29, 8, 3);
+    ctx.strokeStyle = "#9aac9f"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-3, -21); ctx.quadraticCurveTo(0, -16, 3, -21); ctx.stroke();
+    ctx.fillStyle = "#252f2f";
+    ctx.beginPath(); ctx.moveTo(-3, -17); ctx.lineTo(3, -17); ctx.lineTo(2, -7); ctx.lineTo(-2, -5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#4d5b55";
+    ctx.beginPath(); ctx.moveTo(-4, -18); ctx.lineTo(4, -18); ctx.lineTo(3, -7); ctx.lineTo(-3, -7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#18211f";
+    ctx.beginPath(); ctx.moveTo(-4, -16); ctx.lineTo(4, -16); ctx.lineTo(3, -1); ctx.lineTo(-3, -1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#697873"; ctx.fillRect(-3, -15, 6, 2);
+
+    // M4 护木与顶部导轨。
+    ctx.fillStyle = rifleGradient;
+    ctx.beginPath(); ctx.moveTo(-5, -49); ctx.lineTo(5, -49); ctx.lineTo(5, -30); ctx.lineTo(-5, -30); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "rgba(188, 211, 198, .45)"; ctx.lineWidth = 1;
+    for (var railY = -46; railY <= -33; railY += 4) { ctx.beginPath(); ctx.moveTo(-5, railY); ctx.lineTo(5, railY); ctx.stroke(); }
+    ctx.fillStyle = "#202b2a"; ctx.fillRect(-3, -55, 6, 25);
+    ctx.fillStyle = "#71817a"; ctx.fillRect(-2, -53, 2, 19);
+
+    // M4 长枪管、前准星和枪口制退器；枪口位置与 combat.js 保持一致。
+    ctx.fillStyle = "#11191a"; ctx.fillRect(-2, -63, 4, 33);
+    ctx.fillStyle = "#5d6d67"; ctx.fillRect(-2, -57, 2, 18);
+    ctx.fillStyle = "#1d2827"; ctx.fillRect(-4, -64, 8, 4);
+    ctx.fillStyle = "#8fa69b"; ctx.fillRect(-2, -66, 4, 3);
+    ctx.fillStyle = "#151e1e"; ctx.fillRect(-5, -67, 10, 3);
     ctx.fillStyle = "#ffd166"; ctx.shadowColor = "#ffd166"; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(0, -42, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -68, 3, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
     ctx.shadowBlur = 0;
-    ctx.fillStyle = skinGradient;
-    ctx.beginPath(); ctx.arc(rearHandX, rearHandY, 3.5, 0, Math.PI * 2); ctx.arc(frontHandX, frontHandY, 3.5, 0, Math.PI * 2); ctx.fill();
 
-    // 头部最后补绘，确保面部保持在角色最上层。
-    ctx.fillStyle = skinGradient;
-    ctx.beginPath(); ctx.arc(headX, headY, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "rgba(128, 71, 61, .48)";
-    ctx.beginPath(); ctx.arc(1, -28, 6, -.9, 1.2); ctx.fill();
-    ctx.strokeStyle = "rgba(255, 227, 181, .7)"; ctx.lineWidth = 1; ctx.stroke();
-    ctx.fillStyle = hairGradient;
-    ctx.beginPath(); ctx.moveTo(-13, -31); ctx.quadraticCurveTo(-14, -41, -5, -44); ctx.quadraticCurveTo(7, -44, 8, -33); ctx.lineTo(3, -36); ctx.lineTo(0, -31); ctx.lineTo(-4, -36); ctx.lineTo(-8, -31); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff0a8"; ctx.fillRect(-10, -38, 8, 2);
+    // 双臂按照真实持枪关系绘制：左臂连接前握把，右臂连接后握把和扳机。
+    var drawArm = function (shoulderX, shoulderY, elbowX, elbowY, handX, handY) {
+      ctx.strokeStyle = "#241c20"; ctx.lineWidth = 10; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY); ctx.lineTo(elbowX, elbowY); ctx.lineTo(handX, handY); ctx.stroke();
+      ctx.strokeStyle = "#8a573f"; ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY); ctx.lineTo(elbowX, elbowY); ctx.lineTo(handX, handY); ctx.stroke();
+      ctx.strokeStyle = "rgba(225, 164, 111, .52)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(shoulderX - 1, shoulderY - 1); ctx.lineTo(elbowX - 1, elbowY - 1); ctx.stroke();
+      ctx.fillStyle = skinGradient;
+      ctx.beginPath(); ctx.arc(handX, handY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f4c994";
+      ctx.beginPath(); ctx.arc(handX - 1, handY - 1, 1.6, 0, Math.PI * 2); ctx.fill();
+    };
+    drawArm(-12, -10, -11, -21, frontHandX, frontHandY);
+    drawArm(12, -10, 14, -14, rearHandX, rearHandY);
+
+    // 最后绘制头部，保持参考图中的清晰头身关系。
+    drawHead();
     ctx.restore();
   };
 
@@ -388,7 +430,6 @@
     ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(4, -11); ctx.lineTo(0, -8); ctx.lineTo(-4, -11); ctx.closePath(); ctx.stroke();
     ctx.globalAlpha = .34; ctx.fillStyle = "#8fe8df"; ctx.fill();
     ctx.restore();
-    text("幻形", x, y + 30, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     ctx.restore();
   };
 
