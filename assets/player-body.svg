@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 96">
+  <defs>
+    <linearGradient id="hair" x1="20" y1="6" x2="50" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff4b4"/>
+      <stop offset="30%" stop-color="#f0c45c"/>
+      <stop offset="68%" stop-color="#c48a28"/>
+      <stop offset="100%" stop-color="#7a4814"/>
+    </linearGradient>
+    <radialGradient id="hairShine" cx="32" cy="12" r="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff8d0" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#f0c45c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="24" y1="16" x2="42" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f3d2ae"/>
+      <stop offset="60%" stop-color="#d4a074"/>
+      <stop offset="100%" stop-color="#9a6848"/>
+    </linearGradient>
+    <linearGradient id="vest" x1="16" y1="28" x2="56" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3a2418"/>
+      <stop offset="24%" stop-color="#7a4e32"/>
+      <stop offset="52%" stop-color="#c08a50"/>
+      <stop offset="100%" stop-color="#2c1a12"/>
+    </linearGradient>
+    <linearGradient id="pants" x1="18" y1="58" x2="54" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a1614"/>
+      <stop offset="42%" stop-color="#4a4038"/>
+      <stop offset="100%" stop-color="#221c18"/>
+    </linearGradient>
+    <linearGradient id="boot" x1="16" y1="84" x2="32" y2="95" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3a322c"/>
+      <stop offset="100%" stop-color="#0e0c0a"/>
+    </linearGradient>
+    <linearGradient id="pouch" x1="50" y1="48" x2="66" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d4b070"/>
+      <stop offset="50%" stop-color="#8a5a30"/>
+      <stop offset="100%" stop-color="#4a2c16"/>
+    </linearGradient>
+    <linearGradient id="sleeve" x1="10" y1="18" x2="26" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c49a62"/>
+      <stop offset="55%" stop-color="#8a5634"/>
+      <stop offset="100%" stop-color="#3e2418"/>
+    </linearGradient>
+    <filter id="drop" x="-25%" y="-10%" width="150%" height="140%">
+      <feDropShadow dx="0" dy="1.1" stdDeviation="1" flood-color="#000" flood-opacity=".4"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="36.5" cy="92.5" rx="20" ry="3.6" fill="#000" opacity=".4"/>
+
+  <g filter="url(#drop)" stroke="#16110f" stroke-width="1.05" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M29 58 C25 63 21 71 20 79 C19.2 84 21 87.5 24.5 88.5" fill="none" stroke="#14110f" stroke-width="10.5"/>
+    <path d="M43 58 C48 63 51.5 71 51.5 79 C52.2 84 50.2 87.5 47 88.5" fill="none" stroke="#14110f" stroke-width="10.5"/>
+    <path d="M29 58 C25 63 21 71 20 79 C19.2 84 21 87.5 24.5 88.5" fill="none" stroke="url(#pants)" stroke-width="7.6"/>
+    <path d="M43 58 C48 63 51.5 71 51.5 79 C52.2 84 50.2 87.5 47 88.5" fill="none" stroke="url(#pants)" stroke-width="7.6"/>
+    <path d="M24 72 L29 74" fill="none" stroke="#c4a888" stroke-width="1.1" opacity=".35"/>
+    <path d="M47 72 L51 74" fill="none" stroke="#c4a888" stroke-width="1.1" opacity=".35"/>
+
+    <rect x="16.5" y="86.2" width="13.5" height="6.4" rx="1.8" fill="url(#boot)"/>
+    <rect x="43.2" y="86.2" width="13.5" height="6.4" rx="1.8" fill="url(#boot)"/>
+    <rect x="16.5" y="91.4" width="13.5" height="1.7" rx=".5" fill="#090807"/>
+    <rect x="43.2" y="91.4" width="13.5" height="1.7" rx=".5" fill="#090807"/>
+    <path d="M18 88.2 H28.5" fill="none" stroke="#6a5a4e" stroke-width=".7"/>
+    <path d="M44.8 88.2 H55.2" fill="none" stroke="#6a5a4e" stroke-width=".7"/>
+
+    <path d="M21 34 C16.5 36 14.5 41.5 15.5 49 L18.5 61 C19.5 65.5 24 67.5 36 67.5 C48 67.5 52.5 65.5 53.5 61 L56.5 49 C57.5 41.5 55.5 36 51 34 C46.5 32 25.5 32 21 34 Z" fill="url(#vest)"/>
+    <path d="M23.5 38 L28 33.5 L44 33.5 L48.5 38 L47.5 49 L42 57 L28 57 L22.8 49 Z" fill="#ffe6b0" opacity=".18"/>
+    <path d="M27.5 36 L29.5 61" fill="none" stroke="#2a1a12" stroke-width="1.35" opacity=".75"/>
+    <path d="M44.5 36 L42.5 61" fill="none" stroke="#2a1a12" stroke-width="1.35" opacity=".75"/>
+    <rect x="25.5" y="39.5" width="21" height="1.7" rx=".5" fill="#ead09a" opacity=".5"/>
+    <rect x="26.5" y="47.5" width="19" height="1.4" rx=".5" fill="#ead09a" opacity=".28"/>
+    <rect x="19.5" y="59.5" width="33" height="6.2" rx="1.4" fill="#241814"/>
+    <rect x="25.5" y="61" width="6.2" height="2.5" rx=".5" fill="#c4a070"/>
+    <rect x="40.2" y="61" width="6.2" height="2.5" rx=".5" fill="#c4a070"/>
+
+    <rect x="50.2" y="48.5" width="12.2" height="17.5" rx="2.8" fill="url(#pouch)"/>
+    <rect x="52.2" y="51.5" width="8.2" height="8" rx="1.4" fill="#4e301c"/>
+    <rect x="52.2" y="60.8" width="8.2" height="3.6" rx="1" fill="#d4a060"/>
+
+    <ellipse cx="18.6" cy="36.5" rx="6.1" ry="7.1" transform="rotate(-16 18.6 36.5)" fill="#6a4430"/>
+    <ellipse cx="53.4" cy="36.5" rx="6.1" ry="7.1" transform="rotate(16 53.4 36.5)" fill="#6a4430"/>
+    <ellipse cx="18.6" cy="36.5" rx="6.1" ry="7.1" transform="rotate(-16 18.6 36.5)" fill="none" stroke="#c09060"/>
+    <ellipse cx="53.4" cy="36.5" rx="6.1" ry="7.1" transform="rotate(16 53.4 36.5)" fill="none" stroke="#c09060"/>
+
+    <path d="M20 38 C15 33 12.5 26 13.5 20 C14.2 16.5 17.5 15.2 20.5 17 C23.2 18.6 24.8 24 24.2 30 C23.8 33.5 22.2 36.5 20 38 Z" fill="url(#sleeve)"/>
+    <path d="M52.5 38 C47 42.5 39 47.5 31 51 C28.5 52.2 27 49.6 29.2 48.2 C37 43.5 45.5 39.2 52.5 36.2 Z" fill="url(#sleeve)"/>
+    <circle cx="14.2" cy="18.2" r="3.5" fill="url(#skin)"/>
+    <circle cx="13.4" cy="17.4" r="1.25" fill="#f4c994"/>
+    <circle cx="30.2" cy="50" r="3.5" fill="url(#skin)"/>
+    <circle cx="29.4" cy="49.2" r="1.25" fill="#f4c994"/>
+
+    <rect x="32.2" y="28.2" width="8.4" height="6.4" rx="2.2" fill="#b07858" stroke="#6a4030"/>
+
+    <ellipse cx="23.6" cy="22.4" rx="2.9" ry="3.8" transform="rotate(-16 23.6 22.4)" fill="url(#skin)"/>
+    <ellipse cx="23.6" cy="22.4" rx="1.35" ry="2" transform="rotate(-16 23.6 22.4)" fill="#c08060" stroke="none"/>
+
+    <path d="M23 23 C20.2 17.5 22.2 9.2 29.2 6.6 C33.2 5.2 41.2 5.4 45.6 8 C51.2 11.6 53.2 18.2 50.4 24.2 C48.4 28.8 43.8 31.6 36.4 32 C29.2 32.4 24.6 29.2 23 23 Z" fill="url(#hair)"/>
+    <path d="M25.5 26.5 C27.5 30.8 32.5 32.6 36.6 32.6 C42.4 32.6 47.6 30 49.2 26.2 C46.8 30.6 41.5 33.2 36.4 33.2 C30.6 33.2 26.4 30.4 25.5 26.5 Z" fill="#6a3c12" opacity=".42"/>
+    <path d="M24.2 18.5 C21.4 16.2 21.8 12.4 24.8 11.4 C23 15.2 23.4 18 24.2 18.5 Z" fill="#e0b048"/>
+    <path d="M47.6 17.8 C50.8 15.6 51.4 12.2 48.6 11.2 C49.8 15 48.8 17.4 47.6 17.8 Z" fill="#e0b048"/>
+    <path d="M27.5 14.5 C30 10.6 38 10.2 41.2 13.4 C37.6 11.8 31.5 12.2 27.5 14.5 Z" fill="url(#hairShine)" stroke="none"/>
+    <path d="M28 21 C30.5 19.2 33 21.6 32.2 24" fill="none" stroke="#a56a20" stroke-width=".7" opacity=".45"/>
+    <path d="M39 20.5 C41.2 18.8 43.6 21.2 42.8 24" fill="none" stroke="#a56a20" stroke-width=".7" opacity=".45"/>
+  </g>
+</svg>

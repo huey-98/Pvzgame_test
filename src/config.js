@@ -2,7 +2,12 @@
 (function (Game) {
   "use strict";
   Game.config = {
-    width: 360, height: 640, maxLevel: 10,
+    width: 360, height: 640, maxLevel: 10, rifleSideOffset: -6, muzzleDistance: 34,
+    sprites: {
+      playerBody: { src: ["assets/player-man.png", "assets/player-body.png", "assets/man.png"], width: 74, height: 131, anchorX: 37, anchorY: 78 },
+      playerRifle: { src: "assets/player-rifle.png", width: 18, height: 46, anchorX: 9, anchorY: 38, mountX: -6, mountY: -40 }
+    },
+    skillRing: { offsetX: 86, offsetY: -102 },
     colors: { bg: "#0b202c", text: "#f4f8fb", muted: "#9ab0bc", green: "#63e6a0", yellow: "#ffd166", red: "#ff6b6b", cyan: "#68d8ff", ice: "#58aaff", fire: "#ff9b52", purple: "#c9a1ff" },
     enemies: {
       normal: { name: "普通僵尸", hp: 28, speed: 25, radius: 14, damage: 10, xp: 8, color: "#6eaa7b", accent: "#b1e4a0" },

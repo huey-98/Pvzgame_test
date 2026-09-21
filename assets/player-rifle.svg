@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 80">
+  <defs>
+    <linearGradient id="metal" x1="7" y1="0" x2="21" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0c1214"/>
+      <stop offset="40%" stop-color="#6e7c78"/>
+      <stop offset="100%" stop-color="#182022"/>
+    </linearGradient>
+    <linearGradient id="barrel" x1="10" y1="0" x2="18" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10181a"/>
+      <stop offset="45%" stop-color="#4a5854"/>
+      <stop offset="100%" stop-color="#0c1214"/>
+    </linearGradient>
+    <linearGradient id="grip" x1="10" y1="50" x2="20" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2c3434"/>
+      <stop offset="100%" stop-color="#101616"/>
+    </linearGradient>
+    <filter id="gunShadow" x="-50%" y="-8%" width="200%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000" flood-opacity=".5"/>
+    </filter>
+  </defs>
+  <g filter="url(#gunShadow)" stroke="#0a1012" stroke-width=".75" stroke-linejoin="round">
+    <rect x="11.4" y="5.5" width="5.2" height="26" rx=".9" fill="url(#barrel)"/>
+    <rect x="12.4" y="9" width="2" height="15" fill="#6a7a74" stroke="none"/>
+    <rect x="8.8" y="1.6" width="10.4" height="4" rx=".8" fill="#12181a"/>
+    <rect x="11.2" y="2" width="5.6" height="2" rx=".5" fill="#8aa298" stroke="none"/>
+    <rect x="8.2" y="5.2" width="11.6" height="3.4" rx=".7" fill="#1a2424"/>
+    <path d="M8.2 23.5 H19.8 V43.5 H8.2 Z" fill="url(#metal)"/>
+    <path d="M9 26.5 H19 M9 30.5 H19 M9 34.5 H19 M9 38.5 H19" fill="none" stroke="#c8ddd4" stroke-width=".4" opacity=".5"/>
+    <rect x="11.2" y="19.5" width="5.6" height="21" fill="#1a2424"/>
+    <rect x="12.3" y="21.5" width="1.9" height="16" fill="#6a7a74" stroke="none"/>
+    <path d="M8 42 H20 V57.5 L16.8 61.5 H11.2 L8 56 Z" fill="url(#metal)"/>
+    <rect x="9.3" y="45" width="9.4" height="2.5" fill="#0c1214"/>
+    <path d="M10.6 55.5 Q14 60.5 17.4 55.5" fill="none" stroke="#8a9c94" stroke-width="1.05"/>
+    <path d="M10.2 53.5 H17.8 L17 72.5 L11.2 74.5 Z" fill="url(#grip)"/>
+    <path d="M9 51.5 H19 L17.8 67.5 H10.2 Z" fill="#141c1a"/>
+    <rect x="10.5" y="52.6" width="7" height="1.8" fill="#5a6862" stroke="none"/>
+    <path d="M9.4 59.5 H18.6 L19.4 71.5 L16.2 75.5 H11.6 L8.6 69.5 Z" fill="#1c2426"/>
+    <rect x="9.8" y="61.5" width="8.4" height="4" fill="#323e40"/>
+  </g>
+</svg>
