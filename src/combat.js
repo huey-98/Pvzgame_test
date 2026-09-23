@@ -3,41 +3,95 @@
   "use strict";
   var C = Game.config, S = Game.state, U = Game.utils;
   Game.spawnEnemy = function (type) { var info = C.enemies[type], enemy = { type: type, x: U.rand(22, C.width - 22), y: -info.radius - 8, hp: info.hp, maxHp: info.hp, slow: 0, burn: 0, hitFlash: 0, attackTimer: 0 }; if (type === "boss") enemy.x = C.width / 2; S.enemies.push(enemy); };
-  Game.updateAim = function (dt) { var p = S.player; if (p.manualAimTimer > 0) { p.manualAimTimer -= dt; return; } var target = null, bestDistance = Infinity; S.enemies.forEach(function (enemy) { if (enemy.y > p.y + 40) return; var distance = Math.pow(enemy.x - p.x, 2) + Math.pow(enemy.y - p.y, 2); if (distance < bestDistance) { bestDistance = distance; target = enemy; } }); p.aimAngle = target ? Math.atan2(target.y - p.y, target.x - p.x) : -Math.PI / 2; };
-  Game.setManualAim = function (x, y) { var p = S.player, dx = x - p.x, dy = y - p.y; if (dx * dx + dy * dy < 16) return; p.aimAngle = Math.atan2(dy, dx); p.manualAimTimer = 2.5; S.session.message = "手动瞄准"; S.session.messageTimer = .7; };
-  Game.getWeaponMuzzle = function (p, distance, angle) {
+  Game.getWeaponMount = function (p) {
     var rifle = C.sprites && C.sprites.playerRifle;
-    var muzzleDistance = distance || C.muzzleDistance, shotAngle = angle === undefined ? p.aimAngle : angle;
-    var mountX = rifle && rifle.mountX !== undefined ? rifle.mountX : 0;
-    var mountY = rifle && rifle.mountY !== undefined ? rifle.mountY : 0;
-    return { x: p.x + mountX + Math.cos(shotAngle) * muzzleDistance, y: p.y + mountY + Math.sin(shotAngle) * muzzleDistance };
+    return {
+      x: p.x + (rifle && rifle.mountX !== undefined ? rifle.mountX : 0),
+      y: p.y + (rifle && rifle.mountY !== undefined ? rifle.mountY : 0)
+    };
+  };
+  Game.getAimAngleForShot = function (targetAngle, p) {
+    var lanes = 1 + p.spread, lockLane = Math.floor((lanes - 1) / 2);
+    var lockOffset = (lockLane - (lanes - 1) / 2) * (C.spreadAngle || 0);
+    return targetAngle - lockOffset;
+  };
+  Game.updateAim = function (dt) {
+    var p = S.player;
+    if (p.manualAimTimer > 0) {
+      p.manualAimTimer = Math.max(0, p.manualAimTimer - dt);
+      if (p.manualAimTimer > 0) return;
+    }
+
+    var mount = Game.getWeaponMount(p), target = null, targetX = 0, targetY = 0, bestTime = Infinity;
+    S.enemies.forEach(function (enemy) {
+      var info = C.enemies[enemy.type];
+      var speed = info.speed * (enemy.slow > 0 ? .58 : 1);
+      if (enemy.type === "boss" && enemy.hp < enemy.maxHp * .5) speed *= 1.5;
+      var attackY = S.wall ? S.wall.y - S.wall.height / 2 - info.radius - 3 : C.height;
+      var predictedX = enemy.x, predictedY = enemy.y, flightTime = 0;
+
+      // Re-estimate the intercept point so moving enemies, including those near either edge, stay on the firing line.
+      for (var i = 0; i < 3; i++) {
+        var dx = predictedX - mount.x, dy = predictedY - mount.y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        flightTime = Math.max(0, (distance - C.muzzleDistance) / 300);
+        predictedX = enemy.x;
+        predictedY = Math.min(attackY, enemy.y + speed * flightTime);
+      }
+
+      if (flightTime < bestTime) {
+        bestTime = flightTime;
+        target = enemy;
+        targetX = predictedX;
+        targetY = predictedY;
+      }
+    });
+
+    p.aimAngle = target ? Game.getAimAngleForShot(Math.atan2(targetY - mount.y, targetX - mount.x), p) : -Math.PI / 2;
+  };
+  Game.setManualAim = function (x, y) { var p = S.player, mount = Game.getWeaponMount(p), dx = x - mount.x, dy = y - mount.y; if (dx * dx + dy * dy < 16) return; p.aimAngle = Game.getAimAngleForShot(Math.atan2(dy, dx), p); p.manualAimTimer = 2.5; S.session.message = "手动瞄准"; S.session.messageTimer = .7; };
+  Game.getWeaponMuzzle = function (p, distance, angle) {
+    var mount = Game.getWeaponMount(p), muzzleDistance = distance || C.muzzleDistance, shotAngle = angle === undefined ? p.aimAngle : angle;
+    return { x: mount.x + Math.cos(shotAngle) * muzzleDistance, y: mount.y + Math.sin(shotAngle) * muzzleDistance };
+  };
+  Game.startReload = function (p) {
+    if (p.reloadTimer > 0 || p.ammo > 0) return;
+    p.reloadTimer = p.reloadDuration;
+    p.burstShotsRemaining = 0;
+    p.burstTimer = 0;
   };
   Game.fireShot = function (p, shotAngle) {
     var lanes = 1 + p.spread;
     var muzzle = Game.getWeaponMuzzle(p, C.muzzleDistance, shotAngle);
-    var perpendicularX = -Math.sin(shotAngle), perpendicularY = Math.cos(shotAngle);
     var bulletColor = p.bulletType === "ice" ? C.colors.ice : p.bulletType === "fire" ? C.colors.fire : "#ffffff";
-    // 齐射只改变平行弹道数量，不再改变子弹角度。
+    // 齐射以等角度展开弹道；整轮弹药由 Game.fire 统一扣除。
     for (var lane = 0; lane < lanes; lane++) {
-      var offset = (lane - (lanes - 1) / 2) * 8, critical = Math.random() < p.crit;
-      S.bullets.push({ x: muzzle.x + perpendicularX * offset, y: muzzle.y + perpendicularY * offset, vx: Math.cos(shotAngle) * 300, vy: Math.sin(shotAngle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce, color: bulletColor });
+      var spreadOffset = lane - (lanes - 1) / 2, bulletAngle = shotAngle + spreadOffset * C.spreadAngle;
+      var laneMuzzle = Game.getWeaponMuzzle(p, C.muzzleDistance, bulletAngle), critical = Math.random() < p.crit;
+      S.bullets.push({ x: laneMuzzle.x, y: laneMuzzle.y, vx: Math.cos(bulletAngle) * 300, vy: Math.sin(bulletAngle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce, color: bulletColor });
     }
     for (var i = 0; i < 3; i++) S.particles.push({ x: muzzle.x + U.rand(-3, 3), y: muzzle.y + U.rand(-3, 3), vx: U.rand(-20, 20), vy: U.rand(-65, -25), life: .18, maxLife: .18, color: bulletColor, size: U.rand(2, 4) });
+    return lanes;
   };
   Game.fire = function () {
     var p = S.player;
+    if (p.reloadTimer > 0) return;
+    if (p.ammo <= 0) { Game.startReload(p); return; }
     p.burstAngle = p.aimAngle;
+    p.ammo--;
     Game.fireShot(p, p.burstAngle);
     p.fireTimer = p.fireInterval;
     p.burstShotsRemaining = p.burst;
-    p.burstTimer = p.burst > 0 ? Math.max(.06, p.fireInterval * .2) : 0;
+    p.burstTimer = p.burstShotsRemaining > 0 ? Math.max(.06, p.fireInterval * .2) : 0;
+    if (p.ammo <= 0 && p.burstShotsRemaining <= 0) Game.startReload(p);
   };
   Game.fireBurstShot = function () {
     var p = S.player;
-    if (p.burstShotsRemaining <= 0) return;
+    if (p.burstShotsRemaining <= 0 || p.reloadTimer > 0) return;
     Game.fireShot(p, p.burstAngle);
     p.burstShotsRemaining--;
     if (p.burstShotsRemaining > 0) p.burstTimer = Math.max(.06, p.fireInterval * .2);
+    else if (p.ammo <= 0) Game.startReload(p);
   };
   Game.gainXp = function (amount) { var p = S.player; if (p.level >= C.maxLevel) return; p.xp += amount; while (p.xp >= p.nextXp && p.level < C.maxLevel) { p.xp -= p.nextXp; p.level++; p.nextXp = Math.floor(p.nextXp * 1.22 + 10); S.screen = "upgrade"; S.upgradeCards = Game.rollTraits(); break; } };
   Game.rollTraits = function () { var p = S.player, pool = C.traits.filter(function (trait) { return (p.traits[trait.id] || 0) < trait.max; }).slice(), cards = []; while (pool.length && cards.length < 3) cards.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); return cards; };

@@ -47,6 +47,8 @@
     Game.drawHud();
     if (S.screen === "menu") Game.drawMenu();
     if (S.screen === "levelSelect") Game.drawLevelSelect();
+    if (S.screen === "zombieCodex") Game.drawZombieCodex();
+    if (S.screen === "skillCodex") Game.drawSkillCodex();
     if (S.screen === "upgrade") Game.drawUpgrade();
     if (S.screen === "paused") Game.drawPause();
     if (S.screen === "victory" || S.screen === "defeat") Game.drawResult();
@@ -144,11 +146,18 @@
   Game.drawEnemies = function () {
     S.enemies.forEach(function (enemy) {
       var info = C.enemies[enemy.type], r = info.radius, pulse = 1 + Math.sin(S.session.elapsed * 4) * .03;
-      var shirtColor = enemy.type === "runner" ? "#705345" : enemy.type === "bucket" ? "#58656c" : enemy.type === "boss" ? "#4d2d3b" : "#3f6655";
-      var shirtShadow = enemy.type === "runner" ? "#382b2d" : enemy.type === "bucket" ? "#303d45" : enemy.type === "boss" ? "#281c2a" : "#243c39";
+      var isRunner = enemy.type === "runner" || enemy.type === "runnerElite", isElite = info.codexCategory === "elite";
+      var shirtColor = isElite ? (isRunner ? "#98633b" : "#617745") : isRunner ? "#705345" : enemy.type === "boss" ? "#4d2d3b" : "#3f6655";
+      var shirtShadow = isElite ? "#3b3026" : isRunner ? "#382b2d" : enemy.type === "boss" ? "#281c2a" : "#243c39";
       ctx.save();
       ctx.translate(enemy.x, enemy.y);
       ctx.scale(pulse, pulse);
+      if (isElite) {
+        ctx.shadowColor = "rgba(255, 209, 102, .72)"; ctx.shadowBlur = 13;
+        ctx.strokeStyle = "#ffd166"; ctx.lineWidth = Math.max(1.5, r * .09);
+        ctx.beginPath(); ctx.arc(0, 0, r + 4, 0, Math.PI * 2); ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
       var skinGradient = ctx.createLinearGradient(-r, -r, r, r);
       skinGradient.addColorStop(0, "#e1ad86"); skinGradient.addColorStop(.55, "#a8665e"); skinGradient.addColorStop(1, "#5a3842");
       if (enemy.type === "boss") { ctx.shadowColor = "rgba(255, 107, 107, .65)"; ctx.shadowBlur = 18; }
@@ -187,8 +196,7 @@
       ctx.beginPath(); ctx.moveTo(-r * .23, -r * .51); ctx.quadraticCurveTo(0, -r * .4, r * .25, -r * .53); ctx.stroke();
 
       // 特殊僵尸的识别部件。
-      if (enemy.type === "runner") { ctx.strokeStyle = "#ffe0a7"; ctx.lineWidth = Math.max(1, r * .12); ctx.beginPath(); ctx.moveTo(-r * .7, r * .55); ctx.lineTo(-r * 1.18, r * .9); ctx.moveTo(r * .7, r * .48); ctx.lineTo(r * 1.16, r * .72); ctx.stroke(); }
-      if (enemy.type === "bucket") { ctx.fillStyle = "#536775"; ctx.fillRect(-r * .7, -r * 1.28, r * 1.4, r * .48); ctx.fillStyle = "rgba(220, 239, 240, .3)"; ctx.fillRect(-r * .58, -r * 1.2, r * .82, r * .1); ctx.strokeStyle = "#d6e0ea"; ctx.lineWidth = Math.max(1, r * .08); ctx.strokeRect(-r * .7, -r * 1.28, r * 1.4, r * .48); }
+       if (isRunner) { ctx.strokeStyle = isElite ? "#fff0a5" : "#ffe0a7"; ctx.lineWidth = Math.max(1, r * .12); ctx.beginPath(); ctx.moveTo(-r * .7, r * .55); ctx.lineTo(-r * 1.18, r * .9); ctx.moveTo(r * .7, r * .48); ctx.lineTo(r * 1.16, r * .72); ctx.stroke(); }
       if (enemy.type === "boss") { ctx.fillStyle = "#6d3949"; ctx.beginPath(); ctx.moveTo(-r * .65, -r * 1.18); ctx.lineTo(-r * .82, -r * 1.7); ctx.lineTo(-r * .35, -r * 1.35); ctx.lineTo(0, -r * 1.78); ctx.lineTo(r * .3, -r * 1.3); ctx.lineTo(r * .82, -r * 1.7); ctx.lineTo(r * .65, -r * 1.1); ctx.closePath(); ctx.fill(); ctx.strokeStyle = C.colors.red; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r + 5, 0, Math.PI * 2); ctx.stroke(); }
       ctx.restore();
       if (enemy.type !== "boss") { ctx.fillStyle = "rgba(0, 0, 0, .5)"; ctx.fillRect(enemy.x - r, enemy.y - r - 13, r * 2, 3); ctx.fillStyle = C.colors.green; ctx.fillRect(enemy.x - r, enemy.y - r - 13, r * 2 * U.clamp(enemy.hp / enemy.maxHp, 0, 1), 3); }
@@ -323,15 +331,26 @@
 
   Game.drawHud = function () {
     var p = S.player, session = S.session;
-    if (!p || S.screen === "menu") return;
+    if (!p || S.screen === "menu" || S.screen === "zombieCodex" || S.screen === "skillCodex") return;
     var level = C.levels.find(function (item) { return item.id === session.level; });
     panel(10, 10, C.width - 20, 72, "rgba(7, 21, 30, .82)", "rgba(153, 205, 218, .18)", 15);
     Game.drawPauseButton(17, 20, 32, 32);
     text(level ? level.name : "未知区域", C.width / 2, 31, "bold 17px Segoe UI, Microsoft YaHei", C.colors.text, "center");
     text("第 " + session.wave + " / " + C.waves.length + " 波", C.width - 18, 29, "bold 10px Segoe UI, Microsoft YaHei", C.colors.muted, "right");
-    U.roundedRect(ctx, 67, 46, 226, 9, 4, "rgba(255,255,255,.12)");
-    U.roundedRect(ctx, 67, 46, 226 * U.clamp(p.xp / p.nextXp, 0, 1), 9, 4, C.colors.cyan);
-    text(p.level >= C.maxLevel ? "LV.MAX · 经验已满" : "LV." + p.level + "  " + Math.floor(p.xp) + " / " + p.nextXp + " XP", C.width / 2, 70, "10px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    U.roundedRect(ctx, 67, 46, 166, 9, 4, "rgba(255,255,255,.12)");
+    U.roundedRect(ctx, 67, 46, 166 * U.clamp(p.xp / p.nextXp, 0, 1), 9, 4, C.colors.cyan);
+    text(p.level >= C.maxLevel ? "LV.MAX · 经验已满" : "LV." + p.level + "  " + Math.floor(p.xp) + " / " + p.nextXp + " XP", 150, 70, "10px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    var rifleIcon = Game.sprites.images.playerRifle, ammoColor = p.reloadTimer > 0 ? C.colors.yellow : p.ammo <= 5 ? C.colors.red : C.colors.cyan;
+    if (rifleIcon) {
+      ctx.save(); ctx.translate(271, 52); ctx.rotate(Math.PI / 2); ctx.drawImage(rifleIcon, -5, -19, 10, 38); ctx.restore();
+    } else {
+      ctx.save(); ctx.strokeStyle = ammoColor; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(253, 51); ctx.lineTo(288, 51); ctx.stroke(); ctx.fillStyle = ammoColor; ctx.fillRect(259, 48, 15, 6); ctx.fillRect(267, 53, 4, 6); ctx.restore();
+    }
+    text(p.ammo + "\\" + p.magazineSize, C.width - 19, 68, "bold 12px Segoe UI, Microsoft YaHei", ammoColor, "right");
+    if (p.reloadTimer > 0) {
+      U.roundedRect(ctx, 251, 65, 40, 4, 2, "rgba(255,255,255,.14)");
+      U.roundedRect(ctx, 251, 65, 40 * (1 - p.reloadTimer / p.reloadDuration), 4, 2, C.colors.yellow);
+    }
     if (session.messageTimer > 0) text(session.message, C.width / 2, 111, "bold 17px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
     var boss = S.enemies.find(function (enemy) { return enemy.type === "boss"; });
     if (boss) { badge("BOSS  ·  尸潮领主", 104, 101, 152, C.colors.red); U.roundedRect(ctx, 44, 127, C.width - 88, 8, 4, "rgba(0,0,0,.5)"); U.roundedRect(ctx, 44, 127, (C.width - 88) * U.clamp(boss.hp / boss.maxHp, 0, 1), 8, 4, C.colors.red); }
@@ -357,8 +376,91 @@
 
   Game.overlay = function () { ctx.fillStyle = "rgba(3, 9, 13, .84)"; ctx.fillRect(0, 0, C.width, C.height); };
   Game.button = function (x, y, w, h, label, color) { var gradient = ctx.createLinearGradient(x, y, x, y + h); gradient.addColorStop(0, color); gradient.addColorStop(1, "#2c9d91"); ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = 16; U.roundedRect(ctx, x, y, w, h, 13, gradient); ctx.restore(); text(label, x + w / 2, y + h / 2 + 5, "bold 15px Segoe UI, Microsoft YaHei", "#071217", "center"); };
-  Game.drawMenu = function () { Game.overlay(); panel(28, 96, C.width - 56, 382, "rgba(10, 35, 49, .78)", "rgba(153, 205, 218, .18)", 20); badge("SURVIVAL  PROTOCOL", 102, 122, 156, C.colors.cyan); text("街区警戒线", C.width / 2, 182, "bold 31px Segoe UI, Microsoft YaHei", C.colors.yellow, "center"); text("竖屏僵尸生存射击", C.width / 2, 211, "15px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text("步枪自动锁定目标 · 点击画面调整方向", C.width / 2, 251, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center"); Game.button(C.width / 2 - 82, 294, 164, 46, "开始战斗", C.colors.green); Game.button(C.width / 2 - 82, 356, 164, 42, "选择关卡", C.colors.cyan); text("当前开放：第 1 关", C.width / 2, 434, "11px Segoe UI, Microsoft YaHei", C.colors.muted, "center"); };
+  Game.drawMenu = function () {
+    Game.overlay();
+    panel(28, 80, C.width - 56, 474, "rgba(10, 35, 49, .78)", "rgba(153, 205, 218, .18)", 20);
+    badge("SURVIVAL  PROTOCOL", 102, 104, 156, C.colors.cyan);
+    text("街区警戒线", C.width / 2, 164, "bold 31px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    text("竖屏僵尸生存射击", C.width / 2, 194, "15px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    text("步枪自动锁定目标 · 点击画面调整方向", C.width / 2, 229, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    Game.button(C.width / 2 - 82, 249, 164, 46, "开始战斗", C.colors.green);
+    Game.button(C.width / 2 - 82, 309, 164, 42, "选择关卡", C.colors.cyan);
+    Game.button(22, 365, 150, 44, "僵尸图鉴", "#58aaff");
+    Game.button(188, 365, 150, 44, "技能图鉴", C.colors.purple);
+    text("当前开放：第 1 关", C.width / 2, 462, "11px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+  };
   Game.drawLevelSelect = function () { Game.overlay(); panel(16, 60, C.width - 32, 530, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20); badge("MISSION SELECT", 105, 84, 150, C.colors.cyan); text("选择关卡", C.width / 2, 130, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center"); text("完成前一关后解锁后续区域", C.width / 2, 153, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center"); C.levels.forEach(function (level, index) { var x = 30, y = 180 + index * 100, unlocked = level.unlocked; panel(x, y, 300, 82, unlocked ? "#163b4d" : "rgba(24, 35, 46, .9)", unlocked ? "rgba(104,216,255,.38)" : "rgba(153,205,218,.12)", 14); text("0" + level.id, x + 24, y + 34, "bold 20px Segoe UI, Microsoft YaHei", unlocked ? C.colors.cyan : "#667985", "center"); text(level.name, x + 52, y + 29, "bold 15px Segoe UI, Microsoft YaHei", unlocked ? C.colors.text : "#71828b"); text(level.subtitle, x + 52, y + 52, "11px Segoe UI, Microsoft YaHei", unlocked ? C.colors.muted : "#56666e"); if (unlocked) { U.roundedRect(ctx, x + 226, y + 25, 60, 30, 10, "#245f73"); text("进入", x + 256, y + 44, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); } else { text("🔒 锁定", x + 256, y + 44, "bold 11px Segoe UI, Microsoft YaHei", "#7e8d94", "center"); } }); Game.button(C.width / 2 - 72, 518, 144, 40, "返回首页", "#4b7180"); };
+  function drawCodexTab(x, y, w, label, active, color) {
+    U.roundedRect(ctx, x, y, w, 31, 10, active ? "rgba(49, 105, 125, .95)" : "rgba(13, 29, 39, .9)", active ? color : "rgba(153,205,218,.18)");
+    text(label, x + w / 2, y + 20, "bold 11px Segoe UI, Microsoft YaHei", active ? C.colors.text : C.colors.muted, "center");
+  }
+  function drawCodexPager(page, totalPages) {
+    if (totalPages > 1) {
+      Game.button(94, 521, 54, 31, "‹", C.colors.cyan);
+      text((page + 1) + " / " + totalPages, C.width / 2, 542, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+      Game.button(212, 521, 54, 31, "›", C.colors.cyan);
+    }
+    Game.button(C.width / 2 - 72, 561, 144, 36, "返回首页", "#4b7180");
+  }
+  Game.drawZombieCodex = function () {
+    Game.overlay();
+    panel(14, 36, C.width - 28, 568, "rgba(10, 35, 49, .97)", "rgba(153, 205, 218, .22)", 20);
+    badge("FIELD GUIDE  ·  ENEMIES", 91, 50, 178, C.colors.cyan);
+    text("僵尸图鉴", C.width / 2, 95, "bold 23px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    var categories = [{ id: "minion", label: "小怪", color: C.colors.green }, { id: "elite", label: "精英", color: C.colors.yellow }, { id: "boss", label: "首领", color: C.colors.red }];
+    categories.forEach(function (category, index) { drawCodexTab(22 + index * 106, 107, 102, category.label, S.zombieCodexCategory === category.id, category.color); });
+    var selected = categories.find(function (category) { return category.id === S.zombieCodexCategory; }) || categories[0];
+    var entryIds = Object.keys(C.enemies).filter(function (id) { return (C.enemies[id].codexCategory || "minion") === selected.id; });
+    var pages = Math.max(1, Math.ceil(entryIds.length / 4)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
+    S.codexPage = page;
+    var selectedEnemy = S.selectedZombieCodexId ? C.enemies[S.selectedZombieCodexId] : null;
+    if (selectedEnemy && (selectedEnemy.codexCategory || "minion") === selected.id) {
+      panel(26, 148, 308, 354, "rgba(17, 47, 62, .94)", "rgba(104,216,255,.22)", 16);
+      text(selectedEnemy.name, C.width / 2, 183, "bold 22px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+      text(selected.label + "单位", C.width / 2, 207, "bold 11px Segoe UI, Microsoft YaHei", selected.color, "center");
+      text("生命 " + selectedEnemy.hp + "   ·   移速 " + selectedEnemy.speed + " / 秒", 44, 244, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
+      text("城墙伤害 " + selectedEnemy.damage + "   ·   击杀经验 " + selectedEnemy.xp, 44, 270, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
+      text("体型半径 " + selectedEnemy.radius, 44, 296, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
+      text("单位特征", 44, 330, "bold 12px Segoe UI, Microsoft YaHei", C.colors.yellow);
+      ctx.font = "12px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.text; ctx.textAlign = "left";
+      U.wrapText(ctx, selectedEnemy.description || "详细资料待补充。", 44, 352, 272, 14);
+      text("应对建议", 44, 414, "bold 12px Segoe UI, Microsoft YaHei", C.colors.yellow);
+      ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
+      U.wrapText(ctx, selectedEnemy.tactics || "暂无应对建议。", 44, 435, 272, 14);
+      Game.button(C.width / 2 - 82, 553, 164, 40, "返回图鉴列表", C.colors.cyan);
+      return;
+    }
+    entryIds.slice(page * 4, page * 4 + 4).forEach(function (id, index) {
+      var x = 26 + (index % 2) * 160, y = 155 + Math.floor(index / 2) * 160;
+      panel(x, y, 148, 148, "rgba(17, 47, 62, .94)", "rgba(104,216,255,.3)", 16);
+      text(C.enemies[id].name, x + 74, y + 80, "bold 15px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    });
+    if (!entryIds.length) text("该类别暂无收录单位。", C.width / 2, 300, "13px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    drawCodexPager(page, pages);
+  };
+  Game.drawSkillCodex = function () {
+    Game.overlay();
+    panel(14, 36, C.width - 28, 568, "rgba(10, 35, 49, .97)", "rgba(153, 205, 218, .22)", 20);
+    badge("FIELD GUIDE  ·  SKILLS", 91, 50, 178, C.colors.purple);
+    text("技能图鉴", C.width / 2, 95, "bold 23px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    drawCodexTab(24, 107, 148, "步枪强化", S.skillCodexCategory === "rifle", C.colors.cyan);
+    drawCodexTab(188, 107, 148, "核心技能", S.skillCodexCategory === "core", C.colors.purple);
+    var entries = S.skillCodexCategory === "core" ? C.coreSkills : C.traits;
+    var pages = Math.max(1, Math.ceil(entries.length / 3)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
+    S.codexPage = page;
+    entries.slice(page * 3, page * 3 + 3).forEach(function (skill, index) {
+      var x = 26, y = 146 + index * 125, h = 117;
+      panel(x, y, 308, h, "rgba(17, 47, 62, .94)", "rgba(201,161,255,.22)", 14);
+      var implemented = !skill.status;
+      text(skill.icon, x + 18, y + 34, "bold 21px Segoe UI, Microsoft YaHei", implemented ? C.colors.cyan : C.colors.purple, "center");
+      text(skill.name, x + 40, y + 27, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text);
+      text(skill.status || (skill.rarity + " · 最高 Lv." + skill.max), x + 294, y + 25, "bold 9px Segoe UI, Microsoft YaHei", implemented ? C.colors.green : C.colors.yellow, "right");
+      text(implemented ? "升级效果" : "核心技能 · 尚未实装", x + 40, y + 45, "10px Segoe UI, Microsoft YaHei", C.colors.muted);
+      ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.text; ctx.textAlign = "left";
+      U.wrapText(ctx, skill.detail || skill.desc || "技能说明待补充。", x + 14, y + 68, 280, 14);
+    });
+    drawCodexPager(page, pages);
+  };
   Game.drawUpgrade = function () { Game.overlay(); panel(16, 76, C.width - 32, 414, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20); text("等级提升！", C.width / 2, 119, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center"); text("选择一项强化，战斗将继续", C.width / 2, 143, "12px Segoe UI, Microsoft YaHei", C.colors.text, "center"); var cardW = 98, gap = 8, start = (C.width - cardW * 3 - gap * 2) / 2; S.upgradeCards.forEach(function (trait, i) { var x = start + i * (cardW + gap), y = 190, level = S.player.traits[trait.id] || 0, rare = trait.rarity === "稀有"; panel(x, y, cardW, 218, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.45)" : "rgba(104,216,255,.28)", 14); text(trait.icon, x + cardW / 2, y + 50, "bold 31px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center"); text(trait.name, x + cardW / 2, y + 82, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text(trait.rarity + " · Lv." + (level + 1) + "/" + trait.max, x + cardW / 2, y + 104, "bold 11px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "center"); ctx.fillStyle = C.colors.muted; ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.textAlign = "center"; U.wrapText(ctx, trait.desc, x + cardW / 2, y + 135, 78, 16); U.roundedRect(ctx, x + 17, y + 181, 64, 27, 8, "#245f73"); text("选择", x + cardW / 2, y + 199, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); }); };
   Game.drawResult = function () { Game.overlay(); panel(30, 120, C.width - 60, 250, "rgba(10, 35, 49, .9)", "rgba(153, 205, 218, .18)", 20); var win = S.screen === "victory", session = S.session; text(win ? "关卡胜利" : "战斗失败", C.width / 2, 185, "bold 31px Segoe UI, Microsoft YaHei", win ? C.colors.green : C.colors.red, "center"); text(win ? "你守住了街区警戒线" : "尸潮突破了防线", C.width / 2, 217, "15px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text("用时 " + U.formatTime(session.elapsed) + "  ·  击杀 " + session.kills + "  ·  等级 " + S.player.level, C.width / 2, 263, "13px Segoe UI, Microsoft YaHei", C.colors.muted, "center"); Game.button(C.width / 2 - 82, 307, 164, 48, "重新开始", win ? C.colors.green : C.colors.yellow); };
 })(window.Game = window.Game || {});
