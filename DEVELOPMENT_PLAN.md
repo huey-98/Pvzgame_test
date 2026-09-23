@@ -215,3 +215,4 @@
 - 已使用 `git diff --check` 检查补丁空白字符。
 - Windows Git 出现的 `LF will be replaced by CRLF` 仅为换行符转换提示，不影响运行。
 - 人物精灵可从 `player-man.png` / `player-body.png` / `man.png` 回退加载；步枪与幻形位置由 `config.js` 的 `sprites.playerRifle` 和 `skillRing` 控制。
+
