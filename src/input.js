@@ -14,7 +14,7 @@
       count = Object.keys(C.enemies).filter(function (id) { return (C.enemies[id].codexCategory || "minion") === S.zombieCodexCategory; }).length;
       return Math.max(1, Math.ceil(count / 4));
     }
-    count = S.skillCodexCategory === "core" ? C.coreSkills.length : C.traits.length;
+    count = S.skillCodexCategory === "core" ? C.coreSkills.length + (C.skillTraits || []).length : C.traits.length;
     return Math.max(1, Math.ceil(count / 3));
   }
 

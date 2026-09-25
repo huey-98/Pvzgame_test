@@ -16,6 +16,10 @@
       runnerElite: { name: "快跑僵尸精英", codexCategory: "elite", description: "快跑僵尸的精英强化形态，保留高速冲锋特性，并拥有更大的体型、更高的生命和更强的攻击。", tactics: "速度与耐久兼备，出现后应优先集火；冰冻效果可以压制其推进速度。", hp: 300, speed: 68, radius: 19, damage: 16, xp: 30, color: "#a86735", accent: "#ffe08a" },
       boss: { name: "尸潮领主", codexCategory: "boss", description: "关卡首领，体型巨大、生命值极高；生命低于一半时进入狂暴状态，移动速度提升。", tactics: "持续输出并留意其接近城墙；燃烧、暴击与高伤害构筑有助于缩短战斗时间。", hp: 3000, speed: 12, radius: 34, damage: 24, xp: 100, color: "#9d5264", accent: "#ffb0bc" }
     },
+    skillDefaults: {
+      thermobaric: { unlocked: false, level: 0, fireInterval: 5, projectileSpeed: 250, projectileRadius: 8, impactDamage: 32, impactKnockback: 24, explosionDamage: 58, explosionRadius: 68, explosionKnockback: 42, burnDps: 10, burnDuration: 2.5, pierce: 0, burst: 0 },
+      dryIce: { unlocked: false, level: 0, fireInterval: 4.2, projectileSpeed: 300, projectileRadius: 7, damage: 28, knockback: 12, pierce: 3, freezeDuration: 0, slowFactor: .58, splitCount: 0, spread: 0, burst: 0 }
+    },
     traits: [
       { id: "damage", name: "增伤", rarity: "普通", max: 5, icon: "✦", desc: "子弹伤害 +25%", detail: "每级使所有步枪子弹伤害提高 25%，最高 5 级。稳定提升清理普通敌人和攻击首领的效率。", apply: function (p) { p.damage *= 1.25; } },
       { id: "burst", name: "连发", rarity: "普通", max: 3, icon: "➤", desc: "每次沿同一弹道连续发射 1 枚子弹", detail: "每级令每次攻击沿同一条弹道追加 1 颗子弹，最高 3 级；额外子弹不改变方向，连发整轮只消耗 1 发弹药。", apply: function (p) { p.burst += 1; } },
@@ -28,10 +32,26 @@
       { id: "burn", name: "燃烧弹", rarity: "稀有", max: 3, icon: "♨", desc: "命中后附加持续伤害", detail: "将子弹切换为火焰属性，命中后施加持续燃烧；燃烧伤害和持续时间随等级提升，最高 3 级。", apply: function (p) { p.burn += 1; p.bulletType = "fire"; } },
       { id: "freeze", name: "冰冻弹", rarity: "稀有", max: 3, icon: "❄", desc: "命中后减缓敌人移动", detail: "将子弹切换为冰冻属性，命中后减缓敌人移动；减速持续时间随等级提升，最高 3 级。", apply: function (p) { p.freeze += .12; p.bulletType = "ice"; } }
     ],
+    skillTraits: [
+      { id: "unlockThermobaric", skillId: "thermobaric", unlocksSkill: true, name: "温压弹", rarity: "稀有", max: 1, icon: "♨", desc: "解锁温压弹技能", detail: "首次获取后解锁温压弹，技能槽显示 Lv1；之后可获取温压弹专属词条继续升级。", apply: function () {} },
+      { id: "thermoBlast", skillId: "thermobaric", name: "爆炸增伤", rarity: "稀有", max: 5, icon: "✹", desc: "温压弹爆炸伤害 +25%", detail: "每级提升温压弹爆炸伤害 25%，最高 5 级；不影响命中时的冲击伤害。", apply: function (p) { p.skills.thermobaric.explosionDamage *= 1.25; } },
+      { id: "thermoPierce", skillId: "thermobaric", name: "温压弹穿透", rarity: "稀有", max: 3, icon: "↠", desc: "温压弹穿透 +1", detail: "每级增加 1 次穿透；温压弹先对沿途目标造成冲击，穿透耗尽后再爆炸。", apply: function (p) { p.skills.thermobaric.pierce += 1; } },
+      { id: "thermoBurst", skillId: "thermobaric", name: "温压弹连发", rarity: "稀有", max: 3, icon: "➤", desc: "每轮额外发射 1 颗温压弹", detail: "每级在一次温压弹攻击周期中追加 1 颗炮弹，沿相同方向依次发射，最高 3 级。", apply: function (p) { p.skills.thermobaric.burst += 1; } },
+      { id: "thermoRadius", skillId: "thermobaric", name: "爆炸范围增大", rarity: "稀有", max: 3, icon: "◉", desc: "温压弹爆炸范围 +20%", detail: "每级扩大温压弹爆炸半径 20%，最高 3 级，可覆盖更密集的敌群。", apply: function (p) { p.skills.thermobaric.explosionRadius *= 1.2; } },
+      { id: "thermoKnockback", skillId: "thermobaric", name: "击退强化", rarity: "稀有", max: 3, icon: "⇢", desc: "温压弹击退距离 +25%", detail: "每级强化温压弹命中冲击和爆炸冲击的击退距离 25%，最高 3 级。", apply: function (p) { p.skills.thermobaric.impactKnockback *= 1.25; p.skills.thermobaric.explosionKnockback *= 1.25; } },
+      { id: "thermoImpact", skillId: "thermobaric", name: "冲击伤害增加", rarity: "稀有", max: 5, icon: "✦", desc: "温压弹冲击伤害 +25%", detail: "每级提升温压弹炮弹直接命中的冲击伤害 25%，最高 5 级；爆炸伤害由爆炸增伤强化。", apply: function (p) { p.skills.thermobaric.impactDamage *= 1.25; } },
+      { id: "unlockDryIce", skillId: "dryIce", unlocksSkill: true, name: "干冰弹", rarity: "稀有", max: 1, icon: "❄", desc: "解锁干冰弹技能", detail: "首次获取后解锁干冰弹，技能槽显示 Lv1；之后可获取干冰弹专属词条继续升级。", apply: function () {} },
+      { id: "iceFreeze", skillId: "dryIce", name: "冰冻", rarity: "稀有", max: 4, icon: "❄", desc: "干冰弹命中后减速", detail: "命中后冻结敌人移动，每级增加减速持续时间并增强减速效果，最高 4 级。", apply: function (p) { var skill = p.skills.dryIce; skill.freezeDuration += .55; skill.slowFactor = Math.max(.25, skill.slowFactor - .06); } },
+      { id: "iceDamage", skillId: "dryIce", name: "干冰弹增伤", rarity: "稀有", max: 5, icon: "✦", desc: "干冰弹伤害 +25%", detail: "每级提升干冰弹及其分裂冰弹的命中伤害 25%，最高 5 级。", apply: function (p) { p.skills.dryIce.damage *= 1.25; } },
+      { id: "icePierce", skillId: "dryIce", name: "干冰弹穿透", rarity: "稀有", max: 4, icon: "↠", desc: "干冰弹穿透 +1", detail: "每级增加 1 次额外穿透；基础干冰弹已可穿透 3 次。", apply: function (p) { p.skills.dryIce.pierce += 1; } },
+      { id: "iceSplit", skillId: "dryIce", name: "分裂小冰弹", rarity: "稀有", max: 3, icon: "❄", desc: "干冰弹命中后分裂", detail: "干冰弹首次命中后分裂出 2 枚小冰弹，每级再增加 2 枚，最高 3 级；小冰弹造成部分伤害。", apply: function (p) { p.skills.dryIce.splitCount += 2; } },
+      { id: "iceSpread", skillId: "dryIce", name: "干冰弹齐射", rarity: "稀有", max: 3, icon: "✣", desc: "每级增加 1 枚分角干冰弹", detail: "每级增加 1 枚同时发射的干冰弹，角度分开形成扇形覆盖，最高 3 级。", apply: function (p) { p.skills.dryIce.spread += 1; } },
+      { id: "iceBurst", skillId: "dryIce", name: "干冰弹连发", rarity: "稀有", max: 3, icon: "➤", desc: "每轮额外发射 1 枚干冰弹", detail: "每级在一次干冰弹攻击周期中沿锁定方向追加 1 轮发射，最高 3 级。", apply: function (p) { p.skills.dryIce.burst += 1; } }
+    ],
     coreSkills: [
       { id: "bombardment", name: "区域轰炸", icon: "✹", status: "筹备中", detail: "呼叫指定区域的连续炮击，对范围内敌人造成多段伤害。计划支持强化爆炸范围、落弹数量与伤害，尚未接入战斗。" },
-      { id: "thermobaric", name: "温压弹", icon: "♨", status: "筹备中", detail: "引爆后释放高温冲击，对范围内敌人造成爆发伤害。计划支持扩大爆炸范围与强化持续灼烧，尚未接入战斗。" },
-      { id: "dryIce", name: "干冰弹", icon: "❄", status: "筹备中", detail: "在目标区域释放低温效果，冻结或大幅减速范围内敌人，为步枪争取输出时间，尚未接入战斗。" },
+      { id: "thermobaric", name: "温压弹", icon: "♨", status: "已实装", detail: "幻形自动发射红色炮弹。命中后造成冲击伤害与击退，穿透耗尽后发生范围爆炸，对范围内敌人造成爆炸伤害并施加燃烧。" },
+      { id: "dryIce", name: "干冰弹", icon: "❄", status: "已实装", detail: "幻形自动发射蓝色圆锥弹，初始可额外穿透 3 个目标。命中造成伤害与微弱击退，可通过冰冻、分裂、齐射和连发词条强化。" },
       { id: "armoredCar", name: "装甲车支援", icon: "▰", status: "筹备中", detail: "召唤装甲车沿战线冲撞敌群，造成路径伤害并缓解城墙压力，尚未接入战斗。" }
     ],
     levels: [
