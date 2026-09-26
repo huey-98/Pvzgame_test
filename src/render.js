@@ -486,30 +486,54 @@
     if (!entryIds.length) text("该类别暂无收录单位。", C.width / 2, 300, "13px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     drawCodexPager(page, pages);
   };
+  function skillGroupColor(group) { return group.id === "rifle" ? C.colors.cyan : C.colors.purple; }
   Game.drawSkillCodex = function () {
     Game.overlay();
     panel(14, 36, C.width - 28, 568, "rgba(10, 35, 49, .97)", "rgba(153, 205, 218, .22)", 20);
     badge("FIELD GUIDE  ·  SKILLS", 91, 50, 178, C.colors.purple);
     text("技能图鉴", C.width / 2, 95, "bold 23px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
-    drawCodexTab(24, 107, 148, "步枪强化", S.skillCodexCategory === "rifle", C.colors.cyan);
-    drawCodexTab(188, 107, 148, "核心技能", S.skillCodexCategory === "core", C.colors.purple);
-    var entries = S.skillCodexCategory === "core" ? C.coreSkills.concat(C.skillTraits || []) : C.traits;
-    var pages = Math.max(1, Math.ceil(entries.length / 3)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
+    var groups = Game.getSkillGroups();
+    var selected = S.selectedSkillCodexId ? groups.find(function (group) { return group.id === S.selectedSkillCodexId; }) : null;
+    if (selected) { drawSkillGroupDetail(selected); return; }
+    text("选择技能查看介绍与专属词条", C.width / 2, 126, "11px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    var perPage = 5, pages = Math.max(1, Math.ceil(groups.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
     S.codexPage = page;
-    entries.slice(page * 3, page * 3 + 3).forEach(function (skill, index) {
-      var x = 26, y = 146 + index * 125, h = 117;
-      panel(x, y, 308, h, "rgba(17, 47, 62, .94)", "rgba(201,161,255,.22)", 14);
-      var implemented = !skill.status || skill.status === "已实装";
-      text(skill.icon, x + 18, y + 34, "bold 21px Segoe UI, Microsoft YaHei", implemented ? C.colors.cyan : C.colors.purple, "center");
-      text(skill.name, x + 40, y + 27, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text);
-      text(skill.status || (skill.rarity + " · 最高 Lv." + skill.max), x + 294, y + 25, "bold 9px Segoe UI, Microsoft YaHei", implemented ? C.colors.green : C.colors.yellow, "right");
-      var linkedSkill = skill.skillId && C.coreSkills.find(function (item) { return item.id === skill.skillId; });
-      text(linkedSkill ? linkedSkill.name + "词条" : implemented ? "升级效果" : "核心技能 · 尚未实装", x + 40, y + 45, "10px Segoe UI, Microsoft YaHei", C.colors.muted);
-      ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.text; ctx.textAlign = "left";
-      U.wrapText(ctx, skill.detail || skill.desc || "技能说明待补充。", x + 14, y + 68, 280, 14);
+    groups.slice(page * perPage, page * perPage + perPage).forEach(function (group, index) {
+      var x = 26, y = 146 + index * 70, color = skillGroupColor(group), implemented = !group.status || group.status === "已实装";
+      panel(x, y, 308, 62, "rgba(17, 47, 62, .94)", "rgba(153,205,218,.24)", 14);
+      text(group.icon, x + 28, y + 39, "bold 20px Segoe UI, Microsoft YaHei", color, "center");
+      text(group.name, x + 54, y + 27, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text);
+      text(group.traits.length + " 个词条", x + 54, y + 47, "10px Segoe UI, Microsoft YaHei", C.colors.muted);
+      text(group.status || "", x + 322, y + 27, "bold 10px Segoe UI, Microsoft YaHei", implemented ? C.colors.green : C.colors.yellow, "right");
+      text("查看详情 ›", x + 322, y + 47, "10px Segoe UI, Microsoft YaHei", color, "right");
     });
+    if (!groups.length) text("暂无技能收录。", C.width / 2, 300, "13px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     drawCodexPager(page, pages);
   };
+  function drawSkillGroupDetail(group) {
+    var color = skillGroupColor(group), implemented = !group.status || group.status === "已实装";
+    panel(24, 130, 312, 112, "rgba(17, 47, 62, .94)", "rgba(153,205,218,.28)", 16);
+    text(group.icon, 52, 182, "bold 27px Segoe UI, Microsoft YaHei", color, "center");
+    text(group.name, 82, 160, "bold 17px Segoe UI, Microsoft YaHei", C.colors.text);
+    text(group.status || "", 320, 160, "bold 10px Segoe UI, Microsoft YaHei", implemented ? C.colors.green : C.colors.yellow, "right");
+    ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
+    U.wrapText(ctx, group.detail || "技能说明待补充。", 82, 182, 238, 13);
+    text("专属词条", 40, 268, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
+    var traits = group.traits || [], perPage = 3, pages = Math.max(1, Math.ceil(traits.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
+    S.codexPage = page;
+    traits.slice(page * perPage, page * perPage + perPage).forEach(function (trait, index) {
+      var x = 26, y = 282 + index * 76, rare = trait.rarity === "稀有" || trait.rarity === "史诗";
+      panel(x, y, 308, 68, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
+      text(trait.icon, x + 24, y + 32, "bold 18px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center");
+      text(trait.name, x + 46, y + 24, "bold 13px Segoe UI, Microsoft YaHei", C.colors.text);
+      text(trait.rarity + " · 最高 Lv." + trait.max, x + 294, y + 22, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
+      ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
+      U.wrapText(ctx, trait.desc || trait.detail || "", x + 46, y + 44, 244, 12);
+    });
+    if (!traits.length) text("该技能暂无专属词条。", C.width / 2, 336, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    if (pages > 1) { Game.button(94, 521, 54, 31, "‹", color); text((page + 1) + " / " + pages, C.width / 2, 542, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); Game.button(212, 521, 54, 31, "›", color); }
+    Game.button(C.width / 2 - 82, 561, 164, 36, "返回技能列表", color);
+  }
   Game.drawUpgrade = function () { Game.overlay(); panel(16, 76, C.width - 32, 414, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20); text("等级提升！", C.width / 2, 119, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center"); text("选择一项强化，战斗将继续", C.width / 2, 143, "12px Segoe UI, Microsoft YaHei", C.colors.text, "center"); var cardW = 98, gap = 8, start = (C.width - cardW * 3 - gap * 2) / 2; S.upgradeCards.forEach(function (trait, i) { var x = start + i * (cardW + gap), y = 190, level = S.player.traits[trait.id] || 0, rare = trait.rarity === "稀有"; panel(x, y, cardW, 218, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.45)" : "rgba(104,216,255,.28)", 14); text(trait.icon, x + cardW / 2, y + 50, "bold 31px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center"); text(trait.name, x + cardW / 2, y + 82, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text(trait.rarity + " · Lv." + (level + 1) + "/" + trait.max, x + cardW / 2, y + 104, "bold 11px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "center"); ctx.fillStyle = C.colors.muted; ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.textAlign = "center"; U.wrapText(ctx, trait.desc, x + cardW / 2, y + 135, 78, 16); U.roundedRect(ctx, x + 17, y + 181, 64, 27, 8, "#245f73"); text("选择", x + cardW / 2, y + 199, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); }); };
   Game.drawResult = function () { Game.overlay(); panel(30, 120, C.width - 60, 250, "rgba(10, 35, 49, .9)", "rgba(153, 205, 218, .18)", 20); var win = S.screen === "victory", session = S.session; text(win ? "关卡胜利" : "战斗失败", C.width / 2, 185, "bold 31px Segoe UI, Microsoft YaHei", win ? C.colors.green : C.colors.red, "center"); text(win ? "你守住了街区警戒线" : "尸潮突破了防线", C.width / 2, 217, "15px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text("用时 " + U.formatTime(session.elapsed) + "  ·  击杀 " + session.kills + "  ·  等级 " + S.player.level, C.width / 2, 263, "13px Segoe UI, Microsoft YaHei", C.colors.muted, "center"); Game.button(C.width / 2 - 82, 307, 164, 48, "重新开始", win ? C.colors.green : C.colors.yellow); };
 })(window.Game = window.Game || {});

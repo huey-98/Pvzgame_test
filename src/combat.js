@@ -255,6 +255,13 @@
     Game.addText(p.x, p.y - 38, trait.name + (trait.skillId ? " Lv." + p.skills[trait.skillId].level : " Lv." + p.traits[trait.id]), C.colors.green);
     S.screen = "playing";
   };
+  Game.getSkillGroups = function () {
+    var groups = [{ id: "rifle", name: "步枪强化", icon: "✦", status: "已实装", detail: "主角步枪的基础强化词条，覆盖伤害、射速、齐射、连发、穿透、暴击与特殊弹种，是每局构筑的起点。", traits: C.traits }];
+    (C.coreSkills || []).forEach(function (skill) {
+      groups.push({ id: skill.id, name: skill.name, icon: skill.icon, status: skill.status, detail: skill.detail, traits: (C.skillTraits || []).filter(function (trait) { return trait.skillId === skill.id; }) });
+    });
+    return groups;
+  };
   Game.killEnemy = function (index) { var enemy = S.enemies[index], info = C.enemies[enemy.type]; S.session.kills++; Game.gainXp(info.xp); Game.addText(enemy.x, enemy.y, "+" + info.xp + " XP", C.colors.yellow); Game.burst(enemy.x, enemy.y, enemy.type === "boss" ? 24 : 8, info.accent); if (enemy.type === "boss") { S.screen = "victory"; S.session.message = "街区安全"; } S.enemies.splice(index, 1); };
   Game.damageEnemy = function (enemy, amount, bullet) { enemy.hp -= amount; enemy.hitFlash = .08; if (S.player.burn) Game.applyBurn(enemy, 10 + S.player.burn * 3, 1.5 + S.player.burn * .4); if (S.player.freeze) { enemy.slow = Math.max(enemy.slow, 1.2 + S.player.freeze * .25); enemy.slowFactor = Math.min(enemy.slowFactor || .58, .58); } Game.addText(enemy.x + U.rand(-5, 5), enemy.y - C.enemies[enemy.type].radius, bullet.critical ? Math.ceil(amount) + " 暴击" : String(Math.ceil(amount)), bullet.critical ? C.colors.yellow : C.colors.text); };
 })(window.Game = window.Game || {});

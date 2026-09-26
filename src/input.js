@@ -8,14 +8,18 @@
     return { x: (event.clientX - rect.left) * C.width / rect.width, y: (event.clientY - rect.top) * C.height / rect.height };
   };
 
+  function getSkillCodexGroup() {
+    if (!S.selectedSkillCodexId) return null;
+    return Game.getSkillGroups().find(function (group) { return group.id === S.selectedSkillCodexId; });
+  }
   function getCodexPageCount(screen) {
-    var count;
     if (screen === "zombieCodex") {
-      count = Object.keys(C.enemies).filter(function (id) { return (C.enemies[id].codexCategory || "minion") === S.zombieCodexCategory; }).length;
+      var count = Object.keys(C.enemies).filter(function (id) { return (C.enemies[id].codexCategory || "minion") === S.zombieCodexCategory; }).length;
       return Math.max(1, Math.ceil(count / 4));
     }
-    count = S.skillCodexCategory === "core" ? C.coreSkills.length + (C.skillTraits || []).length : C.traits.length;
-    return Math.max(1, Math.ceil(count / 3));
+    var group = getSkillCodexGroup();
+    if (group) return Math.max(1, Math.ceil(group.traits.length / 3));
+    return Math.max(1, Math.ceil(Game.getSkillGroups().length / 5));
   }
 
   function handleCodexPointer(point, screen) {
@@ -24,10 +28,22 @@
       if (categories[categoryIndex]) { S.zombieCodexCategory = categories[categoryIndex]; S.selectedZombieCodexId = null; S.codexPage = 0; }
       return;
     }
-    if (screen === "skillCodex" && point.y >= 107 && point.y <= 138) {
-      if (point.x >= 24 && point.x <= 172) { S.skillCodexCategory = "rifle"; S.codexPage = 0; }
-      else if (point.x >= 188 && point.x <= 336) { S.skillCodexCategory = "core"; S.codexPage = 0; }
-      return;
+    if (screen === "skillCodex") {
+      var group = getSkillCodexGroup();
+      if (group) {
+        if (point.y >= 521 && point.y <= 552 && getCodexPageCount(screen) > 1) {
+          if (point.x >= 94 && point.x <= 148) S.codexPage = Math.max(0, S.codexPage - 1);
+          else if (point.x >= 212 && point.x <= 266) S.codexPage = Math.min(getCodexPageCount(screen) - 1, S.codexPage + 1);
+          return;
+        }
+        if (point.x >= 108 && point.x <= 252 && point.y >= 561 && point.y <= 598) { S.selectedSkillCodexId = null; S.codexPage = 0; }
+        return;
+      }
+      if (point.x >= 26 && point.x <= 334 && point.y >= 146 && point.y <= 496 && (point.y - 146) % 70 <= 62) {
+        var row = Math.floor((point.y - 146) / 70), order = Game.getSkillGroups(), list = order.slice((S.codexPage || 0) * 5, (S.codexPage || 0) * 5 + 5);
+        if (list[row]) { S.selectedSkillCodexId = list[row].id; S.codexPage = 0; }
+        return;
+      }
     }
     if (screen === "zombieCodex" && S.selectedZombieCodexId) {
       if (point.x >= 98 && point.x <= 262 && point.y >= 553 && point.y <= 593) S.selectedZombieCodexId = null;

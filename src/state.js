@@ -21,7 +21,7 @@
   };
   Game.openLevelSelect = function () { Game.state.screen = "levelSelect"; };
   Game.openZombieCodex = function () { Game.state.zombieCodexCategory = "minion"; Game.state.selectedZombieCodexId = null; Game.state.codexPage = 0; Game.state.screen = "zombieCodex"; };
-  Game.openSkillCodex = function () { Game.state.skillCodexCategory = "rifle"; Game.state.codexPage = 0; Game.state.screen = "skillCodex"; };
+  Game.openSkillCodex = function () { Game.state.selectedSkillCodexId = null; Game.state.codexPage = 0; Game.state.screen = "skillCodex"; };
   Game.backToMenu = function () { Game.state.screen = "menu"; };
   Game.pause = function () { if (Game.state.screen === "playing") Game.state.screen = "paused"; };
   Game.resume = function () { if (Game.state.screen === "paused") Game.state.screen = "playing"; };
