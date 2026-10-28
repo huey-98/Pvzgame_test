@@ -17,8 +17,8 @@
     if (!Game.initializeView || !Game.initializeView(options.canvas)) {
       return Promise.reject(new Error("Canvas 初始化失败"));
     }
-    if (Game.initializeInput) Game.initializeInput(options.canvas, { react: true });
-    Game.uiMode = "react";
+    if (Game.initializeInput) Game.initializeInput(options.canvas);
+    Game.uiMode = "legacy";
     mounted = true;
     lastTime = 0;
     Game.reset();

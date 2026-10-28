@@ -528,6 +528,13 @@ git diff --check
 - 图鉴自动收录两种形态并展示「火系伤害 +50%」「硬控·免疫眩晕」「撞线爆炸 N 点 · 低血移速 ×1.5」；测试场自动出现两种单位，尚未编入任何正式关卡波次。
 - 验证：新增 `tmp/check-bomber.js`，覆盖数据、火系易伤、眩晕免疫、冻结 / 麻痹边界、半血阈值、低血加速、单次撞线爆炸、爆炸后近战、爆炸击杀城墙、图鉴、绘制与测试场；同步把既有图鉴计数断言更新为各 15 种、抗性表更新为 12 组 24 种。全量 **45 个 `check-*.js` 与 9 个 `audit-*.js` 全部通过**，`node --check` 与 `git diff --check` 通过；画面用 `tmp/trace-draw.js bomber` 回放生成 `tmp/bomber.png`。
 
+## 2026-10-29 · React shell 恢复完整 Canvas 界面
+
+- React/Vite 构建入口继续存在，但 `App.jsx` 只保留 `#app-layout`、Canvas 与旧版 `start-hint`；首页、关卡选择、账户、属性、角色、装备、宝石、城墙、两本图鉴、战斗 HUD、暂停、升级、结算与测试场工具重新交给旧 Canvas UI。
+- `Game.mount` 改为 `uiMode = "legacy"` 并绑定完整 Canvas 输入；`frontend/index.html` 补回 `#test-controls` 与 `#account-dialog`，登录输入浮层与测试场 DOM 工具恢复可用。
+- `frontend/src/main.jsx` 不再启动 10 Hz UI 快照轮询；`frontend/src/features/` 未从当前路由引用，保留作后续 React 界面切换的兼容层。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 18 项通过；`src/*.js` 语法检查与 `git diff --check` 通过；`tmp/trace-draw.js` 走通 `account menu`、`account character` 与 `codex minion normal` 场景。
+
 ## 2026-10-26 · React 前端迁移
 
 - 新增 `frontend/` React + Vite 应用：`App.jsx` 负责页面路由，`features/` 覆盖首页、关卡选择、僵尸 / 技能图鉴、登录注册、账户中心、属性、角色、装备背包、装备强化、宝石、城墙、战斗 HUD、暂停、升级、结算与测试场工具。

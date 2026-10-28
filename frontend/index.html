@@ -7,6 +7,44 @@
 </head>
 <body>
   <div id="root"></div>
+  <aside id="test-controls" aria-label="测试场调试面板" hidden>
+    <button id="test-controls-tab" type="button">› 测试场工具</button>
+    <div id="test-controls-content">
+      <div class="test-controls-heading"><span>测试场调试工具</span><button id="test-controls-hide" type="button">收起</button></div>
+      <section class="test-control-group">
+        <h2>测试僵尸</h2>
+        <div class="test-enemy-rows" id="test-enemy-rows"></div>
+        <p class="test-enemy-current">当前：<span id="test-enemy-name">—</span></p>
+        <div class="test-control-row"><button id="test-spawn-one" type="button">生成 1 只</button><button id="test-spawn-wave" type="button">生成一波</button></div>
+        <div class="test-control-row"><button id="test-clear-enemies" type="button" class="danger">清空敌人</button><button id="test-restore" type="button" class="warning">恢复状态</button></div>
+      </section>
+      <section class="test-control-group">
+        <h2>核心技能</h2>
+        <div class="test-control-row"><button id="test-skill-prev" type="button">‹</button><span id="test-skill-name">—</span><button id="test-skill-next" type="button">›</button></div>
+        <button id="test-unlock-skill" type="button" class="wide purple">解锁所选技能</button>
+      </section>
+      <section class="test-control-group">
+        <h2>专属词条</h2>
+        <div class="test-control-row"><button id="test-trait-prev" type="button">‹</button><span id="test-trait-name">—</span><button id="test-trait-next" type="button">›</button></div>
+        <button id="test-apply-trait" type="button" class="wide purple">应用所选词条</button>
+      </section>
+      <div class="test-control-row test-control-actions"><button id="test-rifle-toggle" type="button" class="warning">关闭步枪</button><button id="test-clear-build" type="button" class="danger">清空构筑</button><button id="test-exit" type="button">退出测试场</button></div>
+      <p class="test-controls-hint">←/→ 僵尸 · [/] 技能 · ,/. 词条<br>1 生成单只 · 5 生成一波 · H 隐藏</p>
+    </div>
+  </aside>
+  <div id="account-dialog" hidden>
+    <div class="account-dialog-card">
+      <h2 id="account-dialog-title">登录账户</h2>
+      <p id="account-dialog-note"></p>
+      <label class="account-dialog-row" id="account-dialog-user-row"><span>用户名</span><input id="account-dialog-user" type="text" maxlength="16" autocomplete="username" /></label>
+      <label class="account-dialog-row"><span>密码</span><input id="account-dialog-pass" type="password" maxlength="64" autocomplete="current-password" /></label>
+      <p id="account-dialog-error"></p>
+      <div class="account-dialog-actions">
+        <button id="account-dialog-cancel" type="button">取消</button>
+        <button id="account-dialog-submit" type="button" class="primary">确定</button>
+      </div>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
