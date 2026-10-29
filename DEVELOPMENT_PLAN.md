@@ -1194,6 +1194,8 @@ menu ──「角色」──> character ──「属性」──> attributes（
 - 保留 FastAPI、SQLAlchemy、SQLite、现有 `/api` 路径、Cookie 会话与数据库结构。
 - React shell 挂载 Canvas；首页、关卡、图鉴、账户、属性、角色、装备、宝石、城墙、测试场、HUD、暂停、升级和结算由完整旧 Canvas 界面绘制。`features/` 与快照桥保留作为后续可选切换层。
 - Canvas 继续负责战场背景、人物、敌人、弹体、技能实体、粒子、伤害表现和瞄准辅助。
+- 技能图鉴共用 `config.skillCodexUI` 的 2×2 四宫格几何与技能 Canvas 图标绘制；图标按 `config.elements` 配色，步枪、装甲车、无人机、电磁和电链等图示取自局内实体轮廓，点击判定和列表布局来自同一份配置。
+- 敌人在局内与僵尸图鉴共用 `Game.drawEnemies` 绘制链。普通僵尸通过共用人形基础函数绘制头脸、躯干、衣袖、前臂、手掌与双腿，特殊单位在进入共用人形前分流；图鉴按各单位真实外轮廓计算缩放留白，视觉增强不参与碰撞、命中和数值结算。
 - 敌人、弹体、粒子和技能实体不进入 React state，不按实体创建组件。
 - 旧引擎继续使用 `window.Game` 兼容层，现有 `tmp/check-*.js` 可以继续回归；后续再单独做 ES Module 化。
 

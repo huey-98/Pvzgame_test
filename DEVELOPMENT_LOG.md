@@ -535,6 +535,20 @@ git diff --check
 - `frontend/src/main.jsx` 不再启动 10 Hz UI 快照轮询；`frontend/src/features/` 未从当前路由引用，保留作后续 React 界面切换的兼容层。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 18 项通过；`src/*.js` 语法检查与 `git diff --check` 通过；`tmp/trace-draw.js` 走通 `account menu`、`account character` 与 `codex minion normal` 场景。
 
+## 2026-10-29 · 技能图鉴四宫格与技能图标
+
+- 技能图鉴由横向技能行改为类似僵尸图鉴的 2×2 四宫格卡片，每页 4 张。卡片使用 `config.skillCodexUI` 统一几何，技能图标用 `drawSkillGlyph` 按技能 id 绘制对应 Canvas 形状，技能名与属性标签居中展示。
+- 图标颜色统一改从 `config.elements` 取值；步枪改为长步枪形轮廓，装甲车、无人机、电磁、电链、冰雹、燃油弹等按局内实体结构重新绘制，旋风加农的环带方向校正为上小下大。
+- `Game.getSkillCodexCardRect` / `getSkillCodexCardIndex` / `getSkillCodexPagerRect` / `getSkillCodexBackRect` 暴露共享几何；`handleCodexPointer` 改为使用同一套卡片、分页与返回坐标。
+- `tmp/trace-draw.js` 新增 `skillCodex` 场景，便于记录真实 Canvas 绘制操作并做后续画面核对。
+
+## 2026-10-30 · 僵尸模型与图鉴模型美化
+
+- 局内与僵尸图鉴统一改造 `src/render.js` 的敌人绘制：普通僵尸改为共用的人形基础模型，增加渐变肤色、衣袖与手掌、衣缝、污渍、牙齿、眼窝、伤痕和动画投影；分裂僵尸继续保留独立双头路径。
+- 飞鸟、毒蜂、轮椅、寒霜兽、电锯、傀儡、蜥蜴、暴食者、看守者和深海巨兽补充独立材质、渐变、关节、甲片、冰棱、轮组、输液管、翅膀与首领装甲等细节；图鉴模型按真实轮廓重新计算上下留白，避免傀儡提线与看守者盔饰被裁切。
+- 修正轮椅分支在共用身体改造后未调用轮椅模型的问题；所有改动只触及 Canvas 绘制，不改变敌人半径、数值、抗性、控制或移动逻辑。
+- 验证：`tmp/trace-draw.js` 通过普通僵尸、状态、毒蜂、轮椅、寒霜兽、傀儡、蜥蜴、炸弹僵尸和多个图鉴场景；`check-bomber.js`、`check-frostbeast.js`、`check-wasp.js`、`check-puppet.js`、`check-lizard.js` 全部断言通过。
+
 ## 2026-10-26 · React 前端迁移
 
 - 新增 `frontend/` React + Vite 应用：`App.jsx` 负责页面路由，`features/` 覆盖首页、关卡选择、僵尸 / 技能图鉴、登录注册、账户中心、属性、角色、装备背包、装备强化、宝石、城墙、战斗 HUD、暂停、升级、结算与测试场工具。

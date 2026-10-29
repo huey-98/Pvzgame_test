@@ -36,7 +36,7 @@
     }
     var group = getSkillCodexGroup();
     if (group) return Math.max(1, Math.ceil(group.traits.length / 3));
-    return Math.max(1, Math.ceil(Game.getSkillGroups().length / 5));
+    return Math.max(1, Math.ceil(Game.getSkillGroups().length / C.skillCodexUI.cards.perPage));
   }
 
   function handleCodexPointer(point, screen) {
@@ -48,17 +48,22 @@
     if (screen === "skillCodex") {
       var group = getSkillCodexGroup();
       if (group) {
-        if (point.y >= 521 && point.y <= 552 && getCodexPageCount(screen) > 1) {
-          if (point.x >= 94 && point.x <= 148) S.codexPage = Math.max(0, S.codexPage - 1);
-          else if (point.x >= 212 && point.x <= 266) S.codexPage = Math.min(getCodexPageCount(screen) - 1, S.codexPage + 1);
+        if (pointInRect(point, Game.getSkillCodexPagerRect("prev")) && getCodexPageCount(screen) > 1) {
+          S.codexPage = Math.max(0, S.codexPage - 1);
           return;
         }
-        if (point.x >= 108 && point.x <= 252 && point.y >= 561 && point.y <= 598) { S.selectedSkillCodexId = null; S.codexPage = 0; }
+        if (pointInRect(point, Game.getSkillCodexPagerRect("next")) && getCodexPageCount(screen) > 1) {
+          S.codexPage = Math.min(getCodexPageCount(screen) - 1, S.codexPage + 1);
+          return;
+        }
+        if (pointInRect(point, Game.getSkillCodexBackRect())) { S.selectedSkillCodexId = null; S.codexPage = 0; }
         return;
       }
-      if (point.x >= 26 && point.x <= 334 && point.y >= 146 && point.y <= 496 && (point.y - 146) % 70 <= 62) {
-        var row = Math.floor((point.y - 146) / 70), order = Game.getSkillGroups(), list = order.slice((S.codexPage || 0) * 5, (S.codexPage || 0) * 5 + 5);
-        if (list[row]) { S.selectedSkillCodexId = list[row].id; S.codexPage = 0; }
+      var skillIndex = Game.getSkillCodexCardIndex(point);
+      if (skillIndex >= 0) {
+        var skillList = Game.getSkillGroups(), skillPageNumber = S.codexPage || 0, skillPer = C.skillCodexUI.cards.perPage;
+        var selectedSkill = skillList.slice(skillPageNumber * skillPer, skillPageNumber * skillPer + skillPer)[skillIndex];
+        if (selectedSkill) { S.selectedSkillCodexId = selectedSkill.id; S.codexPage = 0; }
         return;
       }
     }

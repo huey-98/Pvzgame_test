@@ -418,6 +418,24 @@
     var height = Math.min(geo.rowHeight, (geo.backY - 12 - geo.listY) / count);
     return { x: geo.listX, y: geo.listY + index * height, w: geo.listWidth, h: height };
   };
+  Game.getSkillCodexCardRect = function (index) {
+    var geo = C.skillCodexUI, column = index % geo.cards.columns.length, row = Math.floor(index / geo.cards.columns.length);
+    return { x: geo.cards.columns[column], y: geo.cards.rows[row], w: geo.cards.width, h: geo.cards.height };
+  };
+  Game.getSkillCodexCardIndex = function (point) {
+    if (!point) return -1;
+    for (var index = 0; index < C.skillCodexUI.cards.perPage; index++) {
+      var rect = Game.getSkillCodexCardRect(index);
+      if (point.x >= rect.x && point.x <= rect.x + rect.w && point.y >= rect.y && point.y <= rect.y + rect.h) return index;
+    }
+    return -1;
+  };
+  Game.getSkillCodexIconRect = function () {
+    var geo = C.skillCodexUI, radius = geo.icon.size / 2;
+    return { x: geo.icon.centerX - radius, y: geo.icon.centerY - radius, w: geo.icon.size, h: geo.icon.size };
+  };
+  Game.getSkillCodexPagerRect = function (key) { return C.skillCodexUI.pager[key === "next" ? "next" : "prev"]; };
+  Game.getSkillCodexBackRect = function () { return C.skillCodexUI.back; };
   Game.getLevelInfoRect = function (index) {
     var geo = C.levelSelect, row = Game.getLevelRowRect(index), size = geo.infoSize;
     return { x: row.x + geo.infoX - size / 2, y: row.y + (row.h - size) / 2, w: size, h: size };

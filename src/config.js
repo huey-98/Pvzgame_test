@@ -291,6 +291,17 @@
         zombieCodex: { x: 230, y: 480, w: 92, h: 44 }
       }
     },
+    skillCodexUI: {
+      cards: { columns: [26, 186], rows: [155, 315], width: 148, height: 148, perPage: 4 },
+      icon: { centerX: 74, centerY: 74, size: 58 },
+      nameY: 126,
+      subY: 145,
+      pager: {
+        prev: { x: 94, y: 521, w: 54, h: 31 },
+        next: { x: 212, y: 521, w: 54, h: 31 }
+      },
+      back: { x: 98, y: 561, w: 164, h: 36 }
+    },
     accountUI: {
       panelX: 22, panelY: 56, panelWidth: 316, panelHeight: 512, back: { x: 98, y: 514, w: 164, h: 36 },
       login: {
