@@ -2703,6 +2703,14 @@
     else drawSteelIcon(cx, cy, size);
   }
 
+  function equipmentSlotForBlueprint(id) {
+    var slots = C.equipment.slots || [];
+    for (var i = 0; i < slots.length; i++) {
+      if (slots[i].blueprintId === id) return slots[i].id;
+    }
+    return null;
+  }
+
   function materialLabel(kind, label, x, y, color, align) {
     var font = "bold 10px Segoe UI, Microsoft YaHei";
     ctx.font = font;
@@ -2783,11 +2791,14 @@
   };
   function drawResourceIcon(id, cx, cy, size, color) {
     var s = size;
+    var blueprintSlot = equipmentSlotForBlueprint(id);
     ctx.save();
     ctx.fillStyle = color;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    if (id === "steel") {
+    if (blueprintSlot) {
+      drawEquipmentBlueprint(blueprintSlot, cx, cy, s, color);
+    } else if (id === "steel") {
       drawSteelIcon(cx, cy, s);
     } else if (id === "rareEarth") {
       drawRareEarthIcon(cx, cy, s);
@@ -2877,12 +2888,8 @@
     return "+" + label + (affix.percent ? "%" : "");
   }
 
-  function drawEquipmentGlyph(kind, cx, cy, size, color) {
+  function traceEquipmentGlyph(kind, cx, cy, size) {
     var s = size / 2;
-    ctx.save();
-    ctx.lineWidth = Math.max(1, size * .06);
-    ctx.strokeStyle = "rgba(9, 24, 32, .62)";
-    ctx.fillStyle = color;
     ctx.beginPath();
     if (kind === "arm") {
       ctx.roundRect(cx - s * .48, cy - s * .82, s * .96, s * 1.64, s * .30);
@@ -2910,6 +2917,27 @@
       ctx.lineTo(cx + s * .50, cy + s * .20); ctx.lineTo(cx + s * .30, cy + s * .66); ctx.lineTo(cx - s * .30, cy + s * .66);
       ctx.closePath();
     }
+  }
+
+  function drawEquipmentBlueprint(kind, cx, cy, size, color) {
+    var frame = size * .84, edge = Math.max(1, size * .035);
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(cx - frame / 2, cy - frame / 2, frame, frame);
+    ctx.lineWidth = edge;
+    ctx.strokeStyle = "rgba(9, 24, 32, .28)";
+    ctx.strokeRect(cx - frame / 2, cy - frame / 2, frame, frame);
+    drawEquipmentGlyph(kind, cx, cy, size * .62, color);
+    ctx.restore();
+  }
+
+  function drawEquipmentGlyph(kind, cx, cy, size, color) {
+    var s = size / 2;
+    ctx.save();
+    ctx.lineWidth = Math.max(1, size * .06);
+    ctx.strokeStyle = "rgba(9, 24, 32, .62)";
+    ctx.fillStyle = color;
+    traceEquipmentGlyph(kind, cx, cy, size);
     ctx.fill();
     ctx.stroke();
     if (kind === "arm") {
@@ -3059,7 +3087,38 @@
     if (S.characterGems) Game.drawCharacterGems();
     if (S.characterEquipItem) Game.drawCharacterEquip();
     if (S.characterGemDetail) Game.drawCharacterGemDetail();
+    if (S.characterResourceDetail) Game.drawCharacterResourceDetail();
     if (S.gemSynthesisOpen) Game.drawGemSynthesis();
+  };
+
+  Game.drawCharacterResourceDetail = function () {
+    var detail = Game.getCharacterResourceDetail();
+    if (!detail) return;
+    var ui = C.resourceDetailUI, box = ui.panel, center = C.width / 2;
+    U.roundedRect(ctx, 0, 0, C.width, C.height, 0, "rgba(3, 9, 13, .78)");
+    panel(box.x, box.y, box.w, box.h, "rgba(10, 35, 49, .98)", "rgba(153, 205, 218, .24)", 20);
+    badge("RESOURCE  ·  STORAGE", center - 78, box.y + 14, 156, detail.color);
+    text("资源信息", center, ui.titleY, "bold 22px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    drawResourceIcon(detail.id, ui.iconX, ui.iconY, ui.iconSize, detail.color);
+    text(detail.name, ui.infoX, ui.nameY, "bold 16px Segoe UI, Microsoft YaHei", detail.color);
+    text("库存 " + detail.amount, ui.infoX, ui.amountY, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text);
+    ctx.strokeStyle = "rgba(153, 205, 218, .18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(box.x + 16, ui.dividerY);
+    ctx.lineTo(box.x + box.w - 16, ui.dividerY);
+    ctx.stroke();
+    var labels = ["描述", "用途", "获取"], values = [detail.description, detail.usage, detail.source];
+    for (var section = 0; section < labels.length; section++) {
+      text(labels[section], box.x + 16, ui.sectionLabelY[section], "bold 10px Segoe UI, Microsoft YaHei", C.colors.cyan);
+      ctx.font = "10px Segoe UI, Microsoft YaHei";
+      ctx.fillStyle = section === 0 ? C.colors.text : C.colors.muted;
+      ctx.textAlign = "left";
+      U.wrapText(ctx, values[section] || "暂无资料。", box.x + 16, ui.sectionTextY[section], box.w - 32, 14);
+    }
+    var close = Game.getCharacterResourceDetailCloseRect();
+    U.roundedRect(ctx, close.x, close.y, close.w, close.h, 10, "rgba(38, 56, 66, .94)", "rgba(153, 205, 218, .24)");
+    text("关闭", close.x + close.w / 2, close.y + 22, "bold 12px Segoe UI, Microsoft YaHei", C.colors.text, "center");
   };
 
   Game.drawCharacterGems = function () {

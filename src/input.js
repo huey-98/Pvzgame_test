@@ -375,6 +375,12 @@
         if (point.x < equipBox.x || point.x > equipBox.x + equipBox.w || point.y < equipBox.y || point.y > equipBox.y + equipBox.h) { Game.closeCharacterEquip(); return; }
         return;
       }
+      if (S.characterResourceDetail) {
+        var resourceBox = Game.getCharacterResourceDetailPanel();
+        if (pointInRect(point, Game.getCharacterResourceDetailCloseRect())) { Game.closeCharacterResource(); return; }
+        if (point.x < resourceBox.x || point.x > resourceBox.x + resourceBox.w || point.y < resourceBox.y || point.y > resourceBox.y + resourceBox.h) { Game.closeCharacterResource(); return; }
+        return;
+      }
       if (S.characterGems) {
         var gemPanel = Game.getCharacterGemPanel(), gemPart = Game.gems.getPart(S.characterGems), gemSlot;
         var replaceGem = Game.getCharacterGemReplace();
@@ -415,6 +421,17 @@
           var equipBagItem = equipRows.items[equipCell];
           if (equipBagItem && pointInRect(point, Game.getCharacterEquipCellRect(equipCell))) {
             Game.openCharacterEquip(equipBagItem.id);
+            return;
+          }
+        }
+        return;
+      }
+      if (S.characterTab === "resource") {
+        var resources = Game.getCharacterResources(), resourceCellCount = C.characterUI.resourceCells.columns * C.characterUI.resourceCells.rows, resourceCell;
+        for (resourceCell = 0; resourceCell < resourceCellCount; resourceCell++) {
+          var resourceItem = resources[resourceCell];
+          if (resourceItem && pointInRect(point, Game.getCharacterResourceCellRect(resourceCell))) {
+            Game.openCharacterResource(resourceItem.id);
             return;
           }
         }

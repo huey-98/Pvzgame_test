@@ -6,7 +6,7 @@
     var node = typeof document !== "undefined" ? document.getElementById("start-hint") : null;
     if (node && node.style) node.style.display = display;
   }
-  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterEquipItem: null, characterEquipPage: 0, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterEquipItem: null, characterEquipPage: 0, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
   Game.reset = function () {
     var s = Game.state;
     var level = C.levels.find(function (item) { return item.id === s.selectedLevel; });
@@ -23,7 +23,7 @@
     s.player = { x: C.width / 2, y: C.height - 58, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 28, fireInterval: .52, fireTimer: .05, magazineSize: C.magazineCapacity, ammo: C.magazineCapacity, reloadDuration: C.reloadDuration, reloadTimer: 0, rifleEnabled: true, burst: 0, burstShotsRemaining: 0, burstTimer: 0, burstAngle: -Math.PI / 2, spread: 0, pierce: 0, bulletRadius: 4, crit: C.attributes.base.critRate, critDamage: C.attributes.base.critDamage, burn: 0, freeze: 0, bulletType: "normal", skills: skills, skillOrder: [], level: 1, xp: 0, nextXp: C.xpBase, traits: {} };
     s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null;
     s.characterPart = "arm"; s.characterTab = "gem"; s.characterGemPage = 0; s.characterGems = null;
-    s.characterGemDetail = null; s.characterGemReplace = null; s.characterEquipItem = null; s.characterEquipPage = 0;
+    s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0;
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
     s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
@@ -48,6 +48,7 @@
     Game.state.characterGems = null;
     Game.state.characterGemDetail = null;
     Game.state.characterGemReplace = null;
+    Game.state.characterResourceDetail = null;
     Game.state.characterEquipItem = null;
     Game.state.screen = "attributes";
   };
@@ -57,6 +58,7 @@
     Game.state.characterGems = null;
     Game.state.characterGemDetail = null;
     Game.state.characterGemReplace = null;
+    Game.state.characterResourceDetail = null;
     Game.state.characterEquipItem = null;
     Game.state.screen = "character";
   };
@@ -69,6 +71,7 @@
     Game.state.characterTab = tab === "equipment" || tab === "resource" ? tab : "gem";
     Game.state.gemSynthesisOpen = false;
     Game.state.characterGemDetail = null;
+    Game.state.characterResourceDetail = null;
     Game.state.characterEquipItem = null;
   };
   Game.openCharacterGems = function (partId) {
@@ -100,6 +103,27 @@
   };
   Game.getCharacterGemReplace = function () {
     return Game.state.characterGemReplace && Game.gems ? Game.gems.findGem(Game.state.characterGemReplace) : null;
+  };
+  Game.openCharacterResource = function (resourceId) {
+    if (Game.state.screen !== "character" || Game.state.characterTab !== "resource") return false;
+    var list = Game.accounts.getResourceList();
+    for (var index = 0; index < list.length; index++) {
+      if (list[index].id === resourceId) {
+        Game.state.characterResourceDetail = list[index].id;
+        Game.state.characterGemDetail = null;
+        Game.state.characterEquipItem = null;
+        return true;
+      }
+    }
+    return false;
+  };
+  Game.closeCharacterResource = function () { Game.state.characterResourceDetail = null; };
+  Game.getCharacterResourceDetail = function () {
+    var id = Game.state.characterResourceDetail;
+    if (!id) return null;
+    var list = Game.accounts.getResourceList();
+    for (var index = 0; index < list.length; index++) if (list[index].id === id) return list[index];
+    return null;
   };
   Game.openCharacterEquip = function (itemId) {
     if (Game.state.screen !== "character" || !Game.equipment) return false;
@@ -166,6 +190,7 @@
     Game.state.characterGems = null;
     Game.state.characterGemDetail = null;
     Game.state.characterGemReplace = null;
+    Game.state.characterResourceDetail = null;
     Game.state.characterEquipItem = null;
     Game.state.gemSynthesisOpen = false;
     Game.state.screen = "character";
@@ -493,6 +518,8 @@
     var geo = C.characterUI.resourceCells, column = index % geo.columns, row = Math.floor(index / geo.columns);
     return { x: geo.x + column * (geo.size + geo.gap), y: geo.y + row * (geo.size + geo.gap), w: geo.size, h: geo.size };
   };
+  Game.getCharacterResourceDetailPanel = function () { return C.resourceDetailUI.panel; };
+  Game.getCharacterResourceDetailCloseRect = function () { return C.resourceDetailUI.close; };
   Game.getCharacterGemLockRect = function (index) {
     var geo = C.characterUI.bagLock, cell = Game.getCharacterGemCellRect(index);
     return { x: cell.x + geo.offsetX, y: cell.y + geo.offsetY, w: geo.w, h: geo.h };

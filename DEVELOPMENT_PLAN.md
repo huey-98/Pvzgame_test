@@ -1140,15 +1140,16 @@ menu ──「角色」──> character ──「属性」──> attributes（
 | 宝石浮层 | `gemPanel {30,96,300,432}`、`gemRows {40,184,280,44×6}`、`gemUnsocket {offsetX 212}`、`gemPanelClose {118,474,132,34}` | 六行固定（空槽占行）+ 说明 + 关闭；替换模式下每行按钮变为「替换」 |
 | 宝石详情 | `gemDetail.panel {44,176,272,256}`、`titleY 236`、`iconY 274`、`lineY [312,332]`、`hintY 356`、`socket {58,376,118,34}`、`close {184,376,118,34}` | 品质与词条、部位、槽位状态、提示行、镶嵌 / 关闭 |
 | 装备详情 | `equipDetail.panel {44,176,272,256}`、`titleY 236`、`iconY 274`、`lineY [312,332]`、`hintY 356`、`replace {58,376,118,34}`、`close {184,376,118,34}` | 装备图标、部位 · 元素、`Lv.N`、状态一行、替换 / 关闭（不再列出六种元素） |
+| 资源详情 | `resourceDetailUI.panel {44,134,272,374}`、`iconX 82`、`iconY 230`、`sectionLabelY [286,342,400]`、`close {118,464,124,34}` | 资源图标、名称、库存、描述、用途、获取方式与关闭 |
 
 - **装备图标**：`drawEquipmentGlyph(kind, cx, cy, size, color)` 用纯 Canvas 路径画六个部位（护臂 + 两条皮扣、背心、头盔、长裤、靴子、手套），颜色取装备元素色，未登录 / 未获取用灰阶；只在 `render.js` 内使用，不影响数据层。
 - **宝石/装备/资源方格**：三个背包页签统一用方格展示，几何分别由 `config.characterUI.gemCells`（6 列 × 2 行，12 格/页）、`equipCells`（6 列 × 2 行，与宝石方格同起点）与 `resourceCells`（6 列 × 2 行）给出，矩形一律由 `Game.getCharacterGemCellRect` / `getCharacterEquipCellRect` / `getCharacterResourceCellRect` 计算；宝石方格的锁按钮由 `bagLock` 偏移到格子右上角（14 × 14）。装备方格按 `Game.equipment.getBagRows()` 逐件列出（部位顺序 → id），格内是部位短名、装备图标与元素名，已装备条目用绿框 + 右上绿点标出，分页与宝石页签同一行（`equipPager`）。
 - **宝石图标**：`drawGemIcon(cx, cy, size, color)` 画**按品质着色的三角形**（顶面高光 + 左亮右暗两片切面 + 一道棱线），颜色来自 `config.gems.qualities`，镶嵌浮层、背包方格与「一键合成」确认窗口共用同一份绘制。
-- **资源图标**：`drawResourceIcon(id, cx, cy, size, color)` 按资源 id 分流 —— 金币画带内圈的硬币、钻石画菱形、零件画六齿齿轮、钢材复用 `drawSteelIcon`（金属锭）、稀土复用 `drawRareEarthIcon`（金色圆锥）、六种图纸画同款卷纸（右上折角 + 三条横线）并用部位色区分。资源页签用 6 列 × 2 行的 44 × 44 方格（`config.characterUI.resourceCells`），图标居中、数量写在格内右下角；**数量为 0 的资源不绘制**（`Game.getCharacterResources()` 过滤），全为 0 时只显示「暂无资源 · 关卡奖励会产出资源」，超过 12 项时状态行改提示「共 N 项 · 仅显示前 12 项」。
+- **资源图标与详情**：`drawResourceIcon(id, cx, cy, size, color)` 按资源 id 分流 —— 金币画带内圈的硬币、钻石画菱形、零件画六齿齿轮、钢材复用 `drawSteelIcon`（金属锭）、稀土复用 `drawRareEarthIcon`（金色圆锥）；六种部位图纸通过 `config.equipment.slots[].blueprintId` 复用对应装备轮廓（手臂、衣服、头盔、裤子、鞋子、手套），统一绘制固定尺寸的白色正方形底板，并在底板中央按相同比例绘制部位色装备轮廓。资源页签用 6 列 × 2 行的 44 × 44 方格（`config.characterUI.resourceCells`），图标居中、数量写在格内右下角；**数量为 0 的资源不绘制**（`Game.getCharacterResources()` 过滤），全为 0 时只显示「暂无资源 · 关卡奖励会产出资源」，超过 12 项时状态行改提示「共 N 项 · 仅显示前 12 项」。点击可见资源方格会打开 `S.characterResourceDetail` 浮层，资源名称、库存、描述、用途与获取方式由 `config.resources` 经 `Game.accounts.getResourceList()` 提供；浮层打开后拦截底层页签与方格操作，点关闭按钮或遮罩收起。
 - **宝石浮层**：六行从上往下固定排列，已镶嵌行显示品质名、词条、🔒（锁定时）与「卸下」；空槽行显示「＋ 空槽 N」与「在下方宝石背包点击宝石即可镶嵌」；副标题显示 `Lv.N · 元素系 · N / 6`；底部说明与「关闭」。**替换模式**（`S.characterGemReplace` 非空）下副标题改为待镶嵌宝石的品质与词条，六行按钮变成「替换」，底部提示「选择要替换的宝石 · 点关闭取消替换」，点任一行即把待镶嵌宝石换进该槽。
 - **宝石详情**：点击宝石页签方格不再直接镶嵌，而是打开 `S.characterGemDetail` 浮层 —— 三角图标、品质、词条、部位、`槽位 · N / 6 · 状态`（可镶嵌到空槽 / 可直接替换同词条宝石 / 槽位已满 · 需选择替换 / 同词条宝石需更高品质），底部提示与「镶嵌」「关闭」两个按钮。按钮与提示由 `Game.gems.planSocket(gemId)` 决定：`place` 直接镶嵌、`replace` 直接替换同词条低品质宝石、`pick` 转入替换模式、`blocked` 置灰并提示需要更高品质。
 - **装备详情**：点击装备页签的方格打开 `S.characterEquipItem` 浮层，数据来自 `Game.equipment.getBagRows()` 里的同一件装备 —— 装备图标、`部位 · 元素系`、`Lv.N`、状态一行（当前装备 / 可替换）与「替换」「关闭」两个按钮，不再列出六种元素或持有数量。点「替换」调用 `Game.replaceCharacterEquipment(itemId)` → `Game.accounts.equipEquipment`，成功后留在浮层并提示「已换装」（换装交换 `element_id`，格内条目会变成换下来的旧元素）；已装备的条目按钮显示「已装备」且不发请求。
-- **交互优先级**（`input.js`）：合成确认浮层 > 宝石详情 > 装备详情 > 宝石浮层 > 常规（返回 / 属性 / 装备格 / 强化入口 / 页签 / 装备页签方格与分页 / 宝石分页 / 一键合成 / 锁 / 宝石方格），浮层打开时其余点击一律吞掉，点浮层外收起。
+- **交互优先级**（`input.js`）：合成确认浮层 > 宝石详情 > 装备详情 > 资源详情 > 宝石浮层 > 常规（返回 / 属性 / 装备格 / 强化入口 / 页签 / 装备页签方格与分页 / 资源方格 / 宝石分页 / 一键合成 / 锁 / 宝石方格），浮层打开时其余点击一律吞掉，点浮层外收起。
 
 ### 18.3 数据入口
 

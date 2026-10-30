@@ -478,7 +478,15 @@
   function resourceList() {
     var list = [];
     (C.resources || []).forEach(function (item) {
-      list.push({ id: item.id, name: item.name, color: item.color, amount: state.resources[item.id] || 0 });
+      list.push({
+        id: item.id,
+        name: item.name,
+        color: item.color,
+        description: item.description || "",
+        usage: item.usage || "",
+        source: item.source || "",
+        amount: state.resources[item.id] || 0
+      });
     });
     return list;
   }

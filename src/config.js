@@ -403,19 +403,29 @@
       confirm: { x: 178, y: 470, w: 70, h: 30 },
       cancel: { x: 256, y: 470, w: 70, h: 30 }
     },
+    resourceDetailUI: {
+      panel: { x: 44, y: 134, w: 272, h: 374 },
+      titleY: 190,
+      iconX: 82, iconY: 230, iconSize: 34,
+      infoX: 112, nameY: 222, amountY: 244,
+      dividerY: 266,
+      sectionLabelY: [286, 342, 400],
+      sectionTextY: [304, 360, 418],
+      close: { x: 118, y: 464, w: 124, h: 34 }
+    },
     accounts: { apiBase: "", healthPath: "/api/health", timeoutMs: 4000, usernameMin: 2, usernameMax: 16, passwordMin: 6, passwordMax: 64, legacyKey: "blockline.progress", maxRecords: 5, maxStatusNote: 26 },
     resources: [
-      { id: "coin", name: "金币", color: "#ffd166" },
-      { id: "gem", name: "钻石", color: "#68d8ff" },
-      { id: "tech", name: "零件", color: "#63e6a0" },
-      { id: "blueprintArm", name: "手臂图纸", color: "#68d8ff" },
-      { id: "blueprintClothes", name: "衣服图纸", color: "#63e6a0" },
-      { id: "blueprintHelmet", name: "头盔图纸", color: "#ffd166" },
-      { id: "blueprintPants", name: "裤子图纸", color: "#9ab0bc" },
-      { id: "blueprintShoes", name: "鞋子图纸", color: "#c9a1ff" },
-      { id: "blueprintGloves", name: "手套图纸", color: "#ff9b52" },
-      { id: "steel", name: "钢材", color: "#c8d6dd" },
-      { id: "rareEarth", name: "稀土", color: "#f2c14e" }
+      { id: "coin", name: "金币", color: "#ffd166", description: "尸潮防线通用的基础货币，记录账户长期积累的养成资源。", usage: "强化装备时消耗，装备等级越高，所需金币越多。", source: "关卡结算奖励。" },
+      { id: "gem", name: "钻石", color: "#68d8ff", description: "稀有的蓝色晶体，与装备系统中的宝石相互独立。", usage: "当前作为账户资源储备，暂无正式消耗途径。", source: "账户资源与后续活动奖励。" },
+      { id: "tech", name: "零件", color: "#63e6a0", description: "用于记录机械制造材料的账户资源。", usage: "当前作为账户资源储备，暂无正式消耗途径。", source: "后续玩法与账户资源接口。" },
+      { id: "blueprintArm", name: "手臂图纸", color: "#68d8ff", description: "记录手臂装备结构的专用强化图纸。", usage: "强化手臂装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "blueprintClothes", name: "衣服图纸", color: "#63e6a0", description: "记录衣服装备结构的专用强化图纸。", usage: "强化衣服装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "blueprintHelmet", name: "头盔图纸", color: "#ffd166", description: "记录头盔装备结构的专用强化图纸。", usage: "强化头盔装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "blueprintPants", name: "裤子图纸", color: "#9ab0bc", description: "记录裤子装备结构的专用强化图纸。", usage: "强化裤子装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "blueprintShoes", name: "鞋子图纸", color: "#c9a1ff", description: "记录鞋子装备结构的专用强化图纸。", usage: "强化鞋子装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "blueprintGloves", name: "手套图纸", color: "#ff9b52", description: "记录手套装备结构的专用强化图纸。", usage: "强化手套装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "steel", name: "钢材", color: "#c8d6dd", description: "经过粗炼的防线钢板，是城墙普通强化的主要材料。", usage: "城墙升级时消耗 20 × 当前等级钢材。", source: "关卡奖励随机掉落。" },
+      { id: "rareEarth", name: "稀土", color: "#f2c14e", description: "用于突破城墙等级瓶颈的稀有金属材料。", usage: "每 10 级城墙节点突破时消耗，需求逐次增加。", source: "关卡奖励随机掉落。" }
     ],
     rewardTiers: [
       { id: 0, name: "参与奖励" },
