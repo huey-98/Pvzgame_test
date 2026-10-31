@@ -24,7 +24,7 @@ PBKDF2_ALGORITHM = "sha256"
 PBKDF2_ITERATIONS = 200000
 PBKDF2_PREFIX = "pbkdf2_sha256"
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 RESOURCE_IDS = (
     "coin",
@@ -38,6 +38,18 @@ RESOURCE_IDS = (
     "blueprintGloves",
     "steel",
     "rareEarth",
+    "skillBlueprintBombardment",
+    "skillBlueprintThermobaric",
+    "skillBlueprintDryIce",
+    "skillBlueprintArmoredCar",
+    "skillBlueprintElectromagnetic",
+    "skillBlueprintHighEnergyBeam",
+    "skillBlueprintWhirlwindCannon",
+    "skillBlueprintHailGenerator",
+    "skillBlueprintFuelBomb",
+    "skillBlueprintAirBlade",
+    "skillBlueprintDrone",
+    "skillBlueprintChainLightning",
 )
 MAX_LEVEL_ID = 64
 
@@ -67,6 +79,44 @@ EQUIPMENT_BLUEPRINTS = {
     "shoes": "blueprintShoes",
     "gloves": "blueprintGloves",
 }
+
+SKILL_IDS = (
+    "bombardment",
+    "thermobaric",
+    "dryIce",
+    "armoredCar",
+    "electromagnetic",
+    "highEnergyBeam",
+    "whirlwindCannon",
+    "hailGenerator",
+    "fuelBomb",
+    "airBlade",
+    "drone",
+    "chainLightning",
+)
+SKILL_MAX_LEVEL = 31
+SKILL_CRIT_PER_LEVEL = 0.005
+SKILL_DAMAGE_PER_LEVEL = 0.08
+SKILL_COOLDOWN_PER_LEVEL = 0.015
+SKILL_MILESTONES = (2, 7, 12, 18, 22, 26)
+SKILL_COIN_BASE = 150
+SKILL_COIN_PER_LEVEL = 50
+SKILL_BLUEPRINT_PER_LEVEL = 10
+SKILL_BLUEPRINTS = {
+    "bombardment": "skillBlueprintBombardment",
+    "thermobaric": "skillBlueprintThermobaric",
+    "dryIce": "skillBlueprintDryIce",
+    "armoredCar": "skillBlueprintArmoredCar",
+    "electromagnetic": "skillBlueprintElectromagnetic",
+    "highEnergyBeam": "skillBlueprintHighEnergyBeam",
+    "whirlwindCannon": "skillBlueprintWhirlwindCannon",
+    "hailGenerator": "skillBlueprintHailGenerator",
+    "fuelBomb": "skillBlueprintFuelBomb",
+    "airBlade": "skillBlueprintAirBlade",
+    "drone": "skillBlueprintDrone",
+    "chainLightning": "skillBlueprintChainLightning",
+}
+SKILL_BLUEPRINT_IDS = tuple(SKILL_BLUEPRINTS.values())
 
 GEM_SOCKETS = 6
 GEM_MAX_QUALITY = 4
@@ -106,6 +156,9 @@ REWARD_GEM_QUALITY_WEIGHTS = (50, 30, 15, 5)
 REWARD_BLUEPRINTS = (3, 10)
 REWARD_EQUIPMENT_VETERAN = 1
 REWARD_EQUIPMENT_CLEAR = 1
+REWARD_SKILL_BLUEPRINT_LEVEL_UP = 2
+REWARD_SKILL_BLUEPRINTS = (6, 12)
+REWARD_SKILL_BLUEPRINT_CLEAR = 4
 BLUEPRINT_IDS = tuple(EQUIPMENT_BLUEPRINTS.values())
 
 STATIC_DIRS = ("src", "styles", "assets", "pictures")

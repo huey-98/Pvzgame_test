@@ -28,6 +28,11 @@
     gemAction: null,
     gemError: "",
     gemNotice: "",
+    skills: null,
+    skillBusy: false,
+    skillBusyId: null,
+    skillError: "",
+    skillNotice: "",
     error: "",
     busy: false,
     lastReportSaved: false,
@@ -100,9 +105,15 @@
     state.gems = null;
     state.gemBusy = false;
     state.gemAction = null;
+    state.skills = null;
+    state.skillBusy = false;
+    state.skillBusyId = null;
+    state.skillError = "";
+    state.skillNotice = "";
     if (Game.equipment) Game.equipment.clear();
     if (Game.wall) Game.wall.clear();
     if (Game.gems) Game.gems.clear();
+    if (Game.skillProgress) Game.skillProgress.clear();
   }
 
   function applyMe(data) {
@@ -114,11 +125,13 @@
     state.equipmentBag = data.equipmentBag || [];
     state.wall = data.wall || null;
     state.gems = data.gems || [];
+    state.skills = data.skills || {};
     state.status = state.account ? "ready" : "guest";
     state.error = "";
     if (Game.equipment) { Game.equipment.applyAccount(state.equipment); Game.equipment.applyBag(state.equipmentBag); }
     if (Game.wall) Game.wall.applyAccount(state.wall);
     if (Game.gems) Game.gems.applyAccount(state.gems);
+    if (Game.skillProgress) Game.skillProgress.applyAccount(state.skills);
   }
 
   function applyResources(values) {
@@ -396,6 +409,39 @@
     });
   }
 
+  function upgradeSkill(skillId) {
+    if (state.status !== "ready") return Promise.resolve({ ok: false, error: "登录后才能强化技能" });
+    if (state.skillBusy) return Promise.resolve({ ok: false, error: "正在强化技能" });
+    state.skillBusy = true;
+    state.skillBusyId = skillId;
+    state.skillError = "";
+    state.skillNotice = "";
+    return request("/api/me/skills/upgrade", { method: "POST", body: { skillId: skillId } }).then(function (result) {
+      state.skillBusy = false;
+      state.skillBusyId = null;
+      if (result.status === 200 && result.data && result.data.skills) {
+        state.skills = result.data.skills;
+        applyResources(result.data.resources || {});
+        state.skillNotice = "技能强化成功 · Lv." + (result.data.level || 0);
+        if (Game.skillProgress) Game.skillProgress.applyAccount(state.skills);
+        return { ok: true, level: result.data.level, skillId: result.data.skillId };
+      }
+      if (result.status === 401) {
+        state.status = "guest";
+        forgetAccount();
+        state.skillError = "登录已过期";
+        return { ok: false, error: state.skillError, status: 401 };
+      }
+      state.skillError = errorMessage(result, result.networkError ? "未连接数据库" : "技能强化失败");
+      return { ok: false, error: state.skillError, status: result.status };
+    }, function () {
+      state.skillBusy = false;
+      state.skillBusyId = null;
+      state.skillError = "未连接数据库";
+      return { ok: false, error: state.skillError };
+    });
+  }
+
   function runGemAction(action, path, body, notice) {
     if (state.status !== "ready") return Promise.resolve({ ok: false, error: "登录后才能管理宝石" });
     if (state.gemBusy) return Promise.resolve({ ok: false, error: "正在处理宝石" });
@@ -563,6 +609,8 @@
     equipEquipment: equipEquipment,
     getEquipmentBag: function () { return state.equipmentBag; },
     upgradeWall: upgradeWall,
+    upgradeSkill: upgradeSkill,
+    getSkills: function () { return state.skills; },
     getWall: function () { return state.wall; },
     socketGem: socketGem,
     unsocketGem: unsocketGem,

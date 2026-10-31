@@ -14,7 +14,7 @@ function SkillButton({ skill }) {
     <button
       className="skill-hud-button"
       style={{ "--skill-color": skill.color }}
-      title={skill.name + " · 长按查看射程"}
+      title={skill.name + " · 账户 Lv." + skill.accountLevel + " · 局内 Lv." + skill.level + " · 长按查看射程"}
       onPointerDown={function () {
         if (timer.current) window.clearTimeout(timer.current);
         timer.current = window.setTimeout(function () { actions.setSkillRangePreview(skill.id); }, getConfig().skillRangeHoldMs || 350);
@@ -23,7 +23,7 @@ function SkillButton({ skill }) {
       onPointerCancel={release}
       onPointerLeave={release}
     >
-      <b>{skill.icon}</b><small>Lv.{skill.level}</small>
+      <b>{skill.icon}</b><small>Lv.{skill.level}</small><em>A{skill.accountLevel}</em>
     </button>
   );
 }
@@ -98,11 +98,15 @@ export function UpgradeOverlay({ snapshot }) {
 
 function rewardSummary(reward) {
   if (!reward) return [];
-  const rows = [];
+  const rows = [], equipmentBlueprints = [], skillBlueprints = [];
   Object.keys(reward.resources || {}).forEach(function (id) {
     const info = getConfig().resources.find(function (resource) { return resource.id === id; });
-    rows.push((info ? info.name : id) + " +" + reward.resources[id]);
+    if (id.indexOf("skillBlueprint") === 0) skillBlueprints.push((info ? info.name : id) + " +" + reward.resources[id]);
+    else if (id.indexOf("blueprint") === 0) equipmentBlueprints.push((info ? info.name : id) + " +" + reward.resources[id]);
+    else rows.push((info ? info.name : id) + " +" + reward.resources[id]);
   });
+  if (equipmentBlueprints.length) rows.push("装备图纸 · " + equipmentBlueprints.join("，"));
+  if (skillBlueprints.length) rows.push("技能图纸 · " + skillBlueprints.join("，"));
   if (reward.gems && reward.gems.length) rows.push("宝石 +" + reward.gems.length);
   if (reward.equipment && reward.equipment.length) rows.push("装备 +" + reward.equipment.length);
   return rows;

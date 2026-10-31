@@ -33,6 +33,10 @@ class EquipmentEquip(BaseModel):
     itemId: int = 0
 
 
+class SkillUpgrade(BaseModel):
+    skillId: str = ""
+
+
 class RewardClaim(BaseModel):
     levelId: int = 0
     level: int = 1

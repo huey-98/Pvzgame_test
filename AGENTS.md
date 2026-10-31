@@ -39,6 +39,7 @@ node tmp\check-equipment.js
 node tmp\check-wall.js
 node tmp\check-gems.js
 node tmp\check-rewards.js
+node tmp\check-skills.js
 
 # 敌人机制
 node tmp\check-bomber.js
@@ -53,13 +54,14 @@ node tmp\trace-boss.js
 
 ## 代码结构与边界
 
-旧引擎加载顺序：`config → attributes → equipment → wall → gems → accounts → utils → state → combat → update → sprites → render → input → lifecycle`。React 入口在 `frontend/src/game/engine.js` 中同步这一顺序。
+旧引擎加载顺序：`config → attributes → equipment → wall → gems → skills → accounts → utils → state → combat → update → sprites → render → input → lifecycle`。React 入口在 `frontend/src/game/engine.js` 中同步这一顺序。
 
 | 文件 | 职责 |
 | --- | --- |
 | `src/config.js` | 静态数据、数值、界面几何、关卡与图鉴配置 |
 | `src/attributes.js` | 角色属性与外部修正的唯一计算层 |
 | `src/equipment.js` / `wall.js` / `gems.js` | 装备、城墙、宝石的只读数据层 |
+| `src/skills.js` | 账户技能等级与 72 个高级节点的只读数据层（`Game.skillProgress`） |
 | `src/accounts.js` | 账户缓存、异步请求与持久化入口 |
 | `src/utils.js` / `state.js` | 工具函数、单局状态与界面切换 |
 | `src/combat.js` | 生成、瞄准、射击、碰撞、伤害、词条、技能效果 |
@@ -120,6 +122,14 @@ node tmp\trace-boss.js
 - `Game.rollTraits` 必须过滤满级、未满足条件、已解锁和满槽时的解锁词条；三张卡不能重复。
 - `skillSlots` 几何必须同时被 `drawSkillSlots` 和 `input.js` 使用。长按预览状态只存于 `S.skillRangePreview`，暂停与重置时清空。
 
+### 技能图纸与账户等级
+
+- `player.skills[id].level` 只表示局内词条等级；账户等级单独保存在 `skill_progress`，由 `Game.skillProgress` 读取，禁止混写。
+- 12 个核心技能账户等级为 Lv.1–31；升级价格、图纸校验和扣费只由服务端 `server/app/skills.py` 计算，客户端只展示 `nextCost`。
+- 每级提供暴击率 +0.5%、对应技能伤害 +8%、冷却间隔 ×0.985；暴击仍受 95% 上限，冷却只乘 `fireTimer` 推进速度。
+- 高级节点固定在 Lv.2/7/12/18/22/26。所有技能直伤、区域伤害、持续伤害和新增实体必须快照 `damageSource` / `progressSkillId`；持续伤害保留现有结算语义，在施加时应用账户倍率。
+- 开局将账户等级快照到 `player.accountSkills`，战斗中不读取 `Game.accounts`；测试场固定 Lv.1。新增技能时必须同步 `config.skillProgress`、`config.skillProgressTraits`、前端图纸资源和服务端映射。
+
 ### 敌人与关卡
 
 - 新敌人优先用 `config.enemies` 的可选字段表达机制，避免在 `spawnEnemy` / `update` 中堆 `type` 判断。
@@ -170,6 +180,7 @@ node tmp\trace-boss.js
 - 密码只存 PBKDF2-SHA256 哈希；会话 token 只存 SHA-256 摘要，使用 HttpOnly + SameSite=Strict Cookie。
 - 服务只绑定 `127.0.0.1`；静态服务只暴露 `index.html`、`src/`、`styles/`、`assets/`、`pictures/`，绝不能暴露 `server/` 或 `data/`。
 - `schema_version` 不是自动迁移机制。新增表可依赖 `create_all()`，新增字段必须手写兼容迁移。
+- 账户技能进度由 `skill_progress(account_id, skill_id, level)` 保存，`/api/me` 幂等补齐 12 行；技能图纸是独立资源，不与部位图纸通用。
 - 前端可提示格式问题，但用户名、密码、装备、城墙、宝石和奖励的最终校验必须在服务端。
 - `/api/me/resources`、`/api/me/gems/grant` 和 `/api/me/rewards` 目前是调试 / 本地单机接口，缺少幂等或额度保护，不要视为可信的正式产出通道。
 

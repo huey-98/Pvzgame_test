@@ -35,7 +35,10 @@
       return Math.max(1, Math.ceil(count / 4));
     }
     var group = getSkillCodexGroup();
-    if (group) return Math.max(1, Math.ceil(group.traits.length / 3));
+    if (group) {
+      var core = (C.skillProgress.order || []).indexOf(group.id) >= 0;
+      return Math.max(1, Math.ceil(group.traits.length / (core ? 2 : 3)));
+    }
     return Math.max(1, Math.ceil(Game.getSkillGroups().length / C.skillCodexUI.cards.perPage));
   }
 
@@ -48,6 +51,12 @@
     if (screen === "skillCodex") {
       var group = getSkillCodexGroup();
       if (group) {
+        if ((C.skillProgress.order || []).indexOf(group.id) >= 0 && pointInRect(point, Game.getSkillCodexProgressActionRect())) {
+          var view = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+          var resources = Game.accounts.getResources(), cost = view && view.nextCost, affordable = !view || !cost || ((resources.coin || 0) >= (cost.coin || 0) && (resources[view.blueprintId] || 0) >= (cost[view.blueprintId] || 0));
+          if (Game.accounts.getStatus() === "ready" && !Game.accounts.state.skillBusy && view && view.level < view.maxLevel && affordable) Game.upgradeSkill(group.id);
+          return;
+        }
         if (pointInRect(point, Game.getSkillCodexPagerRect("prev")) && getCodexPageCount(screen) > 1) {
           S.codexPage = Math.max(0, S.codexPage - 1);
           return;
@@ -407,6 +416,7 @@
       }
       if (pointInRect(point, Game.getCharacterActionRect("equip"))) { Game.openEquipment(); return; }
       if (pointInRect(point, Game.getCharacterActionRect("wall"))) { Game.openWall(); return; }
+      if (pointInRect(point, Game.getCharacterActionRect("skill"))) { Game.openSkillProgress(); return; }
       for (var characterTabIndex = 0; characterTabIndex < 3; characterTabIndex++) {
         if (pointInRect(point, Game.getCharacterTabRect(characterTabIndex))) {
           Game.setCharacterTab(["gem", "equipment", "resource"][characterTabIndex]);
@@ -427,7 +437,9 @@
         return;
       }
       if (S.characterTab === "resource") {
-        var resources = Game.getCharacterResources(), resourceCellCount = C.characterUI.resourceCells.columns * C.characterUI.resourceCells.rows, resourceCell;
+        if (pointInRect(point, Game.getCharacterResourcePagerRect("prev"))) { Game.setCharacterResourcePage(-1); return; }
+        if (pointInRect(point, Game.getCharacterResourcePagerRect("next"))) { Game.setCharacterResourcePage(1); return; }
+        var resources = Game.getCharacterResourceRows().items, resourceCellCount = C.characterUI.resourceCells.columns * C.characterUI.resourceCells.rows, resourceCell;
         for (resourceCell = 0; resourceCell < resourceCellCount; resourceCell++) {
           var resourceItem = resources[resourceCell];
           if (resourceItem && pointInRect(point, Game.getCharacterResourceCellRect(resourceCell))) {
@@ -462,6 +474,24 @@
       }
       return;
     }
+    if (S.screen === "skillProgress") {
+      if (pointInRect(point, Game.getSkillProgressBackRect())) { Game.backToCharacter(); return; }
+      if (pointInRect(point, Game.getSkillProgressPagerRect("prev"))) { Game.setSkillProgressPage(-1); return; }
+      if (pointInRect(point, Game.getSkillProgressPagerRect("next"))) { Game.setSkillProgressPage(1); return; }
+      if (Game.accounts.getStatus() === "ready" && !Game.accounts.state.skillBusy) {
+        var skillRows = Game.getSkillProgressRows();
+        for (var skillRow = 0; skillRow < skillRows.items.length; skillRow++) {
+          var skillView = skillRows.items[skillRow];
+          var skillResources = Game.accounts.getResources(), skillCost = skillView.nextCost;
+          var skillAffordable = !skillCost || ((skillResources.coin || 0) >= (skillCost.coin || 0) && (skillResources[skillView.blueprintId] || 0) >= (skillCost[skillView.blueprintId] || 0));
+          if (pointInRect(point, Game.getSkillProgressButtonRect(skillRow)) && skillView.level < skillView.maxLevel && skillAffordable) {
+            Game.upgradeSkill(skillView.skillId);
+            return;
+          }
+        }
+      }
+      return;
+    }
     if (S.screen === "login") {
       var login = C.accountUI.login;
       if (pointInRect(point, login.userName) || pointInRect(point, login.password) || pointInRect(point, login.submit)) Game.openAccountDialog(S.accountMode);
@@ -471,6 +501,8 @@
     }
     if (S.screen === "account") {
       var accountBox = C.accountUI.account;
+      if (pointInRect(point, accountBox.resourcePager.prev)) { Game.setAccountResourcePage(-1); return; }
+      if (pointInRect(point, accountBox.resourcePager.next)) { Game.setAccountResourcePage(1); return; }
       if (pointInRect(point, accountBox.importButton)) Game.importLegacyProgress();
       else if (pointInRect(point, accountBox.logoutButton)) Game.logoutAccount();
       else if (pointInRect(point, accountBox.deleteButton)) Game.openAccountDialog("delete");

@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from .. import config, equipment, gems, models, rewards, security, times, wall
+from .. import config, equipment, gems, models, rewards, security, skills, times, wall
 from ..database import get_db
 from ..errors import ApiError
-from ..schemas import EquipmentEquip, EquipmentUpgrade, GemGrant, GemLock, GemSocket, GemSynthesis, GemSynthesizeAll, PasswordConfirm, ProgressReport, ResourceChange, RewardClaim, WallUpgrade
+from ..schemas import EquipmentEquip, EquipmentUpgrade, GemGrant, GemLock, GemSocket, GemSynthesis, GemSynthesizeAll, PasswordConfirm, ProgressReport, ResourceChange, RewardClaim, SkillUpgrade, WallUpgrade
 from ..serializers import account_payload, equipment_payload, gems_payload, level_payload, progress_payload, resource_payload, wall_payload
 
 router = APIRouter()
@@ -31,6 +31,7 @@ def _gem_rows(db: Session, account_id: int):
 @router.get("")
 def me(account: models.Account = Depends(security.current_account), db: Session = Depends(get_db)) -> dict:
     equipment_rows = equipment.ensure_rows(db, account.id)
+    skill_rows = skills.ensure_rows(db, account.id)
     wall_row = wall.ensure_state(db, account.id)
     return {
         "account": account_payload(account),
@@ -40,6 +41,7 @@ def me(account: models.Account = Depends(security.current_account), db: Session 
         "equipmentBag": equipment.bag_payload(equipment.bag_rows(db, account.id)),
         "wall": wall_payload(wall_row),
         "gems": gems_payload(_gem_rows(db, account.id)),
+        "skills": skills.payload(skill_rows),
     }
 
 
@@ -144,6 +146,15 @@ def equip_equipment(
     db: Session = Depends(get_db),
 ) -> dict:
     return equipment.equip(db, account.id, payload.itemId)
+
+
+@router.post("/skills/upgrade")
+def upgrade_skill(
+    payload: SkillUpgrade,
+    account: models.Account = Depends(security.current_account),
+    db: Session = Depends(get_db),
+) -> dict:
+    return skills.upgrade(db, account.id, payload.skillId)
 
 
 @router.post("/gems/socket")

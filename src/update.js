@@ -173,6 +173,14 @@
       var car = S.armoredCars[i];
       car.y -= car.speed * dt;
       car.impactFlash = Math.max(0, car.impactFlash - dt);
+      if (car.rankedPulse) {
+        car.pulseTimer = Math.max(0, (car.pulseTimer === undefined ? 1 : car.pulseTimer) - dt);
+        if (car.pulseTimer === 0) {
+          car.pulseTimer = 1;
+          Game.damageSkillArea({ x: car.x, y: car.y, radius: 42, damage: car.damage * 2.5, element: car.element, damageSource: "armoredCar", progressSkillId: "armoredCar", sourceObject: car });
+          Game.burst(car.x, car.y, 6, C.colors.yellow);
+        }
+      }
       car.contacts.forEach(function (contact) { contact.hitTimer = Math.max(0, contact.hitTimer - dt); });
       for (var j = S.enemies.length - 1; j >= 0; j--) {
         var enemy = S.enemies[j], radius = C.enemies[enemy.type].radius;
@@ -185,7 +193,7 @@
         for (var k = 0; k < car.contacts.length; k++) if (car.contacts[k].enemy === enemy) { contact = car.contacts[k]; break; }
         if (!contact) { contact = { enemy: enemy, hitTimer: 0, stunChecked: false }; car.contacts.push(contact); }
         if (contact.hitTimer > 0) continue;
-        Game.damageEnemy(enemy, car.damage, { critical: false, noWeaponEffects: true, silentText: true, element: car.element });
+        Game.damageEnemy(enemy, car.damage, { critical: false, noWeaponEffects: true, silentText: true, element: car.element, damageSource: "armoredCar", progressSkillId: "armoredCar" });
         Game.applySlow(enemy, car.slowDuration, car.slowFactor);
         if (!contact.stunChecked) {
           contact.stunChecked = true;

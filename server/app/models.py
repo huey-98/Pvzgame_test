@@ -68,6 +68,14 @@ class WallState(Base):
     breakthroughs: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class SkillProgress(Base):
+    __tablename__ = "skill_progress"
+
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True)
+    skill_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    level: Mapped[int] = mapped_column(Integer, default=1)
+
+
 class EquipmentItem(Base):
     __tablename__ = "equipment_bag"
 

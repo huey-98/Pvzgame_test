@@ -17,6 +17,11 @@ const emptySnapshot = {
   equipment: [],
   equipmentBag: [],
   wall: null,
+  skills: [],
+  skillBusy: false,
+  skillBusyId: null,
+  skillError: "",
+  skillNotice: "",
   hud: null,
   upgradeCards: [],
   reward: null,
@@ -51,6 +56,7 @@ function captureHud(Game) {
       icon: definition.icon || "?",
       color: definition.color || "#c9a1ff",
       level: runtime.level || 1,
+      accountLevel: player.accountSkills && player.accountSkills[id] ? player.accountSkills[id].level : 1,
       unlocked: !!runtime.unlocked
     };
   });
@@ -119,6 +125,7 @@ function capture() {
     equipment: Game.equipment ? Game.equipment.getSlots() : [],
     equipmentBag: Game.equipment ? Game.equipment.getBag() : [],
     wall: Game.wall ? Game.wall.getView() : null,
+    skills: Game.skillProgress ? Game.skillProgress.getAll() : [],
     equipmentBusy: !!accountState.equipmentBusy,
     equipmentBusySlot: accountState.equipmentBusySlot || null,
     equipmentError: accountState.equipmentError || "",
@@ -134,6 +141,10 @@ function capture() {
     gemAction: accountState.gemAction || null,
     gemError: accountState.gemError || "",
     gemNotice: accountState.gemNotice || "",
+    skillBusy: !!accountState.skillBusy,
+    skillBusyId: accountState.skillBusyId || null,
+    skillError: accountState.skillError || "",
+    skillNotice: accountState.skillNotice || "",
     hud: captureHud(Game),
     upgradeCards: (state.upgradeCards || []).map(function (card) {
       return {

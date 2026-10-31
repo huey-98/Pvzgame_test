@@ -47,7 +47,10 @@ export function AccountScreen({ snapshot }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [resourcePage, setResourcePage] = useState(0);
   const account = snapshot.account || {};
+  const resourcePages = Math.max(1, Math.ceil(snapshot.resources.length / 12));
+  const resourceRows = snapshot.resources.slice(resourcePage * 12, resourcePage * 12 + 12);
   return (
     <Screen title="账户中心" subtitle="本机账户 · SQLite 持久化" badge="ACCOUNT" onBack={actions.backToMenu}>
       <div className="account-card">
@@ -56,9 +59,14 @@ export function AccountScreen({ snapshot }) {
       </div>
       <h3 className="section-title">资源</h3>
       <div className="resource-grid">
-        {snapshot.resources.map(function (resource) {
+        {resourceRows.map(function (resource) {
           return <div className="resource-cell" key={resource.id}><i style={{ background: resource.color }} /><span>{resource.name}</span><b>{resource.amount}</b></div>;
         })}
+      </div>
+      <div className="panel-actions">
+        <Button variant="ghost" disabled={resourcePage <= 0} onClick={function () { setResourcePage(resourcePage - 1); }}>上一页</Button>
+        <span>{resourcePage + 1} / {resourcePages}</span>
+        <Button variant="ghost" disabled={resourcePage >= resourcePages - 1} onClick={function () { setResourcePage(resourcePage + 1); }}>下一页</Button>
       </div>
       <h3 className="section-title">关卡记录</h3>
       <div className="record-list">

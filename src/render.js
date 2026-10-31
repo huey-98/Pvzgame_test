@@ -128,6 +128,7 @@
     if (S.screen === "equipmentBag") Game.drawEquipmentBag();
     if (S.screen === "wall") Game.drawWallPanel();
     if (S.screen === "character") Game.drawCharacter();
+    if (S.screen === "skillProgress") Game.drawSkillProgress();
     if (S.screen === "upgrade") Game.drawUpgrade();
     if (S.screen === "paused") Game.drawPause();
     if (S.screen === "victory" || S.screen === "defeat" || S.screen === "retreat") Game.drawResult();
@@ -281,6 +282,7 @@
       ctx.restore();
     });
     (S.skillProjectiles || []).forEach(function (projectile) {
+      if (projectile.type === "thermobaricEcho" || projectile.type === "bombardmentEcho") return;
       if (projectile.type === "chainLightning") {
         var chainTime = (S.session && S.session.elapsed) || 0;
         var chainPoints = [{ x: projectile.originX, y: projectile.originY }];
@@ -343,7 +345,7 @@
         ctx.beginPath(); ctx.moveTo(0, -bladeReach * .7); ctx.quadraticCurveTo(bladeReach * .95, 0, 0, bladeReach * .7); ctx.quadraticCurveTo(bladeReach * .6, 0, 0, -bladeReach * .7); ctx.closePath(); ctx.fill();
       } else {
         ctx.shadowColor = "#65dfff"; ctx.shadowBlur = 12;
-        ctx.fillStyle = projectile.type === "iceShard" ? "#b8f5ff" : "#55bdf5";
+        ctx.fillStyle = projectile.type === "iceShard" || projectile.type === "electromagneticShard" ? "#b8f5ff" : "#55bdf5";
         ctx.beginPath(); ctx.moveTo(r * 2.2, 0); ctx.lineTo(-r * .9, -r * .9); ctx.lineTo(-r * .35, 0); ctx.lineTo(-r * .9, r * .9); ctx.closePath(); ctx.fill();
         ctx.fillStyle = "rgba(239, 255, 255, .85)"; ctx.beginPath(); ctx.moveTo(r * 1.3, 0); ctx.lineTo(-r * .45, -r * .32); ctx.lineTo(-r * .1, 0); ctx.closePath(); ctx.fill();
       }
@@ -2256,12 +2258,17 @@
     var beamSkill = S.player && S.player.skills.highEnergyBeam;
     if (beamSkill && beamSkill.active) {
       var beamPulse = .9 + Math.sin(S.session.elapsed * 38) * .1;
-      ctx.save(); ctx.lineCap = "round"; ctx.globalAlpha = .2 * beamPulse; ctx.strokeStyle = "#38aaff"; ctx.shadowColor = "#3dbdff"; ctx.shadowBlur = 20; ctx.lineWidth = beamSkill.beamWidth + 12;
-      ctx.beginPath(); ctx.moveTo(beamSkill.activeX, beamSkill.activeY); ctx.lineTo(beamSkill.activeX2, beamSkill.activeY2); ctx.stroke();
-      ctx.globalAlpha = .72 * beamPulse; ctx.strokeStyle = "#278fff"; ctx.shadowBlur = 12; ctx.lineWidth = beamSkill.beamWidth;
-      ctx.beginPath(); ctx.moveTo(beamSkill.activeX, beamSkill.activeY); ctx.lineTo(beamSkill.activeX2, beamSkill.activeY2); ctx.stroke();
-      ctx.globalAlpha = .96; ctx.strokeStyle = "#b9f5ff"; ctx.shadowColor = "#91efff"; ctx.shadowBlur = 8; ctx.lineWidth = Math.max(2, beamSkill.beamWidth * .28);
-      ctx.beginPath(); ctx.moveTo(beamSkill.activeX, beamSkill.activeY); ctx.lineTo(beamSkill.activeX2, beamSkill.activeY2); ctx.stroke(); ctx.restore();
+      var beams = beamSkill.activeBeams || [{ x: beamSkill.activeX, y: beamSkill.activeY, x2: beamSkill.activeX2, y2: beamSkill.activeY2, width: beamSkill.beamWidth }];
+      ctx.save(); ctx.lineCap = "round";
+      beams.forEach(function (beam) {
+        ctx.globalAlpha = .2 * beamPulse; ctx.strokeStyle = "#38aaff"; ctx.shadowColor = "#3dbdff"; ctx.shadowBlur = 20; ctx.lineWidth = beam.width + 12;
+        ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
+        ctx.globalAlpha = .72 * beamPulse; ctx.strokeStyle = "#278fff"; ctx.shadowBlur = 12; ctx.lineWidth = beam.width;
+        ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
+        ctx.globalAlpha = .96; ctx.strokeStyle = "#b9f5ff"; ctx.shadowColor = "#91efff"; ctx.shadowBlur = 8; ctx.lineWidth = Math.max(2, beam.width * .28);
+        ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
+      });
+      ctx.restore();
     }
     (S.bombZones || []).forEach(function (zone) {
       var fade = U.clamp(zone.life / zone.duration, 0, 1), pulse = .96 + Math.sin(S.session.elapsed * 7) * .04;
@@ -2327,7 +2334,7 @@
 
   Game.drawHud = function () {
     var p = S.player, session = S.session;
-    if (!p || S.screen === "menu" || S.screen === "zombieCodex" || S.screen === "skillCodex" || S.screen === "attributes" || S.screen === "equipment" || S.screen === "wall" || S.screen === "character") return;
+    if (!p || S.screen === "menu" || S.screen === "zombieCodex" || S.screen === "skillCodex" || S.screen === "attributes" || S.screen === "equipment" || S.screen === "wall" || S.screen === "character" || S.screen === "skillProgress") return;
     var level = C.levels.find(function (item) { return item.id === session.level; });
     Game.drawPauseButton(14, 15, 28, 28);
     ctx.save();
@@ -2520,6 +2527,7 @@
   Game.drawAccount = function () {
     var ui = C.accountUI, box = ui.account;
     var resources = Game.accounts.getResourceList(), records = Game.accounts.getLevelRecords(), totals = Game.accounts.getTotals();
+    var resourceView = Game.getAccountResourceRows();
     Game.overlay();
     panel(ui.panelX, ui.panelY, ui.panelWidth, ui.panelHeight, "rgba(10, 35, 49, .96)", "rgba(153, 205, 218, .22)", 20);
     badge("ACCOUNT", 120, 70, 120, C.colors.cyan);
@@ -2529,11 +2537,16 @@
     text("注册于 " + (Game.accounts.getCreatedAt() ? String(Game.accounts.getCreatedAt()).slice(0, 10) : "—"), 54, box.cardY + 50, "11px Segoe UI, Microsoft YaHei", C.colors.muted);
     text("通关 " + Game.accounts.getCompletedCount() + " / " + C.levels.length + "   ·   累计通关 " + totals.wins + " 次   ·   尝试 " + totals.attempts + " 次", 54, box.cardY + 68, "11px Segoe UI, Microsoft YaHei", C.colors.cyan);
     text("资源", 44, box.resourceY - 6, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
+    U.roundedRect(ctx, box.resourcePager.prev.x, box.resourcePager.prev.y, box.resourcePager.prev.w, box.resourcePager.prev.h, 6, "rgba(38, 56, 66, .90)", "rgba(153, 205, 218, .24)");
+    text("‹", box.resourcePager.prev.x + box.resourcePager.prev.w / 2, box.resourcePager.prev.y + 14, "bold 13px Segoe UI, Microsoft YaHei", resourceView.page > 0 ? C.colors.cyan : C.colors.muted, "center");
+    U.roundedRect(ctx, box.resourcePager.next.x, box.resourcePager.next.y, box.resourcePager.next.w, box.resourcePager.next.h, 6, "rgba(38, 56, 66, .90)", "rgba(153, 205, 218, .24)");
+    text("›", box.resourcePager.next.x + box.resourcePager.next.w / 2, box.resourcePager.next.y + 14, "bold 13px Segoe UI, Microsoft YaHei", resourceView.page < resourceView.pages - 1 ? C.colors.cyan : C.colors.muted, "center");
+    text((resourceView.page + 1) + "/" + resourceView.pages, 272, box.resourceY - 6, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     panel(38, box.resourceY, 284, box.resourceHeight, "rgba(13, 34, 46, .92)", "rgba(153, 205, 218, .16)", 14);
-    resources.forEach(function (item, index) {
+    resourceView.items.forEach(function (item, index) {
       var column = index % 4, line = Math.floor(index / 4), x = 48 + column * 72, y = box.resourceY + 18 + line * 24;
       dot(x - 7, y - 4, 4, item.color, "rgba(255, 255, 255, .24)");
-      text(item.name, x, y, "9px Segoe UI, Microsoft YaHei", C.colors.muted);
+      text(String(item.name).slice(0, 7), x, y, "9px Segoe UI, Microsoft YaHei", C.colors.muted);
       text(String(item.amount), x, y + 12, "bold 11px Segoe UI, Microsoft YaHei", item.color);
     });
     text("关卡记录", 44, box.recordY - 12, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
@@ -2792,12 +2805,17 @@
   function drawResourceIcon(id, cx, cy, size, color) {
     var s = size;
     var blueprintSlot = equipmentSlotForBlueprint(id);
+    var blueprintSkill = null, skillBlueprints = C.skillProgress.blueprints || {};
+    Object.keys(skillBlueprints).forEach(function (skillId) { if (skillBlueprints[skillId] === id) blueprintSkill = skillId; });
     ctx.save();
     ctx.fillStyle = color;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     if (blueprintSlot) {
       drawEquipmentBlueprint(blueprintSlot, cx, cy, s, color);
+    } else if (blueprintSkill) {
+      U.roundedRect(ctx, cx - s * .5, cy - s * .5, s, s, s * .08, "rgba(245, 249, 248, .96)", "rgba(255, 255, 255, .72)");
+      drawSkillGlyph(blueprintSkill, cx, cy, s * .62, color);
     } else if (id === "steel") {
       drawSteelIcon(cx, cy, s);
     } else if (id === "rareEarth") {
@@ -3006,6 +3024,7 @@
 
     var wallView = Game.wall.getView(), resources = Game.accounts.getResources();
     [
+      { key: "skill", name: "技能强化", sub: ready ? "12 项技能" : "未登录", color: C.colors.purple },
       { key: "equip", name: "装备强化", sub: ready ? "金币 " + (resources.coin || 0) : "未登录", color: C.colors.yellow },
       { key: "wall", name: "城墙强化", sub: ready ? "Lv." + wallView.level + " · 钢材 " + (resources.steel || 0) : "未登录", color: C.colors.cyan }
     ].forEach(function (item) {
@@ -3017,6 +3036,7 @@
 
     text("背包 · " + (tab === "gem" ? "宝石" : tab === "equipment" ? "装备" : "资源"), 34, ui.bagTitleY, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan);
     var resourceList = tab === "resource" ? Game.getCharacterResources() : [];
+    var resourceView = tab === "resource" ? Game.getCharacterResourceRows() : null;
     if (tab === "gem") {
       var view = Game.getCharacterGemRows(), summary = Game.getGemSynthesisSummary();
       drawGemPager(Game.getCharacterGemPagerRect("prev"), "‹", view.page > 0, C.colors.cyan);
@@ -3056,8 +3076,11 @@
       });
     } else {
       var resourceCells = ui.resourceCells.columns * ui.resourceCells.rows;
+      drawGemPager(Game.getCharacterResourcePagerRect("prev"), "‹", resourceView.page > 0, C.colors.cyan);
+      drawGemPager(Game.getCharacterResourcePagerRect("next"), "›", resourceView.page < resourceView.pages - 1, C.colors.cyan);
+      text((resourceView.page + 1) + "/" + resourceView.pages, 226, ui.bagTitleY - 2, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
       if (!resourceList.length) text(ready ? "暂无资源 · 关卡奖励会产出资源" : "登录后显示资源", ui.resourceCells.x + 8, ui.resourceCells.y + 26, "9px Segoe UI, Microsoft YaHei", C.colors.muted);
-      resourceList.slice(0, resourceCells).forEach(function (item, index) {
+      resourceView.items.slice(0, resourceCells).forEach(function (item, index) {
         var rect = Game.getCharacterResourceCellRect(index);
         U.roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 8, "rgba(13, 34, 46, .92)", "rgba(153, 205, 218, .18)");
         drawResourceIcon(item.id, rect.x + rect.w / 2, rect.y + rect.h / 2 - 4, 26, item.color);
@@ -3068,8 +3091,8 @@
     var note = tab === "gem"
       ? (state.gemError || state.gemNotice || (ready ? "已镶嵌宝石才提供属性 · 一键合成会先确认" : "登录后可镶嵌、锁定与合成宝石"))
       : tab === "equipment" ? (state.equipmentBagError || state.equipmentBagNotice || (ready ? "点击装备查看详情 · 替换只改元素" : "登录后可替换装备"))
-        : resourceList.length > ui.resourceCells.columns * ui.resourceCells.rows
-          ? "共 " + resourceList.length + " 项 · 仅显示前 " + ui.resourceCells.columns * ui.resourceCells.rows + " 项"
+        : resourceView && resourceView.total > ui.resourceCells.columns * ui.resourceCells.rows
+          ? "共 " + resourceView.total + " 项 · 第 " + (resourceView.page + 1) + "/" + resourceView.pages + " 页"
           : "资源由关卡奖励产出";
     var noteColor = C.colors.muted;
     if (tab === "gem" && state.gemError) noteColor = C.colors.red;
@@ -3089,6 +3112,44 @@
     if (S.characterGemDetail) Game.drawCharacterGemDetail();
     if (S.characterResourceDetail) Game.drawCharacterResourceDetail();
     if (S.gemSynthesisOpen) Game.drawGemSynthesis();
+  };
+
+  Game.drawSkillProgress = function () {
+    var ui = C.skillProgressUI, center = C.width / 2, state = Game.accounts.state;
+    var ready = Game.accounts.getStatus() === "ready", view = Game.getSkillProgressRows(), resources = Game.accounts.getResources();
+    Game.overlay();
+    panel(ui.panelX, ui.panelY, ui.panelWidth, ui.panelHeight, "rgba(10, 35, 49, .96)", "rgba(153, 205, 218, .22)", 20);
+    var back = Game.getSkillProgressBackRect();
+    U.roundedRect(ctx, back.x, back.y, back.w, back.h, 9, "rgba(38, 56, 66, .90)", "rgba(153, 205, 218, .28)");
+    text("‹ 角色", back.x + back.w / 2, back.y + 18, "bold 10px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    text("技能强化", center, ui.titleY, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    text(ready ? "账户等级 1–31 · 局内词条等级独立" : "登录后保存技能等级", center, ui.subtitleY, "11px Segoe UI, Microsoft YaHei", ready ? C.colors.muted : C.colors.yellow, "center");
+    view.items.forEach(function (skill, index) {
+      var rect = Game.getSkillProgressCardRect(index), action = Game.getSkillProgressButtonRect(index);
+      var blueprint = resources[skill.blueprintId] || 0, cost = skill.nextCost || {}, maxed = skill.level >= skill.maxLevel;
+      var affordable = !cost.coin || ((resources.coin || 0) >= cost.coin && blueprint >= (cost[skill.blueprintId] || 0));
+      var busy = state.skillBusy && state.skillBusyId === skill.skillId;
+      U.roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 10, "rgba(13, 34, 46, .95)", skill.color);
+      drawSkillGlyph(skill.skillId, rect.x + 24, rect.y + 30, 28, skill.color);
+      text(skill.name, rect.x + 45, rect.y + 18, "bold 12px Segoe UI, Microsoft YaHei", C.colors.text);
+      text("Lv." + skill.level + " / " + skill.maxLevel, rect.x + rect.w - 10, rect.y + 34, "bold 9px Segoe UI, Microsoft YaHei", skill.color, "right");
+      text("伤害 +" + Math.round(skill.damageBonus * 100) + "% · 冷却 −" + Math.round(skill.cooldownReduction * 100) + "%", rect.x + 10, rect.y + 47, "8px Segoe UI, Microsoft YaHei", C.colors.muted);
+      var nextName = "全部节点已解锁";
+      for (var i = 0; i < skill.milestones.length; i++) {
+        if (!skill.milestones[i].unlocked) { nextName = "下一节点 Lv." + skill.milestones[i].level + " · " + skill.milestones[i].name; break; }
+      }
+      text(String(nextName).slice(0, 24), rect.x + 10, rect.y + 61, "8px Segoe UI, Microsoft YaHei", C.colors.cyan);
+      text(maxed ? "已达最高等级" : "金币 " + (cost.coin || 0) + " · 图纸 " + (blueprint || 0) + "/" + (cost[skill.blueprintId] || 0), rect.x + 10, rect.y + 75, "8px Segoe UI, Microsoft YaHei", maxed ? C.colors.green : C.colors.muted);
+      var enabled = ready && !state.skillBusy && !maxed && affordable;
+      U.roundedRect(ctx, action.x, action.y, action.w, action.h, 8, enabled ? skill.color : "rgba(38, 56, 66, .90)", enabled ? "rgba(255, 255, 255, .24)" : "rgba(153, 205, 218, .16)");
+      text(busy ? "强化中" : maxed ? "已满级" : !ready ? "未登录" : !affordable ? "材料不足" : "强化", action.x + action.w / 2, action.y + 18, "bold 9px Segoe UI, Microsoft YaHei", enabled ? "#071217" : C.colors.muted, "center");
+    });
+    var prev = Game.getSkillProgressPagerRect("prev"), next = Game.getSkillProgressPagerRect("next");
+    drawGemPager(prev, "‹", view.page > 0, C.colors.purple);
+    drawGemPager(next, "›", view.page < view.pages - 1, C.colors.purple);
+    text((view.page + 1) + " / " + view.pages, center, ui.noteY, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    var note = state.skillError || state.skillNotice || (ready ? "技能伤害与冷却只作用于对应核心技能" : "未登录时不会发送强化请求");
+    text(String(note).slice(0, 34), center, 548, "9px Segoe UI, Microsoft YaHei", state.skillError ? C.colors.red : state.skillNotice ? C.colors.green : C.colors.muted, "center");
   };
 
   Game.drawCharacterResourceDetail = function () {
@@ -3549,8 +3610,11 @@
   };
   function drawSkillGroupDetail(group) {
     var color = skillGroupColor(group), implemented = !group.status || group.status === "已实装";
+    var isCore = (C.skillProgress.order || []).indexOf(group.id) >= 0, progress = isCore && Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+    var accountState = Game.accounts.state, ready = Game.accounts.getStatus() === "ready", resources = Game.accounts.getResources();
     panel(24, 130, 312, 112, "rgba(17, 47, 62, .94)", "rgba(153,205,218,.28)", 16);
-    text(group.icon, 52, 182, "bold 27px Segoe UI, Microsoft YaHei", color, "center");
+    if (group.id === "rifle" || (C.skillProgress.order || []).indexOf(group.id) >= 0) drawSkillGlyph(group.id, 52, 182, 34, color);
+    else text(group.icon, 52, 182, "bold 27px Segoe UI, Microsoft YaHei", color, "center");
     text(group.name, 82, 160, "bold 17px Segoe UI, Microsoft YaHei", C.colors.text);
     text(group.status || "", 320, 160, "bold 10px Segoe UI, Microsoft YaHei", implemented ? C.colors.green : C.colors.yellow, "right");
     ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
@@ -3561,13 +3625,28 @@
       badge(element.name, 40, 216, elementWidth, element.color);
       text(element.note, 48 + elementWidth, 230, "10px Segoe UI, Microsoft YaHei", C.colors.muted);
     }
-    text("专属词条", 40, 268, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
-    var traits = group.traits || [], perPage = 3, pages = Math.max(1, Math.ceil(traits.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
+    if (progress) {
+      var progressUI = C.skillCodexUI.progress, action = Game.getSkillCodexProgressActionRect();
+      var cost = progress.nextCost || {}, blueprint = resources[progress.blueprintId] || 0, maxed = progress.level >= progress.maxLevel;
+      var affordable = !cost.coin || ((resources.coin || 0) >= cost.coin && blueprint >= (cost[progress.blueprintId] || 0));
+      var nextNode = null;
+      for (var nodeIndex = 0; nodeIndex < progress.milestones.length; nodeIndex++) if (!progress.milestones[nodeIndex].unlocked) { nextNode = progress.milestones[nodeIndex]; break; }
+      panel(progressUI.panel.x, progressUI.panel.y, progressUI.panel.w, progressUI.panel.h, "rgba(28, 39, 68, .94)", "rgba(201, 161, 255, .32)", 12);
+      text("账户强化 · Lv." + progress.level + " / " + progress.maxLevel, 38, progressUI.levelY, "bold 12px Segoe UI, Microsoft YaHei", color);
+      text("暴击 +" + (progress.critBonus * 100).toFixed(1) + "% · 伤害 +" + Math.round(progress.damageBonus * 100) + "% · 冷却 −" + Math.round(progress.cooldownReduction * 100) + "%", 38, progressUI.bonusY, "9px Segoe UI, Microsoft YaHei", C.colors.text);
+      text(accountState.skillError || (nextNode ? "下一节点 Lv." + nextNode.level + " · " + nextNode.name : "全部高级节点已解锁"), 38, progressUI.nodeY, "bold 9px Segoe UI, Microsoft YaHei", accountState.skillError ? C.colors.red : C.colors.cyan);
+      text(maxed ? "已达到最高等级" : "金币 " + (cost.coin || 0) + " · 图纸 " + blueprint + "/" + (cost[progress.blueprintId] || 0), 38, progressUI.costY, "9px Segoe UI, Microsoft YaHei", maxed ? C.colors.green : C.colors.muted);
+      var busy = accountState.skillBusy && accountState.skillBusyId === progress.skillId, enabled = ready && !busy && !maxed && affordable;
+      U.roundedRect(ctx, action.x, action.y, action.w, action.h, 8, enabled ? color : "rgba(38, 56, 66, .90)", enabled ? "rgba(255,255,255,.24)" : "rgba(153,205,218,.16)");
+      text(busy ? "强化中" : maxed ? "已满级" : !ready ? "未登录" : !affordable ? "材料不足" : "强化", action.x + action.w / 2, action.y + 18, "bold 9px Segoe UI, Microsoft YaHei", enabled ? "#071217" : C.colors.muted, "center");
+    }
+    var traits = group.traits || [], perPage = progress ? 2 : 3, pages = Math.max(1, Math.ceil(traits.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
     S.codexPage = page;
+    text("专属词条", 40, progress ? 358 : 268, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
     traits.slice(page * perPage, page * perPage + perPage).forEach(function (trait, index) {
-      var x = 26, y = 282 + index * 76, rare = trait.rarity === "稀有" || trait.rarity === "史诗";
+      var x = 26, y = (progress ? 372 : 282) + index * 76, rare = trait.rarity === "稀有" || trait.rarity === "史诗";
       panel(x, y, 308, 68, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
-      text(trait.icon, x + 24, y + 32, "bold 18px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center");
+      drawSkillGlyph(group.id, x + 24, y + 32, 18, rare ? C.colors.purple : C.colors.cyan);
       text(trait.name, x + 46, y + 24, "bold 13px Segoe UI, Microsoft YaHei", C.colors.text);
       text(trait.rarity + " · 最高 Lv." + trait.max, x + 294, y + 22, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
       ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
@@ -3586,11 +3665,15 @@
     return C.elements[elementId] ? C.elements[elementId].name : elementId;
   }
   function rewardRows(reward) {
-    var rows = [], resources = reward.resources || {}, steel = resources.steel || 0, rare = resources.rareEarth || 0, blueprints = 0;
+    var rows = [], resources = reward.resources || {}, steel = resources.steel || 0, rare = resources.rareEarth || 0, blueprints = 0, skillBlueprints = 0;
     if (resources.coin) rows.push({ text: "金币 +" + resources.coin, color: C.colors.yellow });
     if (steel || rare) rows.push({ text: "钢材 +" + steel + (rare ? " · 稀土 +" + rare : ""), color: "#c8d6dd" });
-    (C.resources || []).forEach(function (item) { if (item.id.indexOf("blueprint") === 0) blueprints += resources[item.id] || 0; });
+    (C.resources || []).forEach(function (item) {
+      if (item.id.indexOf("blueprint") === 0) blueprints += resources[item.id] || 0;
+      else if (item.id.indexOf("skillBlueprint") === 0) skillBlueprints += resources[item.id] || 0;
+    });
     if (blueprints) rows.push({ text: "装备图纸 +" + blueprints + "（随机部位）", color: C.colors.cyan });
+    if (skillBlueprints) rows.push({ text: "技能图纸 +" + skillBlueprints + "（随机技能）", color: C.colors.purple });
     var gems = reward.gems || [];
     if (gems.length) {
       var counts = [0, 0, 0, 0, 0], labels = [];

@@ -6,7 +6,7 @@
     var node = typeof document !== "undefined" ? document.getElementById("start-hint") : null;
     if (node && node.style) node.style.display = display;
   }
-  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterEquipItem: null, characterEquipPage: 0, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
   Game.reset = function () {
     var s = Game.state;
     var level = C.levels.find(function (item) { return item.id === s.selectedLevel; });
@@ -19,11 +19,13 @@
       skills[id].burstShotsRemaining = 0;
       skills[id].burstTimer = 0;
       skills[id].burstAngle = -Math.PI / 2;
+      skills[id].progressSkillId = id;
     });
-    s.player = { x: C.width / 2, y: C.height - 58, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 28, fireInterval: .52, fireTimer: .05, magazineSize: C.magazineCapacity, ammo: C.magazineCapacity, reloadDuration: C.reloadDuration, reloadTimer: 0, rifleEnabled: true, burst: 0, burstShotsRemaining: 0, burstTimer: 0, burstAngle: -Math.PI / 2, spread: 0, pierce: 0, bulletRadius: 4, crit: C.attributes.base.critRate, critDamage: C.attributes.base.critDamage, burn: 0, freeze: 0, bulletType: "normal", skills: skills, skillOrder: [], level: 1, xp: 0, nextXp: C.xpBase, traits: {} };
+    s.player = { x: C.width / 2, y: C.height - 58, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 28, fireInterval: .52, fireTimer: .05, magazineSize: C.magazineCapacity, ammo: C.magazineCapacity, reloadDuration: C.reloadDuration, reloadTimer: 0, rifleEnabled: true, burst: 0, burstShotsRemaining: 0, burstTimer: 0, burstAngle: -Math.PI / 2, spread: 0, pierce: 0, bulletRadius: 4, crit: C.attributes.base.critRate, critDamage: C.attributes.base.critDamage, burn: 0, freeze: 0, bulletType: "normal", skills: skills, skillOrder: [], accountSkills: Game.skillProgress ? Game.skillProgress.getCombatSnapshot() : {}, level: 1, xp: 0, nextXp: C.xpBase, traits: {} };
     s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null;
     s.characterPart = "arm"; s.characterTab = "gem"; s.characterGemPage = 0; s.characterGems = null;
-    s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0;
+    s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0; s.characterResourcePage = 0; s.skillProgressPage = 0;
+    s.accountResourcePage = 0;
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
     s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
@@ -59,6 +61,7 @@
     Game.state.characterGemDetail = null;
     Game.state.characterGemReplace = null;
     Game.state.characterResourceDetail = null;
+    Game.state.characterResourcePage = 0;
     Game.state.characterEquipItem = null;
     Game.state.screen = "character";
   };
@@ -73,6 +76,7 @@
     Game.state.characterGemDetail = null;
     Game.state.characterResourceDetail = null;
     Game.state.characterEquipItem = null;
+    if (tab === "resource") Game.state.characterResourcePage = 0;
   };
   Game.openCharacterGems = function (partId) {
     Game.selectCharacterPart(partId);
@@ -195,12 +199,19 @@
     Game.state.gemSynthesisOpen = false;
     Game.state.screen = "character";
   };
+  Game.openSkillProgress = function () {
+    Game.accounts.state.skillError = "";
+    Game.accounts.state.skillNotice = "";
+    Game.state.skillProgressPage = 0;
+    Game.state.screen = "skillProgress";
+  };
   Game.backToMenu = function () { Game.state.levelPreview = null; Game.state.screen = "menu"; };
   Game.getTestEnemyIds = function () { return Object.keys(C.enemies); };
   Game.startTestArena = function () {
     var s = Game.state, enemyIds = Game.getTestEnemyIds();
     s.selectedLevel = 1;
     Game.reset();
+    if (s.player && Game.skillProgress) s.player.accountSkills = Game.skillProgress.getCombatSnapshot(true);
     s.testArena = { enemyIds: enemyIds, enemyIndex: 0, skillIndex: 0, traitIndex: 0, controlsVisible: true };
     s.session.testArena = true;
     s.session.level = 0;
@@ -302,6 +313,7 @@
   Game.openLogin = function () { Game.state.accountMode = "login"; Game.state.screen = "login"; };
   Game.setAccountMode = function (mode) { Game.state.accountMode = mode === "register" ? "register" : "login"; };
   Game.openAccount = function () {
+    Game.state.accountResourcePage = 0;
     if (Game.accounts.getStatus() === "ready") Game.state.screen = "account";
     else Game.openLogin();
   };
@@ -319,6 +331,10 @@
   Game.upgradeWall = function (action) {
     if (Game.state.screen !== "wall") return Promise.resolve({ ok: false });
     return Game.accounts.upgradeWall(action);
+  };
+  Game.upgradeSkill = function (skillId) {
+    if (Game.state.screen !== "skillProgress" && Game.state.screen !== "skillCodex") return Promise.resolve({ ok: false });
+    return Game.accounts.upgradeSkill(skillId);
   };
   Game.getCharacterGemRows = function () {
     var all = Game.gems ? Game.gems.getBag() : [], geo = C.characterUI.gemCells;
@@ -460,6 +476,7 @@
     return { x: geo.icon.centerX - radius, y: geo.icon.centerY - radius, w: geo.icon.size, h: geo.icon.size };
   };
   Game.getSkillCodexPagerRect = function (key) { return C.skillCodexUI.pager[key === "next" ? "next" : "prev"]; };
+  Game.getSkillCodexProgressActionRect = function () { return C.skillCodexUI.progress.action; };
   Game.getSkillCodexBackRect = function () { return C.skillCodexUI.back; };
   Game.getLevelInfoRect = function (index) {
     var geo = C.levelSelect, row = Game.getLevelRowRect(index), size = geo.infoSize;
@@ -497,7 +514,11 @@
     var grid = C.characterUI.slotGrid, rect = Game.getCharacterSlotRect(index);
     return { x: rect.x + grid.size + 6, y: rect.y + 2, w: grid.infoWidth - 6, h: grid.size - 4 };
   };
-  Game.getCharacterActionRect = function (key) { return key === "wall" ? C.characterUI.actionWall : C.characterUI.actionEquip; };
+  Game.getCharacterActionRect = function (key) {
+    if (key === "wall") return C.characterUI.actionWall;
+    if (key === "skill") return C.characterUI.actionSkill;
+    return C.characterUI.actionEquip;
+  };
   Game.getCharacterHeaderRect = function (key) { return key === "attributes" ? C.characterUI.attributes : C.characterUI.back; };
   Game.getCharacterTabRect = function (index) {
     var geo = C.characterUI.tabs;
@@ -513,6 +534,33 @@
   };
   Game.getCharacterResources = function () {
     return Game.accounts.getResourceList().filter(function (item) { return (item.amount || 0) > 0; });
+  };
+  Game.getCharacterResourcePageCount = function () {
+    var geo = C.characterUI.resourceCells;
+    return Math.max(1, Math.ceil(Game.getCharacterResources().length / (geo.columns * geo.rows)));
+  };
+  Game.getCharacterResourcePage = function () {
+    return Math.max(0, Math.min(Game.state.characterResourcePage, Game.getCharacterResourcePageCount() - 1));
+  };
+  Game.setCharacterResourcePage = function (delta) {
+    Game.state.characterResourcePage = Math.max(0, Math.min(Game.state.characterResourcePage + delta, Game.getCharacterResourcePageCount() - 1));
+  };
+  Game.getCharacterResourceRows = function () {
+    var all = Game.getCharacterResources(), geo = C.characterUI.resourceCells, perPage = geo.columns * geo.rows, page = Game.getCharacterResourcePage();
+    return { items: all.slice(page * perPage, page * perPage + perPage), total: all.length, pages: Game.getCharacterResourcePageCount(), page: page };
+  };
+  Game.getAccountResourcePageCount = function () {
+    return Math.max(1, Math.ceil(Game.accounts.getResourceList().length / 12));
+  };
+  Game.getAccountResourcePage = function () {
+    return Math.max(0, Math.min(Game.state.accountResourcePage, Game.getAccountResourcePageCount() - 1));
+  };
+  Game.setAccountResourcePage = function (delta) {
+    Game.state.accountResourcePage = Math.max(0, Math.min(Game.state.accountResourcePage + delta, Game.getAccountResourcePageCount() - 1));
+  };
+  Game.getAccountResourceRows = function () {
+    var all = Game.accounts.getResourceList(), page = Game.getAccountResourcePage();
+    return { items: all.slice(page * 12, page * 12 + 12), total: all.length, pages: Game.getAccountResourcePageCount(), page: page };
   };
   Game.getCharacterResourceCellRect = function (index) {
     var geo = C.characterUI.resourceCells, column = index % geo.columns, row = Math.floor(index / geo.columns);
@@ -543,6 +591,30 @@
   Game.getCharacterEquipReplaceRect = function () { return C.characterUI.equipDetail.replace; };
   Game.getCharacterEquipCloseRect = function () { return C.characterUI.equipDetail.close; };
   Game.getCharacterEquipPagerRect = function (key) { return C.characterUI.equipPager[key === "next" ? "next" : "prev"]; };
+  Game.getCharacterResourcePagerRect = function (key) { return C.characterUI.resourcePager[key === "next" ? "next" : "prev"]; };
+  Game.getSkillProgressPageCount = function () {
+    return Math.max(1, Math.ceil((Game.skillProgress ? Game.skillProgress.getAll().length : 0) / 4));
+  };
+  Game.getSkillProgressPage = function () {
+    return Math.max(0, Math.min(Game.state.skillProgressPage, Game.getSkillProgressPageCount() - 1));
+  };
+  Game.setSkillProgressPage = function (delta) {
+    Game.state.skillProgressPage = Math.max(0, Math.min(Game.state.skillProgressPage + delta, Game.getSkillProgressPageCount() - 1));
+  };
+  Game.getSkillProgressRows = function () {
+    var all = Game.skillProgress ? Game.skillProgress.getAll() : [], page = Game.getSkillProgressPage();
+    return { items: all.slice(page * 4, page * 4 + 4), total: all.length, pages: Game.getSkillProgressPageCount(), page: page };
+  };
+  Game.getSkillProgressCardRect = function (index) {
+    var geo = C.skillProgressUI, column = index % 2, row = Math.floor(index / 2);
+    return { x: geo.cardX[column], y: geo.cardY[row], w: geo.cardWidth, h: geo.cardHeight };
+  };
+  Game.getSkillProgressButtonRect = function (index) {
+    var geo = C.skillProgressUI, card = Game.getSkillProgressCardRect(index);
+    return { x: card.x + geo.button.offsetX, y: card.y + geo.button.offsetY, w: geo.button.w, h: geo.button.h };
+  };
+  Game.getSkillProgressPagerRect = function (key) { return key === "next" ? C.skillProgressUI.pagerNext : C.skillProgressUI.pagerPrev; };
+  Game.getSkillProgressBackRect = function () { return C.skillProgressUI.back; };
   Game.getGemSynthesisRowRect = function (index) {
     var geo = C.gemSynthesisUI;
     return { x: geo.listX, y: geo.listY + index * geo.rowHeight, w: geo.listWidth, h: geo.rowHeight - 4 };

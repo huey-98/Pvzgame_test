@@ -300,6 +300,14 @@
         prev: { x: 94, y: 521, w: 54, h: 31 },
         next: { x: 212, y: 521, w: 54, h: 31 }
       },
+      progress: {
+        panel: { x: 24, y: 244, w: 312, h: 98 },
+        levelY: 264,
+        bonusY: 282,
+        nodeY: 300,
+        costY: 318,
+        action: { x: 236, y: 252, w: 84, h: 28 }
+      },
       back: { x: 98, y: 561, w: 164, h: 36 }
     },
     accountUI: {
@@ -312,6 +320,7 @@
       },
       account: {
         cardY: 126, cardHeight: 80, resourceY: 220, resourceHeight: 80,
+        resourcePager: { prev: { x: 218, y: 208, w: 28, h: 20 }, next: { x: 286, y: 208, w: 28, h: 20 } },
         recordY: 330, recordStep: 20,
         importButton: { x: 44, y: 424, w: 128, h: 34 },
         logoutButton: { x: 188, y: 424, w: 128, h: 34 },
@@ -334,12 +343,14 @@
       attributes: { x: 268, y: 64, w: 62, h: 26 },
       titleY: 112, subtitleY: 136,
       slotGrid: { x: [45, 187], y: [150, 216, 282], size: 62, infoWidth: 62 },
-      actionEquip: { x: 36, y: 346, w: 138, h: 34 },
-      actionWall: { x: 186, y: 346, w: 138, h: 34 },
+      actionSkill: { x: 28, y: 346, w: 94, h: 34 },
+      actionEquip: { x: 133, y: 346, w: 94, h: 34 },
+      actionWall: { x: 238, y: 346, w: 94, h: 34 },
       bagTitleY: 396,
       gemCells: { x: 34, y: 404, size: 44, gap: 4, columns: 6, rows: 2 },
       equipCells: { x: 34, y: 404, size: 44, gap: 4, columns: 6, rows: 2 },
       resourceCells: { x: 40, y: 406, size: 44, gap: 4, columns: 6, rows: 2 },
+      resourcePager: { prev: { x: 190, y: 380, w: 20, h: 20 }, next: { x: 236, y: 380, w: 20, h: 20 } },
       bagPager: { prev: { x: 190, y: 380, w: 20, h: 20 }, next: { x: 236, y: 380, w: 20, h: 20 } },
       bagLock: { offsetX: 30, offsetY: 0, w: 14, h: 14 },
       bagAction: { x: 262, y: 380, w: 62, h: 20 },
@@ -425,8 +436,153 @@
       { id: "blueprintShoes", name: "鞋子图纸", color: "#c9a1ff", description: "记录鞋子装备结构的专用强化图纸。", usage: "强化鞋子装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
       { id: "blueprintGloves", name: "手套图纸", color: "#ff9b52", description: "记录手套装备结构的专用强化图纸。", usage: "强化手套装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
       { id: "steel", name: "钢材", color: "#c8d6dd", description: "经过粗炼的防线钢板，是城墙普通强化的主要材料。", usage: "城墙升级时消耗 20 × 当前等级钢材。", source: "关卡奖励随机掉落。" },
-      { id: "rareEarth", name: "稀土", color: "#f2c14e", description: "用于突破城墙等级瓶颈的稀有金属材料。", usage: "每 10 级城墙节点突破时消耗，需求逐次增加。", source: "关卡奖励随机掉落。" }
+      { id: "rareEarth", name: "稀土", color: "#f2c14e", description: "用于突破城墙等级瓶颈的稀有金属材料。", usage: "每 10 级城墙节点突破时消耗，需求逐次增加。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintBombardment", name: "空投轰炸图纸", color: "#ffd166", description: "记录空投轰炸战术结构的专属技能图纸。", usage: "强化空投轰炸时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintThermobaric", name: "温压弹图纸", color: "#ff9b52", description: "记录温压弹装药与引信结构的专属技能图纸。", usage: "强化温压弹时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintDryIce", name: "干冰弹图纸", color: "#58aaff", description: "记录干冰弹冷凝与分裂结构的专属技能图纸。", usage: "强化干冰弹时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintArmoredCar", name: "装甲车图纸", color: "#63e6a0", description: "记录装甲车底盘与冲撞结构的专属技能图纸。", usage: "强化装甲车时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintElectromagnetic", name: "电磁穿刺图纸", color: "#68d8ff", description: "记录电磁穿刺放电结构的专属技能图纸。", usage: "强化电磁穿刺时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintHighEnergyBeam", name: "高能射线图纸", color: "#51cfff", description: "记录高能射线聚焦结构的专属技能图纸。", usage: "强化高能射线时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintWhirlwindCannon", name: "旋风加农图纸", color: "#9fe6ff", description: "记录旋风加农风道结构的专属技能图纸。", usage: "强化旋风加农时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintHailGenerator", name: "冰雹发生器图纸", color: "#8ce9ff", description: "记录冰雹发生器制冷结构的专属技能图纸。", usage: "强化冰雹发生器时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintFuelBomb", name: "燃油弹图纸", color: "#ff7043", description: "记录燃油弹燃烧结构的专属技能图纸。", usage: "强化燃油弹时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintAirBlade", name: "压缩气刃图纸", color: "#5ef2a0", description: "记录压缩气刃风压结构的专属技能图纸。", usage: "强化压缩气刃时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintDrone", name: "无人机图纸", color: "#a6c8ff", description: "记录无人机飞行与撞击结构的专属技能图纸。", usage: "强化无人机时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "skillBlueprintChainLightning", name: "跃迁电子图纸", color: "#b98cff", description: "记录跃迁电子弹射结构的专属技能图纸。", usage: "强化跃迁电子时与金币一同消耗。", source: "关卡奖励随机掉落。" }
     ],
+    skillProgress: {
+      order: ["bombardment", "thermobaric", "dryIce", "armoredCar", "electromagnetic", "highEnergyBeam", "whirlwindCannon", "hailGenerator", "fuelBomb", "airBlade", "drone", "chainLightning"],
+      maxLevel: 31,
+      critPerLevel: .005,
+      damagePerLevel: .08,
+      cooldownPerLevel: .015,
+      milestones: [2, 7, 12, 18, 22, 26],
+      coinBase: 150,
+      coinPerLevel: 50,
+      blueprintPerLevel: 10,
+      blueprints: {
+        bombardment: "skillBlueprintBombardment",
+        thermobaric: "skillBlueprintThermobaric",
+        dryIce: "skillBlueprintDryIce",
+        armoredCar: "skillBlueprintArmoredCar",
+        electromagnetic: "skillBlueprintElectromagnetic",
+        highEnergyBeam: "skillBlueprintHighEnergyBeam",
+        whirlwindCannon: "skillBlueprintWhirlwindCannon",
+        hailGenerator: "skillBlueprintHailGenerator",
+        fuelBomb: "skillBlueprintFuelBomb",
+        airBlade: "skillBlueprintAirBlade",
+        drone: "skillBlueprintDrone",
+        chainLightning: "skillBlueprintChainLightning"
+      }
+    },
+    skillProgressTraits: {
+      bombardment: {
+        2: { name: "增援投弹", detail: "每次空投额外投掷 1 枚炸弹。" },
+        7: { name: "震荡轰炸", detail: "炸弹爆炸使敌人眩晕 0.8 秒。" },
+        12: { name: "广域轰炸", detail: "爆炸半径扩大 30%。" },
+        18: { name: "燃烧弹头", detail: "炸弹命中附加 2 秒燃烧，每秒造成爆炸伤害的 12%。" },
+        22: { name: "精准打击", detail: "中心伤害倍率额外 +0.8。" },
+        26: { name: "延时余爆", detail: "炸弹落地 0.8 秒后再爆一次，伤害 40%，半径 60%。" }
+      },
+      thermobaric: {
+        2: { name: "温压扩爆", detail: "爆炸半径 +15%。" },
+        7: { name: "延烧", detail: "燃烧时间 +1 秒。" },
+        12: { name: "冲击增强", detail: "直击与爆炸击退距离各 +20%。" },
+        18: { name: "贯穿燃烧", detail: "穿透 +1，穿透路径上的冲击也会施加燃烧。" },
+        22: { name: "二次爆轰", detail: "主爆炸 0.6 秒后追加伤害 45%、半径 70% 的爆炸。" },
+        26: { name: "强制引燃", detail: "温压弹的燃烧可以穿透燃烧免疫。" }
+      },
+      dryIce: {
+        2: { name: "寒气附着", detail: "命中施加 0.8 秒、50% 减速。" },
+        7: { name: "深层冻结", detail: "已获得冰冻词条时，冻结时间额外 +0.5 秒。" },
+        12: { name: "冰晶贯穿", detail: "穿透 +1，分裂小冰弹继承当前减速与冻结。" },
+        18: { name: "冻伤延长", detail: "干冰弹冻伤持续时间 ×1.25。" },
+        22: { name: "冰片增生", detail: "首次命中额外生成 2 枚分裂小冰弹。" },
+        26: { name: "极寒叠层", detail: "干冰弹冻伤层数上限 +20。" }
+      },
+      armoredCar: {
+        2: { name: "双车出动", detail: "每次派遣额外增加 1 辆装甲车。" },
+        7: { name: "碾压迟滞", detail: "减速时间 +0.6 秒。" },
+        12: { name: "撞击震荡", detail: "眩晕概率 +15%，眩晕至少持续 0.5 秒。" },
+        18: { name: "重装车体", detail: "车身尺寸额外 ×1.25。" },
+        22: { name: "持续压制", detail: "眩晕概率再 +10%，减速时间再 +1 秒。" },
+        26: { name: "行驶震波", detail: "每辆车每秒在当前位置造成一次范围伤害。" }
+      },
+      electromagnetic: {
+        2: { name: "多目标放电", detail: "额外目标 +1。" },
+        7: { name: "麻痹延长", detail: "麻痹时间 +0.8 秒。" },
+        12: { name: "电弧弹射", detail: "命中后释放弹射 2 次的电磁电链。" },
+        18: { name: "链式扩散", detail: "电磁电链弹射次数提升到 4。" },
+        22: { name: "冻结裂片", detail: "命中冻结目标时发射 4 颗小冰弹。" },
+        26: { name: "燃烧导电", detail: "命中燃烧目标时生成持续 1 秒的电磁灼烧区。" }
+      },
+      highEnergyBeam: {
+        2: { name: "脉冲增幅", detail: "射线伤害次数 +5。" },
+        7: { name: "射线减速", detail: "命中施加 0.8 秒、30% 减速。" },
+        12: { name: "灼蚀标记", detail: "命中后 4 秒内受到伤害 +15%。" },
+        18: { name: "边界折返", detail: "射线抵达战场边界后折返一次。" },
+        22: { name: "宽幅聚焦", detail: "射线宽度 ×1.25。" },
+        26: { name: "双线扫射", detail: "朝另一方向追加第二道射线，持续时间 ×0.6。" }
+      },
+      whirlwindCannon: {
+        2: { name: "风暴延续", detail: "龙卷风持续时间 +2 秒。" },
+        7: { name: "强效牵引", detail: "牵引速度 ×1.25。" },
+        12: { name: "双重风暴", detail: "额外生成 1 个龙卷风。" },
+        18: { name: "扩张风眼", detail: "龙卷风半径 ×1.2。" },
+        22: { name: "风刃迸发", detail: "每次命中追加一道纯伤害气刃。" },
+        26: { name: "残留风场", detail: "龙卷风结束时留下 1.5 秒的大龙卷风。" }
+      },
+      hailGenerator: {
+        2: { name: "冰雹冻结", detail: "冻结时间 +0.25 秒。" },
+        7: { name: "覆盖扩张", detail: "冰雹半径 ×1.25。" },
+        12: { name: "降雹延长", detail: "持续时间 +0.75 秒。" },
+        18: { name: "冰雹冻伤", detail: "每次砸击叠加 1 层冰雹冻伤。" },
+        22: { name: "极寒叠层", detail: "冰雹冻伤层数上限提升到 15。" },
+        26: { name: "暴雪核心", detail: "半径再 ×1.2，冻结时间再 +0.25 秒。" }
+      },
+      fuelBomb: {
+        2: { name: "燃油扩散", detail: "火场半径 ×1.2。" },
+        7: { name: "燃烧延续", detail: "火场持续时间 +0.5 秒。" },
+        12: { name: "黏稠燃油", detail: "火场施加 1 秒、65% 减速。" },
+        18: { name: "火线扩张", detail: "火场半径再 ×1.1。" },
+        22: { name: "终末爆燃", detail: "结束爆炸伤害提升到单次灼烧伤害的 1.8 倍。" },
+        26: { name: "烈焰定身", detail: "火场内的敌人眩晕 1 秒，重复命中刷新。" }
+      },
+      airBlade: {
+        2: { name: "气刃穿透", detail: "穿透 +1。" },
+        7: { name: "高压气流", detail: "击退距离 ×1.25。" },
+        12: { name: "多层风刃", detail: "穿透再 +3。" },
+        18: { name: "宽幅风压", detail: "气刃判定半径 ×1.3。" },
+        22: { name: "扇形切割", detail: "齐射数量 +1。" },
+        26: { name: "深层割裂", detail: "命中后额外施加 1 秒 90% 治疗压制。" }
+      },
+      drone: {
+        2: { name: "续航增强", detail: "无人机持续时间 +1.5 秒。" },
+        7: { name: "大型机架", detail: "无人机尺寸额外 ×1.15。" },
+        12: { name: "破甲标记", detail: "命中后 5 秒内受到伤害 +30%。" },
+        18: { name: "高速巡航", detail: "飞行速度 ×1.15。" },
+        22: { name: "僚机编队", detail: "额外生成 1 架伤害 70% 的无人机。" },
+        26: { name: "撞击震荡", detail: "撞击使敌人眩晕 0.6 秒。" }
+      },
+      chainLightning: {
+        2: { name: "多重跃迁", detail: "弹射次数 +2。" },
+        7: { name: "电流麻痹", detail: "麻痹时间 +0.4 秒。" },
+        12: { name: "燃烧导电", detail: "目标燃烧时本次电链伤害 ×1.35。" },
+        18: { name: "冻结超导", detail: "目标冻结时本次电链伤害 ×1.35。" },
+        22: { name: "并联电弧", detail: "额外释放 1 条伤害 70% 的电链。" },
+        26: { name: "自由电子", detail: "每次命中 20% 概率释放一条无强化五段电链。" }
+      }
+    },
+    skillProgressUI: {
+      panelX: 22, panelY: 56, panelWidth: 316, panelHeight: 512,
+      back: { x: 28, y: 64, w: 56, h: 26 },
+      titleY: 112, subtitleY: 136,
+      cardX: [34, 188], cardY: [154, 292], cardWidth: 138, cardHeight: 124,
+      button: { offsetX: 12, offsetY: 82, w: 114, h: 28 },
+      pagerPrev: { x: 198, y: 514, w: 28, h: 30 },
+      pagerNext: { x: 234, y: 514, w: 28, h: 30 },
+      noteY: 530
+    },
     rewardTiers: [
       { id: 0, name: "参与奖励" },
       { id: 1, name: "升级奖励" },
@@ -436,8 +592,8 @@
     resultUI: {
       panelX: 24, panelY: 80, panelWidth: 312, panelHeight: 404,
       titleY: 124, subtitleY: 152, statsY: 178,
-      rewardTitleY: 208, rewardRowY: 232, rewardRowStep: 22,
-      nextLevelY: 344, progressHintY: 366, rewardHintY: 388,
+      rewardTitleY: 206, rewardRowY: 228, rewardRowStep: 18,
+      nextLevelY: 334, progressHintY: 356, rewardHintY: 378,
       restart: { x: 42, y: 420, w: 130, h: 44 },
       back: { x: 188, y: 420, w: 130, h: 44 }
     },

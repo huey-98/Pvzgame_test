@@ -569,3 +569,15 @@ git diff --check
 - 保留 `window.Game` 与旧 Canvas 菜单作为验收期兼容 / 离线回退路径；后续阶段再转为 ES Module 并移除旧菜单。
 - 修复 React 页面在宽屏浏览器中整体贴左的问题：`#root` 改为全屏 Flex 居中容器，游戏主体与测试场侧栏作为整体水平 / 垂直居中；重新执行生产构建通过。
 - 验证：`npm --prefix frontend run build` 通过；`src/*.js` 语法检查、`compileall server` 通过；`check_db.py` 153 项、`check_api.py` 176 项、`check-accounts.js` 164 项、`check-character.js` 245 项、`check-equipment.js` 108 项、`check-wall.js` 61 项、`check-gems.js` 285 项、`check-rewards.js` 65 项与 `check-bomber.js` 全部通过。`check_api.py` 已按构建存在 / 不存在分别验证 React 静态托管与旧版回退；新增 `tmp/check-react-ssr.mjs`，15 个 React 页面 / 浮层 SSR 与挂载、销毁、重复挂载共 18 项通过。
+
+## 2026-11-01 · 技能图纸与技能等级
+
+- 数据库 `SCHEMA_VERSION` 升至 7，新增 `skill_progress(account_id, skill_id, level)`；`GET /api/me` 为 12 个核心技能幂等补齐 Lv.1，账户删除由外键级联清理。
+- 新增 `server/app/skills.py` 与 `POST /api/me/skills/upgrade`。服务端统一计算金币 `150 + 50 × (当前等级 - 1)` 和专属图纸 `10 × 当前等级`，在事务内校验并扣费；支持未知技能、满级和材料不足错误。
+- 资源从 11 项扩展到 23 项，新增 12 种技能图纸。关卡奖励只追加技能图纸：档 1 固定 2 张，档 2 随机 6–12 张，档 3 随机 10–16 张。
+- 新增 `src/skills.js`（`Game.skillProgress`）与账户 `upgradeSkill`；技能账户等级改为开局快照到 `player.accountSkills`，测试场固定 Lv.1，局内 `player.skills[id].level` 与 HUD 等级语义保持不变。
+- 通用成长接入：每级暴击 +0.5%、对应技能伤害 +8%、冷却速率 ×0.985；暴击受 95% 上限，冷却只调整 `fireTimer` 推进。所有直伤、区域伤害、持续伤害与新增实体均标注技能来源。
+- 实现 12 个技能共 72 个 Lv.2/7/12/18/22/26 高级节点，覆盖温压二段爆炸、轰炸余爆、电磁电链与小冰弹、射线折返与双射线、旋风残风、冰雹叠层、燃油眩晕、气刃 90% 治疗压制、无人机僚机、跃迁电子无强化电链等机制。
+- Canvas 技能图鉴详情增加账户成长、下一节点、价格与强化按钮；角色页新增第三个「技能强化」入口并支持技能分页；账户和角色资源分页显示 23 项；结算页分隔装备图纸与技能图纸并重新压缩行距。React 兼容层同步快照、命令、图鉴和资源分页。
+- 验证：`check_db.py` 177 项、`check_api.py` 188 项、`check-skills.js` 全部通过；`check-accounts.js` 176 项、`check-character.js` 262 项、`check-rewards.js` 65 项、`check-fuel.js` 全量通过。`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、JS/Python 语法检查、`git diff --check` 通过；`trace-draw.js` + `replay-draw.py` 已回放核对技能图鉴、技能强化页、账户资源第二页与结算分类。
+- 环境备注：本机 Python 缺少原生 `pbkdf2_hmac`/`_ssl` DLL，密码哈希回退到 OpenSSL CLI，API 服务需在沙箱外启动；Pillow 回放也需沙箱外执行。全量旧关卡与视觉脚本仍有历史断言失败，未归因于本次技能功能。

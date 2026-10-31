@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Button, Empty, Screen } from "../components/ui.jsx";
+import { Button, Empty, formatPercent, Screen } from "../components/ui.jsx";
 import { actions, getConfig, getGame } from "../game/actions.js";
 
 const categoryLabels = {
@@ -84,18 +84,31 @@ export function ZombieCodexScreen() {
 
 export function SkillCodexScreen() {
   const [selectedId, setSelectedId] = useState(null);
+  const config = getConfig();
   const groups = useMemo(function () { return getGame().getSkillGroups(); }, []);
   const selected = selectedId ? groups.find(function (group) { return group.id === selectedId; }) : null;
+  const progress = selected && config.skillProgress.order.indexOf(selected.id) >= 0 && getGame().skillProgress ? getGame().skillProgress.getView(selected.id) : null;
+  const accountState = getGame().accounts.state;
   return (
-    <Screen title="技能图鉴" subtitle={"每局最多装备 " + getConfig().maxSkillSlots + " 个核心技能"} badge="FIELD GUIDE · SKILLS" onBack={actions.backToMenu}>
+    <Screen title="技能图鉴" subtitle={"每局最多装备 " + config.maxSkillSlots + " 个核心技能"} badge="FIELD GUIDE · SKILLS" onBack={actions.backToMenu}>
       {selected ? (
         <div className="codex-detail">
           <Button variant="ghost" className="detail-back" onClick={function () { setSelectedId(null); }}>‹ 返回列表</Button>
           <div className="skill-hero">
             <span style={{ color: selected.color || "#68d8ff" }}>{selected.icon}</span>
-            <div><h2>{selected.name}</h2><p>{selected.status || "已实装"} · {selected.traits.length} 个词条</p></div>
+            <div><h2>{selected.name}</h2><p>{selected.status || "已实装"} · {selected.traits.length} 个词条{progress ? " · 账户 Lv." + progress.level + " / " + progress.maxLevel : ""}</p></div>
           </div>
           <p className="codex-copy">{selected.detail}</p>
+          {progress ? (
+            <div className="trait-cards">
+              <article className="trait-card rare">
+                <div><b>账户强化 Lv.{progress.level} / {progress.maxLevel}</b><small>暴击 +{formatPercent(progress.critBonus)} · 伤害 +{Math.round(progress.damageBonus * 100)}% · 冷却 −{Math.round(progress.cooldownReduction * 100)}%</small></div>
+                <p>{progress.milestones.filter(function (node) { return node.unlocked; }).map(function (node) { return node.name; }).join(" · ") || "尚未解锁高级节点"}</p>
+                <p>{progress.nextCost ? "金币 " + progress.nextCost.coin + " · 专属图纸 " + progress.nextCost[progress.blueprintId] : "已达到最高等级"}</p>
+                <Button variant={progress.level >= progress.maxLevel ? "ghost" : "violet"} disabled={progress.level >= progress.maxLevel || accountState.skillBusy || getGame().accounts.getStatus() !== "ready"} onClick={function () { actions.upgradeSkill(progress.skillId); }}>{progress.level >= progress.maxLevel ? "已满级" : accountState.skillBusyId === progress.skillId ? "强化中…" : "强化"}</Button>
+              </article>
+            </div>
+          ) : null}
           <div className="trait-cards">
             {selected.traits.map(function (trait) {
               return (

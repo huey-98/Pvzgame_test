@@ -3,6 +3,7 @@ import "../../../src/attributes.js";
 import "../../../src/equipment.js";
 import "../../../src/wall.js";
 import "../../../src/gems.js";
+import "../../../src/skills.js";
 import "../../../src/accounts.js";
 import "../../../src/utils.js";
 import "../../../src/state.js";

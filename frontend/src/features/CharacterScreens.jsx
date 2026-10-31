@@ -73,7 +73,10 @@ export function CharacterScreen({ snapshot }) {
   const config = getConfig();
   const [partId, setPartId] = useState(config.equipment.slots[0].id);
   const [tab, setTab] = useState("gems");
+  const [resourcePage, setResourcePage] = useState(0);
   const summary = getGame().gems.getSynthesisSummary();
+  const resourcePages = Math.max(1, Math.ceil(snapshot.resources.length / 12));
+  const resourceRows = snapshot.resources.slice(resourcePage * 12, resourcePage * 12 + 12);
   return (
     <Screen title="角色大厅" subtitle="装备、宝石与资源构筑" badge="OPERATOR" onBack={actions.backToMenu} actions={<Button variant="ghost" className="mini" onClick={actions.openAttributes}>属性</Button>}>
       <div className="character-summary">
@@ -96,6 +99,7 @@ export function CharacterScreen({ snapshot }) {
           <div className="panel-actions">
             <Button variant="violet" disabled={!summary.recipes || snapshot.gemBusy} onClick={actions.synthesizeAllGems}>一键合成 {summary.recipes ? "(" + summary.recipes + " 组)" : ""}</Button>
             <Button variant="ghost" onClick={actions.openEquipmentBag}>装备背包</Button>
+            <Button variant="violet" onClick={actions.openSkillProgress}>技能强化</Button>
           </div>
           <Notice tone="error">{snapshot.gemError}</Notice>
           <Notice tone="success">{snapshot.gemNotice}</Notice>
@@ -110,10 +114,47 @@ export function CharacterScreen({ snapshot }) {
         </div>
       ) : null}
       {tab === "resources" ? (
-        <div className="resource-grid">
-          {snapshot.resources.map(function (resource) { return <div className="resource-cell" key={resource.id}><i style={{ background: resource.color }} /><span>{resource.name}</span><b>{resource.amount}</b></div>; })}
+        <div>
+          <div className="resource-grid">
+            {resourceRows.map(function (resource) { return <div className="resource-cell" key={resource.id}><i style={{ background: resource.color }} /><span>{resource.name}</span><b>{resource.amount}</b></div>; })}
+          </div>
+          <div className="panel-actions">
+            <Button variant="ghost" disabled={resourcePage <= 0} onClick={function () { setResourcePage(resourcePage - 1); }}>上一页</Button>
+            <span>{resourcePage + 1} / {resourcePages}</span>
+            <Button variant="ghost" disabled={resourcePage >= resourcePages - 1} onClick={function () { setResourcePage(resourcePage + 1); }}>下一页</Button>
+          </div>
         </div>
       ) : null}
+    </Screen>
+  );
+}
+
+export function SkillProgressScreen({ snapshot }) {
+  const config = getConfig();
+  const skills = snapshot.skills || [];
+  const accountState = getGame().accounts.state;
+  return (
+    <Screen title="技能强化" subtitle="账户等级 1–31 · 局内词条等级独立" badge="SKILL LAB" onBack={actions.backToCharacter}>
+      <div className="equipment-panel">
+        {skills.map(function (skill) {
+          const cost = skill.nextCost;
+          const blueprint = snapshot.resources.find(function (resource) { return resource.id === skill.blueprintId; });
+          const nextNode = skill.milestones.find(function (node) { return !node.unlocked; });
+          const affordable = !cost || ((blueprint ? blueprint.amount : 0) >= (cost[skill.blueprintId] || 0) && (snapshot.resources.find(function (resource) { return resource.id === "coin"; }) || {}).amount >= cost.coin);
+          return (
+            <div className="equipment-upgrade" key={skill.skillId}>
+              <div className="equipment-title"><i style={{ color: skill.color }}>{skill.icon}</i><div><b>{skill.name} · Lv.{skill.level} / {skill.maxLevel}</b><small>伤害 +{Math.round(skill.damageBonus * 100)}% · 冷却 −{Math.round(skill.cooldownReduction * 100)}%</small></div></div>
+              <p>{nextNode ? "下一节点 Lv." + nextNode.level + " · " + nextNode.name : "全部节点已解锁"}</p>
+              <div className="cost-line"><span>金币 {cost ? cost.coin : "—"}</span><span>{config.resources.find(function (resource) { return resource.id === skill.blueprintId; }).name} {blueprint ? blueprint.amount : 0} / {cost ? cost[skill.blueprintId] : "—"}</span></div>
+              <Button variant={skill.level >= skill.maxLevel ? "ghost" : affordable ? "success" : "warning"} disabled={skill.level >= skill.maxLevel || snapshot.skillBusy || snapshot.accountStatus !== "ready"} onClick={function () { actions.upgradeSkill(skill.skillId); }}>{skill.level >= skill.maxLevel ? "满级" : snapshot.skillBusyId === skill.skillId ? "强化中…" : "强化"}</Button>
+            </div>
+          );
+        })}
+      </div>
+      <Notice tone="error">{snapshot.skillError}</Notice>
+      <Notice tone="success">{snapshot.skillNotice}</Notice>
+      {snapshot.accountStatus !== "ready" ? <Notice tone="warning">登录后才能保存技能等级</Notice> : null}
+      {accountState.skillBusy ? <p>正在处理技能强化请求…</p> : null}
     </Screen>
   );
 }

@@ -61,6 +61,8 @@ def grant(db: Session, account_id: int, level_id: int, level: int, win: bool, rn
     elif tier == 1:
         _add_resource(db, account_id, resources, "coin", config.REWARD_COIN_LEVEL_UP)
         created_gems.append(gems.create(db, account_id, rng.choice(config.EQUIPMENT_SLOTS), 0, rng=rng))
+        for _ in range(config.REWARD_SKILL_BLUEPRINT_LEVEL_UP):
+            _add_resource(db, account_id, resources, rng.choice(config.SKILL_BLUEPRINT_IDS), 1)
     else:
         _add_resource(db, account_id, resources, "coin", config.REWARD_COIN_VETERAN)
         if tier == 3:
@@ -73,6 +75,11 @@ def grant(db: Session, account_id: int, level_id: int, level: int, win: bool, rn
             created_gems.append(gems.create(db, account_id, rng.choice(config.EQUIPMENT_SLOTS), quality, rng=rng))
         for _ in range(rng.randint(*config.REWARD_BLUEPRINTS)):
             _add_resource(db, account_id, resources, rng.choice(config.BLUEPRINT_IDS), 1)
+        skill_blueprints = rng.randint(*config.REWARD_SKILL_BLUEPRINTS)
+        if tier == 3:
+            skill_blueprints += config.REWARD_SKILL_BLUEPRINT_CLEAR
+        for _ in range(skill_blueprints):
+            _add_resource(db, account_id, resources, rng.choice(config.SKILL_BLUEPRINT_IDS), 1)
         count = config.REWARD_EQUIPMENT_VETERAN + (config.REWARD_EQUIPMENT_CLEAR if tier == 3 else 0)
         for _ in range(count):
             created_equipment.append(
