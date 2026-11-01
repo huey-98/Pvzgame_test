@@ -71,6 +71,14 @@ export function PauseOverlay() {
   );
 }
 
+function traitRequirementText(card) {
+  const traits = getConfig().skillTraits || [];
+  return (card.requires || []).map(function (id) {
+    const found = traits.find(function (trait) { return trait.id === id; });
+    return found ? found.name : id;
+  }).join(" · ");
+}
+
 export function UpgradeOverlay({ snapshot }) {
   return (
     <div className="battle-overlay">
@@ -80,12 +88,14 @@ export function UpgradeOverlay({ snapshot }) {
         <p>选择一项强化，战斗将继续</p>
         <div className="upgrade-options">
           {snapshot.upgradeCards.map(function (card, index) {
+            const isSuper = card.super || card.rarity === "超级";
             return (
-              <button key={card.id} className={"upgrade-option " + (card.rarity === "稀有" || card.rarity === "史诗" ? "rare" : "")} onClick={function () { actions.chooseTrait(index); }}>
+              <button key={card.id} className={"upgrade-option " + (isSuper ? "super" : card.rarity === "稀有" || card.rarity === "史诗" ? "rare" : "")} onClick={function () { actions.chooseTrait(index); }}>
                 <b>{card.icon || "✦"}</b>
                 <strong>{card.name}</strong>
-                <small>{card.rarity} · 最多 {card.max} 级</small>
+                <small>{isSuper ? "超级 · 一次性" : card.rarity + " · 最多 " + card.max + " 级"}</small>
                 <p>{card.desc}</p>
+                {isSuper ? <p className="upgrade-requirement">前置：{traitRequirementText(card)}</p> : null}
                 <em>选择</em>
               </button>
             );

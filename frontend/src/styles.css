@@ -112,6 +112,9 @@ button { color: inherit; }
 .trait-cards { display: grid; gap: 6px; }
 .trait-card { padding: 9px 10px; border: 1px solid rgba(153, 205, 218, .14); border-radius: 10px; background: rgba(17, 47, 62, .68); }
 .trait-card.rare { border-color: rgba(201, 161, 255, .4); background: rgba(40, 31, 61, .82); }
+.trait-card.super { border-color: rgba(255, 184, 77, .72); background: rgba(74, 51, 23, .92); box-shadow: 0 0 14px rgba(255, 184, 77, .22); }
+.trait-card.super small { color: #ffb84d; }
+.trait-card .trait-requirement { color: #ffd9a0; }
 .trait-card div { display: flex; justify-content: space-between; gap: 8px; }
 .trait-card b { font-size: 11px; }
 .trait-card small { color: #63e6a0; font-size: 8px; }
@@ -222,8 +225,12 @@ button { color: inherit; }
 .upgrade-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 15px; }
 .upgrade-option { display: flex; min-width: 0; min-height: 245px; flex-direction: column; align-items: center; padding: 12px 7px; border: 1px solid rgba(104, 216, 255, .22); border-radius: 12px; background: #163b4d; cursor: pointer; }
 .upgrade-option.rare { border-color: rgba(201, 161, 255, .42); background: #2b2949; }
+.upgrade-option.super { border-color: rgba(255, 184, 77, .78); background: #4a3317; box-shadow: 0 0 16px rgba(255, 184, 77, .28); }
 .upgrade-option > b { color: #68d8ff; font-size: 27px; }
 .upgrade-option.rare > b { color: #c9a1ff; }
+.upgrade-option.super > b, .upgrade-option.super > small { color: #ffb84d; }
+.upgrade-option.super > p { color: #ffe4b8; }
+.upgrade-option .upgrade-requirement { margin-top: 2px; color: #ffd9a0; font-size: 7px; }
 .upgrade-option strong { margin-top: 8px; font-size: 11px; line-height: 1.25; }
 .upgrade-option small { margin-top: 4px; color: #63e6a0; font-size: 7px; }
 .upgrade-option p { margin: 9px 0; color: rgba(204, 224, 233, .66); font-size: 8px; line-height: 1.45; }

@@ -404,6 +404,16 @@
 
 跃迁电子是**第一条「电链」类技能**，也是唯一一个伤害**只落在节点上、不做沿线判定**的技能：它不用弹丸管线，而是在 `S.skillProjectiles` 里放一条 `type: "chainLightning"` 的链实体，链的节点在**释放瞬间一次算完**（`Game.buildChainLightning`：起点由 `Game.getChainLightningStart` 从进入中距离线的敌人里按「最靠城墙」选出，之后每跳由 `Game.getChainLightningJumpTarget` 取**距离最近的、还没被这条链打过**的目标，因此几何上贴在弹道中间的僵尸总会被先选中 —— 「路径上不掉血」不是特判，而是最近邻选择 + 只在节点结算伤害的自然结果）。链实体记录 `nodes`（每个节点存目标引用与命中时坐标）、`next`（下一个待结算节点）与 `jumpDelay`（0.08 秒），`Game.updateChainLightnings` 每帧按 `timer <= 0` 依次调用 `Game.resolveChainLightningNode`：节点目标已阵亡则整跳跳过（不重复结算），否则先 `Game.damageEnemy`、再 `Game.applyBurn`（仅「跃迁燃烧」）、最后 `Game.applyParalysis`（麻痹属于硬控），并压入一枚 `chainSpark` 火花特效；全部节点结算完后链体再存活 0.32 秒用于绘制淡出，然后自行移出 `S.skillProjectiles`。每个被命中的目标都会掉血并被麻痹（起点也算链上目标），所以 5 次弹射 + 起点 = 6 个受害者。弹射目标不再受交战距离限制（已释放的技能不受距离约束），因此链会一直跳到把次数用完或场上没有未命中的目标为止。冷却与电磁穿刺同一口径（`Game.launchChainLightning` 成功时写 `fireTimer = fireInterval`，7 秒；`updateSkills` 的该分支只推进冷却），没有存续期，技能槽始终显示冷却进度。「复合电子」在 `Game.launchChainLightning` 的循环里多跑一轮，用一条 `taken` 列表让第二条链避开第一条已经打过的目标（候选耗尽时才回退到复用），两条链共用同一次冷却。渲染上新增 `drawChainBolt`（节点之间画**纯直线**，`moveTo` + `lineTo` 后描三遍：紫色辉光 + 亮紫主链 + 近白芯线，**不加折点、抖动或曲线**），链体只画到当前 `next` 的节点、下一跳用半透明细链表示「正在传导」，命中节点另外画一圈白紫圆环；`chainSpark` 在 `drawEffects` 里是独立分支（扩散圆环 + 4 道放射线）。它不是贴地技能，飞鸟照常被命中并麻痹；护甲僵尸会先用装甲格挡这一跳的伤害与麻痹。
 
+### 技能超级词条（已实现）
+
+- **定位**：超级词条属于局内升级池，每局重置、不落库、不影响 `skill_progress` 与技能账户等级；每个技能的超级词条一局最多获取一次，没有等级成长，选择后 `player.skills[skillId].level` +1。
+- **数据**：12 条超级词条写在 `config.skillTraits`，字段为 `super: true`、`max: 1`、`rarity: "超级"`、`skillId`、`requires`（3 条该技能前置词条 id）与 `apply`；`config.skillDefaults` 为 12 个技能各补一个一次性布尔开关；`config.superTraitChance = .2`。
+- **池规则**：`Game.isSuperTraitReady(trait)` 要求未拥有、技能已解锁、3 条前置词条均至少 1 级。`Game.rollTraits` 先按 20% 概率抽 1 张超级卡，再从普通池补足另外 2 张；普通池排除所有 `super` 条目，因此一轮最多 1 张且三张不重复，12 条拿完后自然回落。已拥有由 `max: 1` 的满级过滤挡掉，`Game.chooseTrait` 无需特判。
+- **效果**：12 条机制全部接入现有生成 / 命中 / 结算路径，新伤害继续走 `Game.damageEnemy` 并快照 `element`、`damageSource`、`progressSkillId`；新减速 / 麻痹走公开状态入口；护甲、状态免疫、状态缩放与狂暴规则保持不变。二次产物（弹射弹、分裂弹、子弹药、小火场、追踪弹）不触发本效果。
+- **新增实体与字段**：敌人新增 `scorchStacks` / `scorchTimer` / `napalmMark`；`S.iceFields` 保存冰川领域冰面；小旋风挂在对应龙卷风的 `whirls` 上，随主龙卷销毁；追踪弹复用 `S.skillProjectiles` 的 `swarmMissile` 类型；集束子弹药复用 `S.bombDrops` 并以 `cluster: true` 阻止再次分裂。
+- **界面**：Canvas 升级卡按普通 / 稀有 / 超级三档分色，超级卡使用金橙 `#ffb84d`、显示「超级 · Lv.1 / 1」与前置小字；技能图鉴详情在词条末尾显示超级徽标、前置行与一次性说明。React 兼容层的 `upgradeCards` 快照补充 `super` / `requires`，升级浮层与技能图鉴同步展示。
+- **验证**：`tmp/check-super-traits.js` 覆盖池规则、前置、单次获取、技能等级 +1、12 条机制冒烟、伤害来源快照与高级节点叠加；`npm --prefix frontend run build`、`check-react-ssr.mjs`、`check-skills.js`、`check-bomber.js`、`check-accounts.js` 与 JS 语法检查通过；`trace-draw.js` + `replay-draw.py` 回放核对超级升级卡、技能图鉴超级词条与混合战场。
+
 ## 8. 技术与内容里程碑
 
 ### M1：战斗原型

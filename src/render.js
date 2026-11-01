@@ -99,6 +99,7 @@
     if (!ctx) return;
     Game.drawBackground();
     Game.drawRangeLines();
+    Game.drawIceFields();
     Game.drawEnemies(null, "ground");
     Game.drawEnemyShots();
     Game.drawArmoredCars();
@@ -318,12 +319,30 @@
         ctx.restore();
         return;
       }
+      if (projectile.type === "swarmMissile") {
+        var swarmTime = (S.session && S.session.elapsed) || 0, swarmPulse = .8 + Math.sin(swarmTime * 24) * .2;
+        ctx.save();
+        ctx.globalAlpha = .36; ctx.strokeStyle = "#8fd8ff"; ctx.lineWidth = 2;
+        if (projectile.target) {
+          var aimDx = projectile.target.x - projectile.x, aimDy = projectile.target.y - projectile.y, aimLength = Math.sqrt(aimDx * aimDx + aimDy * aimDy) || 1;
+          ctx.beginPath(); ctx.moveTo(projectile.x, projectile.y); ctx.lineTo(projectile.x - aimDx / aimLength * 12, projectile.y - aimDy / aimLength * 12); ctx.stroke();
+        }
+        ctx.globalAlpha = .9; ctx.shadowColor = "#a6c8ff"; ctx.shadowBlur = 14;
+        ctx.fillStyle = "#dceaff"; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * (.9 + swarmPulse * .25), 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0; ctx.fillStyle = "#4f7dc0"; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * .52, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        return;
+      }
       var angle = Math.atan2(projectile.vy, projectile.vx), r = projectile.radius;
       ctx.save();
       ctx.translate(projectile.x, projectile.y); ctx.rotate(angle);
       if (projectile.type === "thermobaric") {
+        if (projectile.fromSacrifice) {
+          ctx.globalAlpha = .62; ctx.strokeStyle = "#ffb84d"; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2); ctx.stroke();
+        }
         ctx.shadowColor = "#ff4c35"; ctx.shadowBlur = 14;
-        ctx.fillStyle = "#c92b28"; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = projectile.fromSacrifice ? "#e0472f" : "#c92b28"; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0; ctx.strokeStyle = "#ffbd65"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(0, 0, r * .58, 0, Math.PI * 2); ctx.stroke();
         ctx.fillStyle = "#ffe0a0"; ctx.beginPath(); ctx.arc(r * .15, -r * .18, Math.max(1.5, r * .2), 0, Math.PI * 2); ctx.fill();
@@ -1953,6 +1972,17 @@
         ctx.arc(tornado.x + Math.cos(debrisPhase) * debrisRadius, base - height * debrisT + Math.sin(debrisPhase) * tornado.radius * .14, 1.5 + debris % 2, 0, Math.PI * 2);
         ctx.fill();
       }
+      if (tornado.whirls) tornado.whirls.forEach(function (whirl) {
+        var whirlRadius = whirl.radius || tornado.radius * .35;
+        ctx.globalAlpha = alpha * .72;
+        ctx.strokeStyle = "#c9f4ff"; ctx.lineWidth = 1.5; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.arc(whirl.x, whirl.y, whirlRadius * .38, time * 7 + whirl.angle, time * 7 + whirl.angle + Math.PI * 1.35); ctx.stroke();
+        ctx.globalAlpha = alpha * .38; ctx.fillStyle = "#e2f8ff";
+        ctx.beginPath(); ctx.ellipse(whirl.x, whirl.y + whirlRadius * .28, whirlRadius * .72, whirlRadius * .24, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(whirl.x, whirl.y - whirlRadius * .18, whirlRadius * .46, whirlRadius * .16, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = alpha * .55; ctx.strokeStyle = "rgba(143, 228, 255, .82)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(whirl.x, whirl.y + whirlRadius * .5, whirlRadius * .9, whirlRadius * .2, 0, 0, Math.PI * 2); ctx.stroke();
+      });
       ctx.restore();
     });
   };
@@ -2033,6 +2063,27 @@
     });
   };
 
+  Game.drawIceFields = function () {
+    var time = S.session ? S.session.elapsed : 0;
+    (S.iceFields || []).forEach(function (field) {
+      var fade = U.clamp(field.life / field.duration, 0, 1), pulse = .97 + Math.sin(time * 4) * .03;
+      ctx.save();
+      ctx.globalAlpha = .24 + fade * .16; ctx.fillStyle = "#8fe8ff";
+      ctx.beginPath(); ctx.arc(field.x, field.y, field.radius * pulse, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .32 + fade * .22; ctx.fillStyle = "rgba(226, 250, 255, .5)";
+      ctx.beginPath(); ctx.arc(field.x, field.y, field.radius * .55 * pulse, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .5 + fade * .3; ctx.strokeStyle = "#d8fbff"; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+      ctx.beginPath(); ctx.arc(field.x, field.y, field.radius * pulse, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.globalAlpha = .8;
+      for (var shard = 0; shard < 8; shard++) {
+        var angle = shard * 2.399, distance = field.radius * (.18 + .68 * ((shard * .37) % 1));
+        var sx = field.x + Math.cos(angle) * distance, sy = field.y + Math.sin(angle) * distance * .55;
+        ctx.strokeStyle = shard % 2 ? "#eafcff" : "#9fe4ff"; ctx.lineWidth = shard % 2 ? 1.4 : 2;
+        ctx.beginPath(); ctx.moveTo(sx - 2.4, sy - 3); ctx.lineTo(sx + 2.4, sy + 3); ctx.moveTo(sx + 2.4, sy - 3); ctx.lineTo(sx - 2.4, sy + 3); ctx.stroke();
+      }
+      ctx.restore();
+    });
+  };
   Game.drawHailStorms = function () {
     var time = S.session ? S.session.elapsed : 0;
     (S.hailStorms || []).forEach(function (storm) {
@@ -2071,13 +2122,13 @@
       var alpha = Math.min(appear, vanish), pulse = .97 + Math.sin(time * 9) * .03;
       ctx.save();
       ctx.globalAlpha = alpha * .28;
-      ctx.fillStyle = "#ff6a2a";
+      ctx.fillStyle = pool.napalm ? "#ffd166" : "#ff6a2a";
       ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * pulse, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = alpha * .34;
       ctx.fillStyle = "rgba(255, 214, 130, .6)";
       ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * .46 * pulse, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = alpha * .5;
-      ctx.strokeStyle = "#ffbe6b";
+      ctx.strokeStyle = pool.napalm ? "#fff0b8" : "#ffbe6b";
       ctx.lineWidth = 2;
       ctx.setLineDash([7, 5]);
       ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * pulse, 0, Math.PI * 2); ctx.stroke();
@@ -2310,8 +2361,8 @@
       }
       var progress = 1 - U.clamp(explosion.life / explosion.duration, 0, 1), radius = explosion.radius * (.45 + progress * .55);
       ctx.save(); ctx.globalAlpha = (1 - progress) * .62;
-      ctx.fillStyle = explosion.type === "bombardment" ? "rgba(255, 174, 54, .48)" : explosion.type === "electromagnetic" ? "rgba(77, 213, 255, .48)" : explosion.type === "hailFrost" ? "rgba(143, 233, 255, .46)" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "rgba(255, 132, 44, .5)" : "rgba(255, 75, 42, .42)"; ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 1 - progress; ctx.strokeStyle = explosion.type === "bombardment" ? "#fff0a0" : explosion.type === "electromagnetic" ? "#d2ffff" : explosion.type === "hailFrost" ? "#eafcff" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "#ffe6b0" : "#ffbf6b"; ctx.lineWidth = Math.max(2, 8 * (1 - progress));
+      ctx.fillStyle = explosion.type === "bombardment" ? "rgba(255, 174, 54, .48)" : explosion.type === "bombardmentCluster" ? "rgba(255, 140, 70, .44)" : explosion.type === "electromagnetic" ? "rgba(77, 213, 255, .48)" : explosion.type === "hailFrost" ? "rgba(143, 233, 255, .46)" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "rgba(255, 132, 44, .5)" : explosion.type === "sacrificeBurst" ? "rgba(255, 184, 77, .5)" : explosion.type === "swarmBurst" ? "rgba(166, 200, 255, .48)" : "rgba(255, 75, 42, .42)"; ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1 - progress; ctx.strokeStyle = explosion.type === "bombardment" ? "#fff0a0" : explosion.type === "bombardmentCluster" ? "#ffc27a" : explosion.type === "electromagnetic" ? "#d2ffff" : explosion.type === "hailFrost" ? "#eafcff" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "#ffe6b0" : explosion.type === "sacrificeBurst" ? "#ffd88a" : explosion.type === "swarmBurst" ? "#dceaff" : "#ffbf6b"; ctx.lineWidth = Math.max(2, 8 * (1 - progress));
       ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius * .84, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     });
@@ -3644,19 +3695,62 @@
     S.codexPage = page;
     text("专属词条", 40, progress ? 358 : 268, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
     traits.slice(page * perPage, page * perPage + perPage).forEach(function (trait, index) {
-      var x = 26, y = (progress ? 372 : 282) + index * 76, rare = trait.rarity === "稀有" || trait.rarity === "史诗";
-      panel(x, y, 308, 68, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
-      drawSkillGlyph(group.id, x + 24, y + 32, 18, rare ? C.colors.purple : C.colors.cyan);
+      var x = 26, y = (progress ? 372 : 282) + index * 76, isSuper = trait.super || trait.rarity === "超级", rare = trait.rarity === "稀有" || trait.rarity === "史诗";
+      var accent = isSuper ? "#ffb84d" : rare ? C.colors.purple : C.colors.cyan;
+      panel(x, y, 308, 68, isSuper ? "#4a3317" : rare ? "#263352" : "#163b4d", isSuper ? "rgba(255,184,77,.7)" : rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
+      drawSkillGlyph(group.id, x + 24, y + 32, 18, accent);
       text(trait.name, x + 46, y + 24, "bold 13px Segoe UI, Microsoft YaHei", C.colors.text);
-      text(trait.rarity + " · 最高 Lv." + trait.max, x + 294, y + 22, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
-      ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
-      U.wrapText(ctx, trait.desc || trait.detail || "", x + 46, y + 44, 244, 12);
+      if (isSuper) badge("超级 · 一次性", x + 216, y + 8, 80, "#ffb84d");
+      else text(trait.rarity + " · 最高 Lv." + trait.max, x + 294, y + 22, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
+      ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = isSuper ? "#ffe4b8" : C.colors.muted; ctx.textAlign = "left";
+      U.wrapText(ctx, trait.desc || trait.detail || "", x + 46, y + 42, 244, 11);
+      if (isSuper) {
+        ctx.font = "8px Segoe UI, Microsoft YaHei"; ctx.fillStyle = "#ffd9a0"; ctx.textAlign = "left";
+        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + 46, y + 60, 244, 9);
+      }
     });
     if (!traits.length) text("该技能暂无专属词条。", C.width / 2, 336, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     if (pages > 1) { Game.button(94, 521, 54, 31, "‹", color); text((page + 1) + " / " + pages, C.width / 2, 542, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); Game.button(212, 521, 54, 31, "›", color); }
     Game.button(C.width / 2 - 82, 561, 164, 36, "返回技能列表", color);
   }
-  Game.drawUpgrade = function () { Game.overlay(); panel(16, 76, C.width - 32, 414, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20); text("等级提升！", C.width / 2, 119, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center"); text("选择一项强化，战斗将继续", C.width / 2, 143, "12px Segoe UI, Microsoft YaHei", C.colors.text, "center"); var cardW = 98, gap = 8, start = (C.width - cardW * 3 - gap * 2) / 2; S.upgradeCards.forEach(function (trait, i) { var x = start + i * (cardW + gap), y = 190, level = S.player.traits[trait.id] || 0, rare = trait.rarity === "稀有"; panel(x, y, cardW, 218, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.45)" : "rgba(104,216,255,.28)", 14); text(trait.icon, x + cardW / 2, y + 50, "bold 31px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center"); text(trait.name, x + cardW / 2, y + 82, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text, "center"); text(trait.rarity + " · Lv." + (level + 1) + "/" + trait.max, x + cardW / 2, y + 104, "bold 11px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "center"); ctx.fillStyle = C.colors.muted; ctx.font = "11px Segoe UI, Microsoft YaHei"; ctx.textAlign = "center"; U.wrapText(ctx, trait.desc, x + cardW / 2, y + 135, 78, 16); U.roundedRect(ctx, x + 17, y + 181, 64, 27, 8, "#245f73"); text("选择", x + cardW / 2, y + 199, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); }); };
+  function traitRequirementNames(trait) {
+    var names = [];
+    (trait.requires || []).forEach(function (id) {
+      var found = (C.skillTraits || []).filter(function (item) { return item.id === id; })[0];
+      if (found) names.push(found.name);
+    });
+    return names.join(" · ");
+  }
+  Game.drawUpgrade = function () {
+    Game.overlay();
+    panel(16, 76, C.width - 32, 414, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20);
+    text("等级提升！", C.width / 2, 119, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    text("选择一项强化，战斗将继续", C.width / 2, 143, "12px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    var cardW = 98, gap = 8, start = (C.width - cardW * 3 - gap * 2) / 2;
+    S.upgradeCards.forEach(function (trait, i) {
+      var x = start + i * (cardW + gap), y = 190, level = S.player.traits[trait.id] || 0;
+      var isSuper = trait.rarity === "超级", rare = trait.rarity === "稀有", accent = isSuper ? "#ffb84d" : rare ? C.colors.purple : C.colors.cyan;
+      if (isSuper) {
+        ctx.save();
+        ctx.shadowColor = "#ffb84d"; ctx.shadowBlur = 18;
+        panel(x, y, cardW, 218, "#4a3317", "rgba(255, 184, 77, .9)", 14);
+        ctx.restore();
+      } else panel(x, y, cardW, 218, rare ? "#263352" : "#163b4d", rare ? "rgba(201,161,255,.45)" : "rgba(104,216,255,.28)", 14);
+      text(trait.icon, x + cardW / 2, y + 50, "bold 31px Segoe UI, Microsoft YaHei", accent, "center");
+      text(trait.name, x + cardW / 2, y + 82, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+      text(trait.rarity + " · Lv." + (level + 1) + "/" + trait.max, x + cardW / 2, y + 104, "bold 11px Segoe UI, Microsoft YaHei", isSuper ? "#ffb84d" : rare ? C.colors.purple : C.colors.green, "center");
+      ctx.fillStyle = isSuper ? "#ffe4b8" : C.colors.muted;
+      ctx.font = (isSuper ? "9px" : "11px") + " Segoe UI, Microsoft YaHei";
+      ctx.textAlign = "center";
+      U.wrapText(ctx, trait.desc, x + cardW / 2, y + (isSuper ? 126 : 135), 84, isSuper ? 11 : 16);
+      if (isSuper) {
+        ctx.fillStyle = "#ffd9a0"; ctx.font = "7px Segoe UI, Microsoft YaHei"; ctx.textAlign = "center";
+        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + cardW / 2, y + 161, 90, 9);
+      }
+      U.roundedRect(ctx, x + 17, y + 181, 64, 27, 8, isSuper ? "#8a5a1c" : "#245f73");
+      text("选择", x + cardW / 2, y + 199, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    });
+  };
   function rewardSlotName(slotId) {
     var slot = (C.equipment.slots || []).filter(function (item) { return item.id === slotId; })[0];
     return slot ? slot.name : slotId;

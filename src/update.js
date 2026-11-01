@@ -105,6 +105,9 @@
       if (current.slow === 0) current.slowFactor = .58;
       current.damageTakenTimer = Math.max(0, (current.damageTakenTimer || 0) - dt);
       if (current.damageTakenTimer === 0) current.damageTakenMultiplier = 1;
+      current.scorchTimer = Math.max(0, (current.scorchTimer || 0) - dt);
+      if (current.scorchTimer === 0) current.scorchStacks = 0;
+      current.napalmMark = Math.max(0, (current.napalmMark || 0) - dt);
       current.wound = Math.max(0, (current.wound || 0) - dt);
       current.woundExtra = Math.max(0, (current.woundExtra || 0) - dt);
       current.control = Math.max(0, (current.control || 0) - dt);
@@ -149,6 +152,7 @@
     Game.updateArmoredCars(dt);
     Game.updateEnemyShots(dt);
     Game.updateHailStorms(dt);
+    Game.updateIceFields(dt);
     Game.updateFuelBombs(dt);
     Game.flushPendingSpawns();
     Game.updateEffects(dt);

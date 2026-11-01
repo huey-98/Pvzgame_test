@@ -581,3 +581,14 @@ git diff --check
 - Canvas 技能图鉴详情增加账户成长、下一节点、价格与强化按钮；角色页新增第三个「技能强化」入口并支持技能分页；账户和角色资源分页显示 23 项；结算页分隔装备图纸与技能图纸并重新压缩行距。React 兼容层同步快照、命令、图鉴和资源分页。
 - 验证：`check_db.py` 177 项、`check_api.py` 188 项、`check-skills.js` 全部通过；`check-accounts.js` 176 项、`check-character.js` 262 项、`check-rewards.js` 65 项、`check-fuel.js` 全量通过。`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、JS/Python 语法检查、`git diff --check` 通过；`trace-draw.js` + `replay-draw.py` 已回放核对技能图鉴、技能强化页、账户资源第二页与结算分类。
 - 环境备注：本机 Python 缺少原生 `pbkdf2_hmac`/`_ssl` DLL，密码哈希回退到 OpenSSL CLI，API 服务需在沙箱外启动；Pillow 回放也需沙箱外执行。全量旧关卡与视觉脚本仍有历史断言失败，未归因于本次技能功能。
+
+## 2026-11-01 · 技能超级词条
+
+- `src/config.js`：新增 `superTraitChance = .2`；12 条超级词条写入 `skillTraits`（`super: true`、`max: 1`、`rarity: "超级"`、3 条 `requires`）；12 个 `skillDefaults` 补一次性布尔开关。
+- `src/combat.js`：新增 `Game.isSuperTraitReady` 与 20% 超级卡抽取，普通池排除超级词条；接入殉爆、极寒大冰弹、钢铁洪流、集束炸弹、核能电磁、灼蚀聚焦、风暴之眼、冰川领域、凝固汽油、乱刃流、蜂群协议、永动电子；`spawnEnemy` 新增 `scorchStacks` / `scorchTimer` / `napalmMark`；新增 `S.iceFields` 与追踪弹、小旋风、子弹药、小火场结算。
+- `src/update.js` / `src/state.js`：推进冰面、灼蚀与凝固汽油计时，重置与测试场清空同步新增实体数组。
+- `src/render.js`：升级卡三档分色与超级前置行；技能图鉴超级徽标、一次性说明与前置行；新增冰面、小旋风、追踪弹、殉爆弹、集束子弹药与小火场表现。
+- `frontend/src/game/ui-store.js`、`frontend/src/features/BattleOverlays.jsx`、`frontend/src/features/CodexScreens.jsx`、`frontend/src/styles.css`：React 并行层同步超级卡与图鉴展示。
+- 规则：超级词条为局内词条，每个技能一局一次、无成长，选择后技能等级 +1；前置只要求拥有 3 条指定词条；二次产物不再触发本效果；所有新伤害仍走 `Game.damageEnemy` 并快照来源。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-super-traits.js` 全部通过（含池规则、前置、单次获取、12 条机制、来源快照与高级节点叠加）；`node tmp/check-skills.js`、`node tmp/check-bomber.js`、`node tmp/check-accounts.js` 176 项通过；`Get-ChildItem src -Filter *.js | node --check` 全部通过；`trace-draw.js` + `replay-draw.py` 回放核对超级升级卡、技能图鉴超级词条与混合战场。
+- 后端未改动，`SCHEMA_VERSION` 保持 7。

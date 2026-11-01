@@ -31,6 +31,13 @@ function mechanicLabels(enemy) {
   return labels;
 }
 
+function skillTraitRequirement(trait, config) {
+  return (trait.requires || []).map(function (id) {
+    const found = (config.skillTraits || []).find(function (item) { return item.id === id; });
+    return found ? found.name : id;
+  }).join(" · ");
+}
+
 export function ZombieCodexScreen() {
   const config = getConfig();
   const [category, setCategory] = useState("minion");
@@ -111,10 +118,12 @@ export function SkillCodexScreen() {
           ) : null}
           <div className="trait-cards">
             {selected.traits.map(function (trait) {
+              const isSuper = trait.super || trait.rarity === "超级";
               return (
-                <article key={trait.id} className={"trait-card " + (trait.rarity === "稀有" || trait.rarity === "史诗" ? "rare" : "")}>
-                  <div><b>{trait.name}</b><small>{trait.rarity} · 最多 {trait.max} 级</small></div>
+                <article key={trait.id} className={"trait-card " + (isSuper ? "super" : trait.rarity === "稀有" || trait.rarity === "史诗" ? "rare" : "")}>
+                  <div><b>{trait.name}</b><small>{isSuper ? "超级 · 一次性" : trait.rarity + " · 最多 " + trait.max + " 级"}</small></div>
                   <p>{trait.desc}</p>
+                  {isSuper ? <p className="trait-requirement">前置：{skillTraitRequirement(trait, config)}</p> : null}
                 </article>
               );
             })}

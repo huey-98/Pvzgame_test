@@ -154,6 +154,8 @@ function capture() {
         icon: card.icon,
         desc: card.desc,
         max: card.max,
+        super: !!card.super,
+        requires: (card.requires || []).slice(),
         skillId: card.skillId || null
       };
     }),

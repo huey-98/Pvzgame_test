@@ -68,6 +68,9 @@
     enemy.woundFactor = 0;
     enemy.woundExtra = 0;
     enemy.woundExtraFactor = 0;
+    enemy.scorchStacks = 0;
+    enemy.scorchTimer = 0;
+    enemy.napalmMark = 0;
     Game.addText(enemy.x, enemy.y - info.radius - 12, "狂暴冲锋", info.accent);
     Game.burst(enemy.x, enemy.y, 12, info.accent);
     return true;
@@ -90,7 +93,7 @@
     var x = opts.x === undefined ? U.rand(edge, C.width - edge) : U.clamp(opts.x, radius, C.width - radius);
     var y = opts.y === undefined ? -radius - 8 : U.clamp(opts.y, -radius, S.wall ? S.wall.y - S.wall.height / 2 - radius - 3 : C.height);
     var maxHp = Math.round(info.hp * ((S.session && S.session.hpScale) || 1) * Game.getWaveHpScale());
-    var enemy = { type: type, x: x, y: y, hp: maxHp, maxHp: maxHp, slow: 0, slowFactor: .58, damageTakenTimer: 0, damageTakenMultiplier: 1, burn: 0, burnDps: 0, frostbiteStacks: {}, frostbiteDps: {}, control: 0, controlType: "", wound: 0, woundFactor: 0, woundExtra: 0, woundExtraFactor: 0, hitFlash: 0, attackTimer: 0, summons: 0, regenPerSecond: info.regenPerSecond || 0, armorCharges: info.armorCharges || 0, armorStamp: -1e9, armorFlash: 0, wallExplosionTriggered: false, rageTriggered: false, rageTimer: 0, rageRecoveryTimer: 0 };
+    var enemy = { type: type, x: x, y: y, hp: maxHp, maxHp: maxHp, slow: 0, slowFactor: .58, damageTakenTimer: 0, damageTakenMultiplier: 1, burn: 0, burnDps: 0, frostbiteStacks: {}, frostbiteDps: {}, control: 0, controlType: "", wound: 0, woundFactor: 0, woundExtra: 0, woundExtraFactor: 0, hitFlash: 0, attackTimer: 0, summons: 0, regenPerSecond: info.regenPerSecond || 0, armorCharges: info.armorCharges || 0, armorStamp: -1e9, armorFlash: 0, wallExplosionTriggered: false, rageTriggered: false, rageTimer: 0, rageRecoveryTimer: 0, scorchStacks: 0, scorchTimer: 0, napalmMark: 0 };
     if (Game.isBossEnemy({ type: type })) enemy.x = C.width / 2;
     S.enemies.push(enemy);
     if (info.codexCategory === "elite" && !opts.silent) {
@@ -154,7 +157,7 @@
     p.damage = 28; p.fireInterval = .52; p.burst = 0; p.spread = 0; p.pierce = 0; p.bulletRadius = 4; p.crit = C.attributes.base.critRate; p.critDamage = C.attributes.base.critDamage; p.burn = 0; p.freeze = 0; p.bulletType = "normal"; p.skills = skills; p.traits = {}; p.skillOrder = [];
     p.ammo = p.magazineSize; p.reloadTimer = 0; p.rifleEnabled = true; p.fireTimer = 0; p.burstShotsRemaining = 0; p.burstTimer = 0;
     if (Game.attributes) Game.attributes.applyPlayer(p);
-    S.bullets = []; S.skillProjectiles = []; S.armoredCars = []; S.bombDrops = []; S.bombZones = []; S.electromagneticZones = []; S.tornadoes = []; S.drones = []; S.hailStorms = []; S.fuelShells = []; S.fuelPools = []; S.explosions = [];
+    S.bullets = []; S.skillProjectiles = []; S.armoredCars = []; S.bombDrops = []; S.bombZones = []; S.electromagneticZones = []; S.tornadoes = []; S.drones = []; S.hailStorms = []; S.iceFields = []; S.fuelShells = []; S.fuelPools = []; S.explosions = [];
     S.session.message = "技能和词条已清空";
     S.session.messageTimer = 1.5;
   };
@@ -171,6 +174,7 @@
     S.tornadoes = [];
     S.drones = [];
     S.hailStorms = [];
+    S.iceFields = [];
     S.fuelShells = [];
     S.fuelPools = [];
     S.explosions = [];
@@ -394,7 +398,7 @@
     var stunDuration = skill.stunDuration + (Game.hasProgressMilestone("electromagnetic", 7) ? .8 : 0);
     var chainTargets = Game.hasProgressMilestone("electromagnetic", 18) ? 4 : Game.hasProgressMilestone("electromagnetic", 12) ? 2 : 0;
     targets.forEach(function (target, index) {
-      S.skillProjectiles.push({ type: "electromagnetic", target: target, x: target.x, y: target.y, delay: index * .14, damage: skill.damage, stunDuration: stunDuration, chainTargets: chainTargets, frozenShards: Game.hasProgressMilestone("electromagnetic", 22), burnZone: Game.hasProgressMilestone("electromagnetic", 26), explosion: skill.explosion, explosionDamage: skill.explosionDamage, explosionRadius: skill.explosionRadius, matrix: skill.matrix, matrixDuration: skill.matrixDuration, matrixDps: skill.matrixDps, matrixRadius: skill.matrixRadius, matrixSlowFactor: skill.matrixSlowFactor, element: Game.getSkillElement("electromagnetic"), damageSource: "electromagnetic", progressSkillId: "electromagnetic" });
+      S.skillProjectiles.push({ type: "electromagnetic", target: target, x: target.x, y: target.y, delay: index * .14, damage: skill.damage, stunDuration: stunDuration, chainTargets: chainTargets, frozenShards: Game.hasProgressMilestone("electromagnetic", 22), burnZone: Game.hasProgressMilestone("electromagnetic", 26), explosion: skill.explosion, explosionDamage: skill.explosionDamage, explosionRadius: skill.explosionRadius, matrix: skill.matrix, matrixDuration: skill.matrixDuration, matrixDps: skill.matrixDps, matrixRadius: skill.matrixRadius, matrixSlowFactor: skill.matrixSlowFactor, nuclear: !!skill.nuclearEnabled, nuclearDepth: 0, element: Game.getSkillElement("electromagnetic"), damageSource: "electromagnetic", progressSkillId: "electromagnetic" });
     });
     skill.fireTimer = skill.fireInterval;
     return true;
@@ -454,11 +458,16 @@
       }
       if (Math.sin(secondAngle) < 0) beams = beams.concat(Game.makeHighEnergyBeam(origin, secondAngle, width, Game.hasProgressMilestone("highEnergyBeam", 18)));
     }
-    skill.active = true; skill.activeAngle = angle; skill.activeBeams = beams; skill.activeWidth = width; skill.activeX = origin.x; skill.activeY = origin.y; skill.activeX2 = end.x; skill.activeY2 = end.y; skill.activeDuration = skill.duration * (Game.hasProgressMilestone("highEnergyBeam", 26) ? .6 : 1); skill.activeHits = skill.baseDamageHits + skill.bonusDamageHits + (Game.hasProgressMilestone("highEnergyBeam", 2) ? 5 : 0); skill.activeElapsed = 0; skill.damageTicksDone = 0;
+    skill.active = true; skill.activeAngle = angle; skill.activeBeams = beams; skill.activeWidth = width; skill.activeX = origin.x; skill.activeY = origin.y; skill.activeX2 = end.x; skill.activeY2 = end.y; skill.activeDuration = skill.duration * (Game.hasProgressMilestone("highEnergyBeam", 26) ? .6 : 1); skill.activeHits = skill.baseDamageHits + skill.bonusDamageHits + (Game.hasProgressMilestone("highEnergyBeam", 2) ? 5 : 0); skill.activeElapsed = 0; skill.damageTicksDone = 0; skill.scorchPulseTimer = 0;
     return true;
   };
-  Game.hitHighEnergyBeam = function (skill) {
-    var beams = skill.activeBeams || [{ x: skill.activeX, y: skill.activeY, x2: skill.activeX2, y2: skill.activeY2, width: skill.beamWidth }];
+  Game.hitHighEnergyBeam = function (skill, dt) {
+    var beams = skill.activeBeams || [{ x: skill.activeX, y: skill.activeY, x2: skill.activeX2, y2: skill.activeY2, width: skill.beamWidth }], scorched = [];
+    if (skill.scorchEnabled) {
+      skill.scorchPulseTimer = (skill.scorchPulseTimer || 0) - (dt || 0);
+      if (skill.scorchPulseTimer <= 0) { skill.scorchPulseTimer += .5; skill.scorchPulse = true; }
+      else skill.scorchPulse = false;
+    } else skill.scorchPulse = false;
     beams.forEach(function (beam) {
       var dx = beam.x2 - beam.x, dy = beam.y2 - beam.y, length = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / length, uy = dy / length;
       for (var i = S.enemies.length - 1; i >= 0; i--) {
@@ -472,6 +481,13 @@
         }
         if ((skill.slowEnabled && skill.slowDuration > 0) || Game.hasProgressMilestone("highEnergyBeam", 7)) Game.applySlow(enemy, Math.max(skill.slowEnabled ? skill.slowDuration : 0, .8), Math.min(skill.slowEnabled ? skill.slowFactor : 1, .3));
         Game.damageEnemy(enemy, skill.damage, { critical: false, noWeaponEffects: true, silentText: true, element: Game.getSkillElement("highEnergyBeam"), damageSource: "highEnergyBeam", progressSkillId: "highEnergyBeam" });
+        if (skill.scorchPulse && scorched.indexOf(enemy) < 0 && !Game.isRaging(enemy)) {
+          scorched.push(enemy);
+          enemy.scorchStacks = Math.min(5, (enemy.scorchStacks || 0) + 1);
+          enemy.scorchTimer = 5;
+          enemy.damageTakenTimer = Math.max(enemy.damageTakenTimer || 0, 5);
+          enemy.damageTakenMultiplier = Math.max(enemy.damageTakenMultiplier || 1, 1 + enemy.scorchStacks * .05);
+        }
         if (enemy.hp <= 0) Game.killEnemy(i);
       }
     });
@@ -482,7 +498,7 @@
       var explosionRadius = skill.explosionRadius * (Game.hasProgressMilestone(type, 2) ? 1.15 : 1);
       var impactKnockback = skill.impactKnockback * (Game.hasProgressMilestone(type, 12) ? 1.2 : 1);
       var explosionKnockback = skill.explosionKnockback * (Game.hasProgressMilestone(type, 12) ? 1.2 : 1);
-      S.skillProjectiles.push({ type: type, x: origin.x, y: origin.y, vx: Math.cos(angle) * skill.projectileSpeed, vy: Math.sin(angle) * skill.projectileSpeed, radius: skill.projectileRadius, impactDamage: skill.impactDamage, impactKnockback: impactKnockback, explosionDamage: skill.explosionDamage, explosionRadius: explosionRadius, explosionKnockback: explosionKnockback, burnDps: skill.burnDps, burnDuration: skill.burnDuration + (Game.hasProgressMilestone(type, 7) ? 1 : 0), pierce: skill.pierce + (Game.hasProgressMilestone(type, 18) ? 1 : 0), impactBurn: Game.hasProgressMilestone(type, 18), ignoreBurnImmunity: Game.hasProgressMilestone(type, 26), secondaryExplosion: Game.hasProgressMilestone(type, 22), hasImpacted: false, fuseTimer: 0, critical: false, element: Game.getSkillElement(type), damageSource: type, progressSkillId: type, hitEnemies: [] });
+      S.skillProjectiles.push({ type: type, x: origin.x, y: origin.y, vx: Math.cos(angle) * skill.projectileSpeed, vy: Math.sin(angle) * skill.projectileSpeed, radius: skill.projectileRadius, impactDamage: skill.impactDamage, impactKnockback: impactKnockback, explosionDamage: skill.explosionDamage, explosionRadius: explosionRadius, explosionKnockback: explosionKnockback, burnDps: skill.burnDps, burnDuration: skill.burnDuration + (Game.hasProgressMilestone(type, 7) ? 1 : 0), pierce: skill.pierce + (Game.hasProgressMilestone(type, 18) ? 1 : 0), impactBurn: Game.hasProgressMilestone(type, 18), ignoreBurnImmunity: Game.hasProgressMilestone(type, 26), secondaryExplosion: Game.hasProgressMilestone(type, 22), sacrificeEnabled: !!skill.sacrificeEnabled, hasImpacted: false, fuseTimer: 0, critical: false, element: Game.getSkillElement(type), damageSource: type, progressSkillId: type, hitEnemies: [] });
       return;
     }
     if (type === "airBlade") {
@@ -493,12 +509,13 @@
       var woundExtraDuration = Math.max(skill.woundExtraDuration, Game.hasProgressMilestone("airBlade", 26) ? 1 : 0);
       var woundExtraFactor = Math.max(skill.woundExtraFactor, Game.hasProgressMilestone("airBlade", 26) ? .4 : 0);
       for (var blade = 0; blade < bladeLanes; blade++) {
-        var bladeAngle = angle + (blade - (bladeLanes - 1) / 2) * C.spreadAngle;
+        var bladeAngle = skill.chaosBladeEnabled ? U.rand(0, Math.PI * 2) : angle + (blade - (bladeLanes - 1) / 2) * C.spreadAngle;
         S.skillProjectiles.push({ type: type, x: origin.x, y: origin.y, vx: Math.cos(bladeAngle) * skill.projectileSpeed, vy: Math.sin(bladeAngle) * skill.projectileSpeed, radius: bladeRadius, damage: skill.damage, knockback: bladeKnockback, pierce: bladePierce, woundDuration: skill.woundDuration, woundFactor: skill.woundFactor, woundExtraDuration: woundExtraDuration, woundExtraFactor: woundExtraFactor, critical: false, element: Game.getSkillElement(type), damageSource: type, progressSkillId: type, hitEnemies: [] });
       }
       return;
     }
     var lanes = 1 + skill.spread;
+    var bigIce = !!skill.bigIceEnabled;
     var dryIceSlowDuration = Math.max(skill.slowDuration, Game.hasProgressMilestone("dryIce", 2) ? .8 : 0);
     var dryIceSlowFactor = Game.hasProgressMilestone("dryIce", 2) ? Math.min(skill.slowFactor, .5) : skill.slowFactor;
     var dryIceFreezeDuration = skill.freezeDuration > 0 && Game.hasProgressMilestone("dryIce", 7) ? skill.freezeDuration + .5 : skill.freezeDuration;
@@ -508,20 +525,25 @@
     var dryIceMaxStacks = skill.frostbiteMaxStacks + (Game.hasProgressMilestone("dryIce", 26) ? 20 : 0);
     for (var lane = 0; lane < lanes; lane++) {
       var bulletAngle = angle + (lane - (lanes - 1) / 2) * C.spreadAngle;
-      S.skillProjectiles.push({ type: type, x: origin.x, y: origin.y, vx: Math.cos(bulletAngle) * skill.projectileSpeed, vy: Math.sin(bulletAngle) * skill.projectileSpeed, radius: skill.projectileRadius, damage: skill.damage, knockback: skill.knockback, pierce: dryIcePierce, splitCount: dryIceSplitCount, slowDuration: dryIceSlowDuration, freezeDuration: dryIceFreezeDuration, slowFactor: dryIceSlowFactor, frostbiteEnabled: !!skill.frostbiteEnabled, frostbiteSource: type, frostbiteDps: skill.frostbiteDps, frostbiteDuration: dryIceFrostbiteDuration, frostbiteMaxStacks: dryIceMaxStacks, critical: false, element: Game.getSkillElement(type), damageSource: type, hitEnemies: [] });
+      S.skillProjectiles.push({ type: type, x: origin.x, y: origin.y, vx: Math.cos(bulletAngle) * skill.projectileSpeed, vy: Math.sin(bulletAngle) * skill.projectileSpeed, radius: skill.projectileRadius * (bigIce ? 1.8 : 1), damage: skill.damage * (bigIce ? 1.5 : 1), knockback: skill.knockback, pierce: dryIcePierce, splitCount: dryIceSplitCount, slowDuration: dryIceSlowDuration, freezeDuration: dryIceFreezeDuration, slowFactor: dryIceSlowFactor, frostbiteEnabled: !!skill.frostbiteEnabled, frostbiteSource: type, frostbiteDps: skill.frostbiteDps, frostbiteDuration: dryIceFrostbiteDuration, frostbiteMaxStacks: dryIceMaxStacks, bigIceEnabled: bigIce, critical: false, element: Game.getSkillElement(type), damageSource: type, hitEnemies: [] });
     }
   };
   Game.launchArmoredCars = function (skill) {
-    var wall = S.wall, count = 1 + skill.extraCars + (Game.hasProgressMilestone("armoredCar", 2) ? 1 : 0);
+    var wall = S.wall, steelSurge = !!skill.steelSurgeEnabled;
+    var count = (steelSurge ? 12 : 1) + skill.extraCars + (Game.hasProgressMilestone("armoredCar", 2) ? 1 : 0);
     var scale = (1 + skill.sizeLevel * .15) * (Game.hasProgressMilestone("armoredCar", 18) ? 1.25 : 1);
     var slowDuration = skill.slowDuration + (Game.hasProgressMilestone("armoredCar", 7) ? .6 : 0) + (Game.hasProgressMilestone("armoredCar", 22) ? 1 : 0);
     var stunChance = skill.stunChance + (Game.hasProgressMilestone("armoredCar", 12) ? .15 : 0) + (Game.hasProgressMilestone("armoredCar", 22) ? .1 : 0);
     var stunDuration = Math.max(skill.stunDuration, Game.hasProgressMilestone("armoredCar", 12) ? .5 : 0);
-    var minX = wall.x - wall.width / 2 + skill.carWidth * scale / 2, maxX = wall.x + wall.width / 2 - skill.carWidth * scale / 2;
+    var carWidth = skill.carWidth * scale;
+    var minX = steelSurge ? carWidth / 2 : wall.x - wall.width / 2 + carWidth / 2;
+    var maxX = steelSurge ? C.width - carWidth / 2 : wall.x + wall.width / 2 - carWidth / 2;
     var laneWidth = (maxX - minX) / count, startY = wall.y - wall.height / 2 - skill.carLength * scale / 2;
     for (var i = 0; i < count; i++) {
-      var x = count === 1 ? U.rand(minX, maxX) : minX + laneWidth * (i + .5) + U.rand(-laneWidth * .18, laneWidth * .18);
-      S.armoredCars.push({ x: U.clamp(x, minX, maxX), y: startY, speed: skill.speed, width: skill.carWidth * scale, length: skill.carLength * scale, damage: skill.damage, hitInterval: skill.hitInterval, slowFactor: skill.slowFactor, slowDuration: slowDuration, stunChance: stunChance, stunDuration: stunDuration, groundOnly: !!skill.groundOnly, element: Game.getSkillElement("armoredCar"), damageSource: "armoredCar", progressSkillId: "armoredCar", pulseTimer: 1, rankedPulse: Game.hasProgressMilestone("armoredCar", 26), contacts: [], impactFlash: 0 });
+      var x;
+      if (steelSurge) x = minX + laneWidth * (i + .5);
+      else x = count === 1 ? U.rand(minX, maxX) : minX + laneWidth * (i + .5) + U.rand(-laneWidth * .18, laneWidth * .18);
+      S.armoredCars.push({ x: U.clamp(x, minX, maxX), y: startY, speed: skill.speed, width: carWidth, length: skill.carLength * scale, damage: skill.damage, hitInterval: skill.hitInterval, slowFactor: skill.slowFactor, slowDuration: slowDuration, stunChance: stunChance, stunDuration: stunDuration, groundOnly: !!skill.groundOnly, element: Game.getSkillElement("armoredCar"), damageSource: "armoredCar", progressSkillId: "armoredCar", pulseTimer: 1, rankedPulse: Game.hasProgressMilestone("armoredCar", 26), contacts: [], impactFlash: 0 });
     }
   };
   Game.tickSkillCooldown = function (skill, dt) {
@@ -559,7 +581,7 @@
           var beamDuration = skill.activeDuration || skill.duration, beamHits = skill.activeHits || skill.damageHits;
           skill.activeElapsed = Math.min(beamDuration, skill.activeElapsed + dt);
           while (skill.damageTicksDone < beamHits && skill.activeElapsed + .000001 >= beamDuration * (skill.damageTicksDone + 1) / beamHits) {
-            Game.hitHighEnergyBeam(skill);
+            Game.hitHighEnergyBeam(skill, dt);
             skill.damageTicksDone++;
           }
           if (skill.activeElapsed >= beamDuration) { skill.active = false; skill.activeBeams = null; skill.fireTimer = skill.fireInterval; }
@@ -804,6 +826,35 @@
       S.skillProjectiles.push({ type: "iceShard", x: enemy.x, y: enemy.y, vx: Math.cos(shardAngle) * 245, vy: Math.sin(shardAngle) * 245, radius: Math.max(3, projectile.radius * .58), damage: projectile.damage * .45, knockback: projectile.knockback * .5, pierce: 0, splitCount: 0, slowDuration: projectile.slowDuration, freezeDuration: projectile.freezeDuration, slowFactor: projectile.slowFactor, frostbiteEnabled: projectile.frostbiteEnabled, frostbiteSource: projectile.frostbiteSource, frostbiteDps: projectile.frostbiteDps, frostbiteDuration: projectile.frostbiteDuration, frostbiteMaxStacks: projectile.frostbiteMaxStacks, critical: false, element: projectile.element, damageSource: "dryIce", hitEnemies: [enemy], isShard: true });
     }
   };
+  Game.spawnSacrificeProjectile = function (projectile, enemy) {
+    var nearest = null, bestDistance = Infinity;
+    S.enemies.forEach(function (other) {
+      if (other === enemy) return;
+      var dx = other.x - enemy.x, dy = other.y - enemy.y, distance = dx * dx + dy * dy;
+      if (distance < bestDistance) { bestDistance = distance; nearest = other; }
+    });
+    if (!nearest) return null;
+    var angle = Math.atan2(nearest.y - enemy.y, nearest.x - enemy.x), speed = Math.sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy) || 250;
+    var shot = {
+      type: "thermobaric", x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: projectile.radius,
+      impactDamage: projectile.impactDamage * 1.3, impactKnockback: projectile.impactKnockback,
+      explosionDamage: projectile.explosionDamage * 1.3, explosionRadius: projectile.explosionRadius * 1.2, explosionKnockback: projectile.explosionKnockback,
+      burnDps: projectile.burnDps, burnDuration: projectile.burnDuration, pierce: 1, impactBurn: projectile.impactBurn, ignoreBurnImmunity: projectile.ignoreBurnImmunity,
+      secondaryExplosion: projectile.secondaryExplosion, sacrificeEnabled: false, fromSacrifice: true, hasImpacted: false, fuseTimer: 0, critical: false,
+      element: projectile.element, damageSource: "thermobaric", progressSkillId: "thermobaric", hitEnemies: []
+    };
+    S.skillProjectiles.push(shot);
+    S.explosions.push({ type: "sacrificeBurst", x: enemy.x, y: enemy.y, radius: 18, life: .28, duration: .28 });
+    return shot;
+  };
+  Game.emitBigIceShards = function (projectile, enemy) {
+    if (!projectile.bigIceEnabled || projectile.fromBigIce) return;
+    var baseAngle = Math.atan2(projectile.vy, projectile.vx), count = 3;
+    for (var i = 0; i < count; i++) {
+      var shardAngle = baseAngle + i * (Math.PI * 2 / count);
+      S.skillProjectiles.push({ type: "iceShard", x: enemy.x, y: enemy.y, vx: Math.cos(shardAngle) * 245, vy: Math.sin(shardAngle) * 245, radius: Math.max(3, projectile.radius * .58), damage: projectile.damage * .45, knockback: 0, pierce: 1, splitCount: 0, slowDuration: projectile.slowDuration, freezeDuration: projectile.freezeDuration, slowFactor: projectile.slowFactor, frostbiteEnabled: projectile.frostbiteEnabled, frostbiteSource: projectile.frostbiteSource, frostbiteDps: projectile.frostbiteDps, frostbiteDuration: projectile.frostbiteDuration, frostbiteMaxStacks: projectile.frostbiteMaxStacks, critical: false, element: projectile.element, damageSource: "dryIce", progressSkillId: "dryIce", hitEnemies: [enemy], fromBigIce: true });
+    }
+  };
   Game.updateSkillProjectiles = function (dt) {
     for (var i = S.skillProjectiles.length - 1; i >= 0; i--) {
       var projectile = S.skillProjectiles[i];
@@ -825,6 +876,24 @@
         S.skillProjectiles.splice(i, 1);
         continue;
       }
+      if (projectile.type === "swarmMissile") {
+        projectile.life -= dt;
+        var missileTarget = projectile.target;
+        if (!missileTarget || S.enemies.indexOf(missileTarget) < 0) missileTarget = projectile.target = Game.getNearestEnemyTo(projectile.x, projectile.y);
+        if (!missileTarget || projectile.life <= 0) { S.skillProjectiles.splice(i, 1); continue; }
+        var missileDx = missileTarget.x - projectile.x, missileDy = missileTarget.y - projectile.y, missileDistance = Math.sqrt(missileDx * missileDx + missileDy * missileDy) || 1;
+        if (missileDistance <= C.enemies[missileTarget.type].radius + projectile.radius) {
+          S.explosions.push({ type: "swarmBurst", x: projectile.x, y: projectile.y, radius: 26, life: .3, duration: .3 });
+          Game.damageSkillArea({ x: projectile.x, y: projectile.y, radius: 26, damage: projectile.damage, element: projectile.element, damageSource: "drone", progressSkillId: "drone" });
+          Game.burst(projectile.x, projectile.y, 6, "#a6c8ff");
+          S.skillProjectiles.splice(i, 1);
+          continue;
+        }
+        var missileStep = Math.min(projectile.speed * dt, missileDistance);
+        projectile.x += missileDx / missileDistance * missileStep;
+        projectile.y += missileDy / missileDistance * missileStep;
+        continue;
+      }
       projectile.x += projectile.vx * dt; projectile.y += projectile.vy * dt;
       var removed = projectile.x < -30 || projectile.x > C.width + 30 || projectile.y < -30 || projectile.y > C.height + 30;
       if (!removed && projectile.type === "thermobaric" && projectile.hasImpacted) {
@@ -835,6 +904,7 @@
         var enemy = S.enemies[j], radius = C.enemies[enemy.type].radius + projectile.radius;
         if (projectile.hitEnemies.indexOf(enemy) >= 0 || Math.pow(projectile.x - enemy.x, 2) + Math.pow(projectile.y - enemy.y, 2) >= radius * radius) continue;
         projectile.hitEnemies.push(enemy);
+        if (projectile.type === "thermobaric" && projectile.sacrificeEnabled && !projectile.fromSacrifice && projectile.hitEnemies.length === 1) Game.spawnSacrificeProjectile(projectile, enemy);
         if (projectile.type === "thermobaric") {
           Game.damageEnemy(enemy, projectile.impactDamage, projectile);
           if (projectile.impactBurn) Game.applyBurn(enemy, projectile.burnDps, projectile.burnDuration, "thermobaric", { ignoreImmunity: !!projectile.ignoreBurnImmunity });
@@ -851,6 +921,7 @@
           if (projectile.frostbiteEnabled) Game.applyFrostbite(enemy, projectile.frostbiteSource, projectile.frostbiteDps, projectile.frostbiteDuration, projectile.frostbiteMaxStacks);
           if (projectile.woundDuration > 0 || projectile.woundExtraDuration > 0) Game.applyWound(enemy, projectile.woundDuration, projectile.woundFactor, projectile.woundExtraDuration, projectile.woundExtraFactor);
           Game.splitDryIceProjectile(projectile, enemy);
+          Game.emitBigIceShards(projectile, enemy);
           if (enemy.hp <= 0) Game.killEnemy(j);
           if (Game.blocksProjectile(enemy)) removed = true;
           else {
@@ -869,10 +940,14 @@
     centerX = enemy.x; centerY = enemy.y;
     var wasFrozen = Game.isHardControlled(enemy) && enemy.controlType === "freeze";
     var wasBurning = (enemy.burn || 0) > 0;
+    var directDamage = strike.damage * (strike.nuclear ? 3 : 1);
     S.explosions.push({ type: "electromagneticStrike", x: centerX, y: centerY, radius: 18, life: .3, duration: .3 });
-    Game.damageEnemy(enemy, strike.damage, { critical: false, noWeaponEffects: true, element: strike.element, damageSource: "electromagnetic", progressSkillId: "electromagnetic" });
+    Game.damageEnemy(enemy, directDamage, { critical: false, noWeaponEffects: true, element: strike.element, damageSource: "electromagnetic", progressSkillId: "electromagnetic" });
     Game.applyParalysis(enemy, strike.stunDuration);
-    if (enemy.hp <= 0) Game.killEnemy(targetIndex);
+    if (enemy.hp <= 0) {
+      Game.killEnemy(targetIndex);
+      if (strike.nuclear) Game.spawnNuclearStrike(strike, centerX, centerY);
+    }
     if (strike.chainTargets > 0) Game.spawnElectromagneticChain(strike, enemy);
     if (strike.frozenShards && wasFrozen) {
       for (var shard = 0; shard < 4; shard++) {
@@ -891,6 +966,30 @@
       }
     }
     if (strike.matrix) S.electromagneticZones.push({ x: centerX, y: centerY, radius: strike.matrixRadius, life: strike.matrixDuration, duration: strike.matrixDuration, damage: strike.matrixDps, slowFactor: strike.matrixSlowFactor, element: strike.element, damageSource: "electromagnetic" });
+  };
+  Game.getNearestEnemyTo = function (x, y, rangeLine) {
+    var best = null, bestDistance = Infinity;
+    S.enemies.forEach(function (enemy) {
+      if (rangeLine !== undefined && rangeLine !== null && enemy.y < rangeLine) return;
+      var dx = enemy.x - x, dy = enemy.y - y, distance = dx * dx + dy * dy;
+      if (distance < bestDistance) { bestDistance = distance; best = enemy; }
+    });
+    return best;
+  };
+  Game.spawnNuclearStrike = function (strike, x, y) {
+    var depth = strike.nuclearDepth || 0;
+    if (depth + 1 >= 6) return false;
+    var target = Game.getNearestEnemyTo(x, y, Game.getSkillRangeLine("electromagnetic"));
+    if (!target) return false;
+    S.skillProjectiles.push({
+      type: "electromagnetic", target: target, x: target.x, y: target.y, delay: .1,
+      damage: strike.damage, stunDuration: strike.stunDuration, chainTargets: strike.chainTargets,
+      frozenShards: strike.frozenShards, burnZone: strike.burnZone,
+      explosion: strike.explosion, explosionDamage: strike.explosionDamage, explosionRadius: strike.explosionRadius,
+      matrix: strike.matrix, matrixDuration: strike.matrixDuration, matrixDps: strike.matrixDps, matrixRadius: strike.matrixRadius, matrixSlowFactor: strike.matrixSlowFactor,
+      nuclear: true, nuclearDepth: depth + 1, element: strike.element, damageSource: "electromagnetic", progressSkillId: "electromagnetic"
+    });
+    return true;
   };
   Game.spawnElectromagneticChain = function (strike, enemy) {
     var chainSkill = { bounces: Math.max(0, strike.chainTargets - 1), damage: strike.damage * .45, stunDuration: 0, jumpDelay: .08, burnEnabled: false };
@@ -1017,13 +1116,13 @@
     }
     if (!targets.length) return false;
     targets.forEach(function (point, order) {
-      S.bombDrops.push({ x: point.x, y: -24, targetX: point.x, targetY: point.y, delay: order * dropDelay, speed: skill.bombSpeed, damage: skill.damage, radius: blastRadius, centerRadius: skill.centerRadius, knockback: skill.knockback, centerDamageMultiplier: centerDamageMultiplier, stunDuration: stunDuration, burnEnabled: Game.hasProgressMilestone("bombardment", 18), echoEnabled: Game.hasProgressMilestone("bombardment", 26), thermonuclear: skill.thermonuclear, heatDuration: skill.heatDuration, heatDps: skill.heatDps, heatSlowFactor: skill.heatSlowFactor, element: Game.getSkillElement("bombardment"), damageSource: "bombardment", progressSkillId: "bombardment" });
+      S.bombDrops.push({ x: point.x, y: -24, targetX: point.x, targetY: point.y, delay: order * dropDelay, speed: skill.bombSpeed, damage: skill.damage, radius: blastRadius, centerRadius: skill.centerRadius, knockback: skill.knockback, centerDamageMultiplier: centerDamageMultiplier, stunDuration: stunDuration, burnEnabled: Game.hasProgressMilestone("bombardment", 18), echoEnabled: Game.hasProgressMilestone("bombardment", 26), thermonuclear: skill.thermonuclear, clusterEnabled: !!skill.clusterEnabled, heatDuration: skill.heatDuration, heatDps: skill.heatDps, heatSlowFactor: skill.heatSlowFactor, element: Game.getSkillElement("bombardment"), damageSource: "bombardment", progressSkillId: "bombardment" });
     });
     skill.fireTimer = skill.fireInterval;
     return true;
   };
   Game.explodeBombardment = function (bomb) {
-    S.explosions.push({ type: "bombardment", x: bomb.targetX, y: bomb.targetY, radius: bomb.radius, life: .62, duration: .62 });
+    S.explosions.push({ type: bomb.cluster ? "bombardmentCluster" : "bombardment", x: bomb.targetX, y: bomb.targetY, radius: bomb.radius, life: .62, duration: .62 });
     for (var i = S.enemies.length - 1; i >= 0; i--) {
       var enemy = S.enemies[i], dx = enemy.x - bomb.targetX, dy = enemy.y - bomb.targetY, distance = Math.sqrt(dx * dx + dy * dy);
       if (distance > bomb.radius + C.enemies[enemy.type].radius) continue;
@@ -1034,6 +1133,15 @@
       if (distance > .001) Game.applyKnockback(enemy, bomb.targetX, bomb.targetY, bomb.knockback * (1 - Math.min(distance / (bomb.radius * 1.5), .45)));
       else Game.applyKnockback(enemy, bomb.targetX, bomb.targetY + 1, bomb.knockback);
       if (enemy.hp <= 0) Game.killEnemy(i);
+    }
+    if (bomb.clusterEnabled && !bomb.cluster) {
+      var clusterRadius = bomb.radius * .6, marginX = C.enemies.boss.radius;
+      for (var clusterIndex = 0; clusterIndex < 3; clusterIndex++) {
+        var clusterAngle = Math.PI * 2 * clusterIndex / 3;
+        var clusterX = U.clamp(bomb.targetX + Math.cos(clusterAngle) * clusterRadius, marginX, C.width - marginX);
+        var clusterY = U.clamp(bomb.targetY + Math.sin(clusterAngle) * clusterRadius, 40, C.height - 60);
+        S.bombDrops.push({ x: clusterX, y: clusterY, targetX: clusterX, targetY: clusterY, delay: 0, speed: bomb.speed, damage: bomb.damage * .35, radius: bomb.radius, centerRadius: bomb.centerRadius, knockback: 0, centerDamageMultiplier: 1, stunDuration: 0, burnEnabled: false, echoEnabled: false, thermonuclear: false, cluster: true, clusterEnabled: false, heatDuration: 0, heatDps: 0, heatSlowFactor: 1, element: bomb.element, damageSource: "bombardment", progressSkillId: "bombardment" });
+      }
     }
     if (bomb.thermonuclear) S.bombZones.push({ x: bomb.targetX, y: bomb.targetY, radius: bomb.radius, life: bomb.heatDuration, duration: bomb.heatDuration, damage: bomb.heatDps, slowFactor: bomb.heatSlowFactor, element: bomb.element, damageSource: "bombardment" });
     if (bomb.echoEnabled) S.skillProjectiles.push({ type: "bombardmentEcho", x: bomb.targetX, y: bomb.targetY, delay: .8, damage: bomb.damage * .4, radius: bomb.radius * .6, element: bomb.element, damageSource: "bombardment", progressSkillId: "bombardment" });
@@ -1104,6 +1212,14 @@
       tornado.retargetTimer = U.rand(1.1, 2.1);
     }
   };
+  Game.attachStormEyeWhirls = function (tornado, skill) {
+    if (!skill || !skill.stormEyeEnabled) return;
+    tornado.whirls = [];
+    for (var i = 0; i < 4; i++) {
+      var angle = Math.PI / 2 * i + U.rand(0, .2), orbitRadius = tornado.radius * .9;
+      tornado.whirls.push({ angle: angle, x: tornado.x + Math.cos(angle) * orbitRadius, y: tornado.y + Math.sin(angle) * orbitRadius * .55, radius: tornado.radius * .35, contacts: [] });
+    }
+  };
   Game.spawnWhirlwind = function (skill, options) {
     var opts = options || {}, count = opts.count || 1, field = Game.getWhirlwindField(skill.radius);
     var band = (field.maxX - field.minX) / count, bandX = field.minX + band * (opts.index || 0);
@@ -1115,6 +1231,7 @@
     };
     tornado.targetX = tornado.x;
     tornado.targetY = tornado.y;
+    Game.attachStormEyeWhirls(tornado, skill);
     S.tornadoes.push(tornado);
   };
   Game.launchWhirlwindCannon = function () {
@@ -1131,7 +1248,9 @@
   };
   Game.spawnStormWhirlwind = function (skill, tornado, override) {
     var opts = override || {}, duration = opts.duration || skill.stormDuration, radiusScale = opts.radiusScale || skill.stormRadiusScale, pullScale = opts.pullScale || skill.stormPullScale, damageScale = opts.damageScale || skill.stormDamageScale;
-    S.tornadoes.push({ x: tornado.x, y: tornado.y, radius: tornado.radius * radiusScale, life: duration, duration: duration, speed: 0, stationary: true, damage: tornado.damage * damageScale, hitInterval: tornado.hitInterval, pullSpeed: tornado.pullSpeed * pullScale, progressBlade: !!tornado.progressBlade, groundOnly: !!skill.groundOnly, element: tornado.element, damageSource: "whirlwindCannon", progressSkillId: "whirlwindCannon", contacts: [], targetX: tornado.x, targetY: tornado.y, retargetTimer: 0 });
+    var storm = { x: tornado.x, y: tornado.y, radius: tornado.radius * radiusScale, life: duration, duration: duration, speed: 0, stationary: true, damage: tornado.damage * damageScale, hitInterval: tornado.hitInterval, pullSpeed: tornado.pullSpeed * pullScale, progressBlade: !!tornado.progressBlade, groundOnly: !!skill.groundOnly, element: tornado.element, damageSource: "whirlwindCannon", progressSkillId: "whirlwindCannon", contacts: [], targetX: tornado.x, targetY: tornado.y, retargetTimer: 0 };
+    Game.attachStormEyeWhirls(storm, skill);
+    S.tornadoes.push(storm);
     Game.burst(tornado.x, tornado.y, 18, C.colors.cyan);
   };
   Game.spawnWhirlwindBlade = function (tornado, enemy) {
@@ -1179,7 +1298,33 @@
         Game.burst(enemy.x, enemy.y, 1, C.colors.cyan);
         if (enemy.hp <= 0) { Game.killEnemy(j); tornado.contacts.splice(contactIndex, 1); }
       }
+      if (tornado.whirls) Game.updateWhirlwindWhirls(tornado, dt);
     }
+  };
+  Game.updateWhirlwindWhirls = function (tornado, dt) {
+    var orbitSpeed = Math.PI * 2 / 1.2, orbitRadius = tornado.radius * .9;
+    tornado.whirls.forEach(function (whirl) {
+      whirl.angle += orbitSpeed * dt;
+      whirl.x = tornado.x + Math.cos(whirl.angle) * orbitRadius;
+      whirl.y = tornado.y + Math.sin(whirl.angle) * orbitRadius * .55;
+      whirl.radius = tornado.radius * .35;
+      whirl.contacts.forEach(function (contact) { contact.hitTimer = Math.max(0, contact.hitTimer - dt); });
+      for (var j = S.enemies.length - 1; j >= 0; j--) {
+        var enemy = S.enemies[j], info = C.enemies[enemy.type];
+        if (!Game.canHitEnemy({ groundOnly: false }, enemy)) continue;
+        var dx = enemy.x - whirl.x, dy = enemy.y - whirl.y, reach = whirl.radius + info.radius;
+        if (dx * dx + dy * dy > reach * reach) continue;
+        var distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        Game.applyPull(enemy, whirl.x, whirl.y, tornado.pullSpeed * .6 * dt * (.35 + .65 * (1 - distance / reach)));
+        var contactIndex = -1;
+        for (var k = 0; k < whirl.contacts.length; k++) if (whirl.contacts[k].enemy === enemy) { contactIndex = k; break; }
+        if (contactIndex < 0) { whirl.contacts.push({ enemy: enemy, hitTimer: 0 }); contactIndex = whirl.contacts.length - 1; }
+        if (whirl.contacts[contactIndex].hitTimer > 0) continue;
+        whirl.contacts[contactIndex].hitTimer = tornado.hitInterval;
+        Game.damageEnemy(enemy, tornado.damage * .4, { critical: false, noWeaponEffects: true, silentText: true, element: tornado.element, damageSource: "whirlwindCannon", progressSkillId: "whirlwindCannon" });
+        if (enemy.hp <= 0) { Game.killEnemy(j); whirl.contacts.splice(contactIndex, 1); }
+      }
+    });
   };
   Game.getDroneChaseTarget = function (drone, field) {
     var skill = S.player.skills.drone, clusterRadius = skill.clusterRadius, threatRange = Math.max(1, field.maxY - field.minY);
@@ -1226,7 +1371,7 @@
       x: U.rand(bandX, bandX + band), y: U.rand(field.minY, field.minY + (field.maxY - field.minY) * .5),
       radius: radius, baseRadius: skill.radius, sizeLevel: skill.sizeLevel || 0,
       life: opts.duration || skill.duration, duration: opts.duration || skill.duration, speed: opts.speed || skill.speed,
-      damage: skill.damage * (opts.damageScale || 1), hitInterval: skill.hitInterval, stunDuration: opts.stunDuration === undefined ? skill.stunDuration : opts.stunDuration, bladeEnabled: !!skill.bladeEnabled,
+      damage: skill.damage * (opts.damageScale || 1), hitInterval: skill.hitInterval, stunDuration: opts.stunDuration === undefined ? skill.stunDuration : opts.stunDuration, bladeEnabled: !!skill.bladeEnabled, swarmEnabled: !!skill.swarmEnabled,
       groundOnly: !!skill.groundOnly, element: Game.getSkillElement("drone"), damageSource: "drone", progressSkillId: "drone", contacts: [], targetX: 0, targetY: 0, retargetTimer: 0, spin: U.rand(0, Math.PI * 2)
     };
     drone.targetX = drone.x;
@@ -1259,6 +1404,13 @@
       critical: false, noWeaponEffects: true, fromDrone: true, element: Game.getSkillElement("drone"), damageSource: "drone", progressSkillId: "drone", hitEnemies: [enemy]
     });
     return S.skillProjectiles[S.skillProjectiles.length - 1];
+  };
+  Game.spawnSwarmMissile = function (drone, enemy) {
+    var target = Game.getNearestEnemyTo(enemy.x, enemy.y);
+    if (!target) return null;
+    var missile = { type: "swarmMissile", x: enemy.x, y: enemy.y, vx: 0, vy: 0, radius: 6, speed: 320, damage: drone.damage * 1.5, target: target, life: 1.6, element: drone.element, damageSource: "drone", progressSkillId: "drone", fromSwarm: true };
+    S.skillProjectiles.push(missile);
+    return missile;
   };
   Game.moveDrone = function (drone, dt) {
     var field = Game.getWhirlwindField(drone.radius);
@@ -1295,6 +1447,7 @@
           enemy.damageTakenMultiplier = Math.max(enemy.damageTakenMultiplier || 1, 1.3);
         }
         if (drone.bladeEnabled) Game.spawnDroneBlade(drone, enemy);
+        if (drone.swarmEnabled && Math.random() < .3) Game.spawnSwarmMissile(drone, enemy);
         if (drone.stunDuration > 0) Game.applyStun(enemy, drone.stunDuration);
         Game.burst(enemy.x, enemy.y, 1, "#a6c8ff");
         if (enemy.hp <= 0) { Game.killEnemy(j); drone.contacts.splice(contactIndex, 1); }
@@ -1348,8 +1501,8 @@
   Game.launchChainLightning = function () {
     var skill = S.player.skills.chainLightning, count, taken = [], made = 0, origin, start, chain;
     if (!skill.unlocked || skill.fireTimer > 0) return false;
-    var localExtra = skill.extraChains || 0, accountExtra = Game.hasProgressMilestone("chainLightning", 22) ? 1 : 0;
-    var runtime = { bounces: skill.bounces + (Game.hasProgressMilestone("chainLightning", 2) ? 2 : 0), damage: skill.damage, stunDuration: skill.stunDuration + (Game.hasProgressMilestone("chainLightning", 7) ? .4 : 0), jumpDelay: skill.jumpDelay, burnEnabled: !!skill.burnEnabled, burnDps: skill.burnDps || 0, burnDuration: skill.burnDuration || 0 };
+    var localExtra = (skill.extraChains || 0) + (skill.tempestEnabled ? 2 : 0), accountExtra = Game.hasProgressMilestone("chainLightning", 22) ? 1 : 0;
+    var runtime = { bounces: skill.bounces + (Game.hasProgressMilestone("chainLightning", 2) ? 2 : 0) + (skill.tempestEnabled ? 3 : 0), damage: skill.damage, stunDuration: skill.stunDuration + (Game.hasProgressMilestone("chainLightning", 7) ? .4 : 0), jumpDelay: skill.jumpDelay, burnEnabled: !!skill.burnEnabled, burnDps: skill.burnDps || 0, burnDuration: skill.burnDuration || 0 };
     count = 1 + localExtra + accountExtra;
     origin = Game.getSkillMuzzle();
     for (var i = 0; i < count; i++) {
@@ -1486,6 +1639,7 @@
       storm.life -= dt;
       if (storm.life <= 0) {
         if (storm.explodeOnEnd) Game.explodeHailStorm(storm);
+        if (S.player.skills.hailGenerator.glacierEnabled) Game.spawnIceField(storm);
         S.hailStorms.splice(i, 1);
         continue;
       }
@@ -1501,6 +1655,26 @@
         Game.applyFreeze(enemy, storm.freezeDuration);
         if (storm.frostbiteEnabled) Game.applyFrostbite(enemy, "hailGenerator", storm.frostbiteDps, storm.frostbiteDuration, storm.frostbiteMaxStacks);
         Game.burst(enemy.x, enemy.y, 1, C.colors.ice);
+        if (enemy.hp <= 0) Game.killEnemy(j);
+      }
+    }
+  };
+  Game.spawnIceField = function (storm) {
+    S.iceFields.push({ x: storm.x, y: storm.y, radius: storm.radius, life: 3, duration: 3, tickInterval: .5, tickTimer: 0, damage: storm.damage * .3, slowFactor: .6, slowDuration: 1, element: storm.element, damageSource: "hailGenerator", progressSkillId: "hailGenerator" });
+  };
+  Game.updateIceFields = function (dt) {
+    for (var i = S.iceFields.length - 1; i >= 0; i--) {
+      var field = S.iceFields[i];
+      field.life -= dt;
+      if (field.life <= 0) { S.iceFields.splice(i, 1); continue; }
+      field.tickTimer -= dt;
+      if (field.tickTimer > 0) continue;
+      field.tickTimer = field.tickInterval;
+      for (var j = S.enemies.length - 1; j >= 0; j--) {
+        var enemy = S.enemies[j], info = C.enemies[enemy.type], dx = enemy.x - field.x, dy = enemy.y - field.y, reach = field.radius + info.radius;
+        if (dx * dx + dy * dy > reach * reach) continue;
+        Game.damageEnemy(enemy, field.damage, { critical: false, noWeaponEffects: true, silentText: true, element: field.element, damageSource: "hailGenerator", progressSkillId: "hailGenerator" });
+        Game.applySlow(enemy, field.slowDuration, field.slowFactor);
         if (enemy.hp <= 0) Game.killEnemy(j);
       }
     }
@@ -1631,8 +1805,9 @@
         if (!Game.canHitEnemy(pool, enemy)) continue;
         var dx = enemy.x - pool.x, dy = enemy.y - pool.y, reach = pool.radius + info.radius;
         if (dx * dx + dy * dy > reach * reach) continue;
-        Game.damageEnemy(enemy, pool.damage, { critical: false, noWeaponEffects: true, silentText: true, element: pool.element, damageSource: "fuelBomb", progressSkillId: "fuelBomb" });
+        var damageApplied = Game.damageEnemy(enemy, pool.damage, { critical: false, noWeaponEffects: true, silentText: true, element: pool.element, damageSource: "fuelBomb", progressSkillId: "fuelBomb" });
         Game.applyBurn(enemy, pool.burnDps, pool.burnDuration, "fuelBomb");
+        if (damageApplied && !pool.napalm && S.player.skills.fuelBomb.napalmEnabled) enemy.napalmMark = 4;
         if (pool.slowFactor < 1) Game.applySlow(enemy, pool.slowDuration, pool.slowFactor);
         if (pool.stunDuration > 0) Game.applyStun(enemy, pool.stunDuration);
         Game.burst(enemy.x, enemy.y, 1, C.colors.fire);
@@ -1687,14 +1862,28 @@
   };
   Game.getSkillSlotCount = function () { return (S.player.skillOrder || []).length; };
   Game.canUnlockSkill = function () { return Game.getSkillSlotCount() < C.maxSkillSlots; };
+  Game.isSuperTraitReady = function (trait) {
+    var p = S.player;
+    if (!trait || !trait.super || !trait.skillId) return false;
+    if ((p.traits[trait.id] || 0) > 0) return false;
+    if (!p.skills[trait.skillId] || !p.skills[trait.skillId].unlocked) return false;
+    var needs = trait.requires || [];
+    for (var i = 0; i < needs.length; i++) if (!(p.traits[needs[i]] > 0)) return false;
+    return true;
+  };
   Game.rollTraits = function () {
-    var p = S.player, allTraits = C.traits.concat(C.skillTraits || []), slotsFull = !Game.canUnlockSkill();
+    var p = S.player, allTraits = C.traits.concat(C.skillTraits || []), slotsFull = !Game.canUnlockSkill(), cards = [];
     var pool = allTraits.filter(function (trait) {
+      if (trait.super) return false;
       if ((p.traits[trait.id] || 0) >= trait.max) return false;
       if (trait.unlocksSkill) return !slotsFull && !p.skills[trait.skillId].unlocked;
       if (trait.skillId) return p.skills[trait.skillId].unlocked;
       return true;
-    }).slice(), cards = [];
+    }).slice();
+    if (Math.random() < (C.superTraitChance || 0)) {
+      var superPool = (C.skillTraits || []).filter(Game.isSuperTraitReady);
+      if (superPool.length) cards.push(superPool[Math.floor(Math.random() * superPool.length)]);
+    }
     while (pool.length && cards.length < 3) cards.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     return cards;
   };
@@ -1728,7 +1917,11 @@
     return groups;
   };
   Game.killEnemy = function (index) {
-    var enemy = S.enemies[index], info = C.enemies[enemy.type];
+    var enemy = S.enemies[index], info = C.enemies[enemy.type], fuel = S.player && S.player.skills.fuelBomb;
+    if ((enemy.napalmMark || 0) > 0 && fuel && fuel.napalmEnabled) {
+      S.fuelPools.push({ x: enemy.x, y: enemy.y, radius: 30, life: 1, duration: 1, damage: fuel.damage * .6, hitInterval: .25, tickTimer: 0, burnDps: 0, burnDuration: 0, slowFactor: 1, slowDuration: 0, stunDuration: 0, groundOnly: true, element: "fire", damageSource: "fuelBomb", progressSkillId: "fuelBomb", explodeOnEnd: false, explosionRadius: 0, explosionDamage: 0, napalm: true });
+      S.explosions.push({ type: "fuelBlast", x: enemy.x, y: enemy.y, radius: 30, life: .3, duration: .3 });
+    }
     S.session.kills++;
     Game.gainXp(info.xp);
     Game.addText(enemy.x, enemy.y, "+" + info.xp + " XP", C.colors.yellow);
