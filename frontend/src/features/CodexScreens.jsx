@@ -91,16 +91,18 @@ export function ZombieCodexScreen() {
 
 export function SkillCodexScreen() {
   const [selectedId, setSelectedId] = useState(null);
+  const [levelPanelOpen, setLevelPanelOpen] = useState(false);
   const config = getConfig();
   const groups = useMemo(function () { return getGame().getSkillGroups(); }, []);
   const selected = selectedId ? groups.find(function (group) { return group.id === selectedId; }) : null;
   const progress = selected && config.skillProgress.order.indexOf(selected.id) >= 0 && getGame().skillProgress ? getGame().skillProgress.getView(selected.id) : null;
   const accountState = getGame().accounts.state;
+  const unlockedCount = progress ? progress.milestones.filter(function (node) { return node.unlocked; }).length : 0;
   return (
     <Screen title="技能图鉴" subtitle={"每局最多装备 " + config.maxSkillSlots + " 个核心技能"} badge="FIELD GUIDE · SKILLS" onBack={actions.backToMenu}>
       {selected ? (
         <div className="codex-detail">
-          <Button variant="ghost" className="detail-back" onClick={function () { setSelectedId(null); }}>‹ 返回列表</Button>
+          <Button variant="ghost" className="detail-back" onClick={function () { setLevelPanelOpen(false); setSelectedId(null); }}>‹ 返回列表</Button>
           <div className="skill-hero">
             <span style={{ color: selected.color || "#68d8ff" }}>{selected.icon}</span>
             <div><h2>{selected.name}</h2><p>{selected.status || "已实装"} · {selected.traits.length} 个词条{progress ? " · 账户 Lv." + progress.level + " / " + progress.maxLevel : ""}</p></div>
@@ -112,7 +114,10 @@ export function SkillCodexScreen() {
                 <div><b>账户强化 Lv.{progress.level} / {progress.maxLevel}</b><small>暴击 +{formatPercent(progress.critBonus)} · 伤害 +{Math.round(progress.damageBonus * 100)}% · 冷却 −{Math.round(progress.cooldownReduction * 100)}%</small></div>
                 <p>{progress.milestones.filter(function (node) { return node.unlocked; }).map(function (node) { return node.name; }).join(" · ") || "尚未解锁高级节点"}</p>
                 <p>{progress.nextCost ? "金币 " + progress.nextCost.coin + " · 专属图纸 " + progress.nextCost[progress.blueprintId] : "已达到最高等级"}</p>
-                <Button variant={progress.level >= progress.maxLevel ? "ghost" : "violet"} disabled={progress.level >= progress.maxLevel || accountState.skillBusy || getGame().accounts.getStatus() !== "ready"} onClick={function () { actions.upgradeSkill(progress.skillId); }}>{progress.level >= progress.maxLevel ? "已满级" : accountState.skillBusyId === progress.skillId ? "强化中…" : "强化"}</Button>
+                <div className="skill-progress-actions">
+                  <Button variant="cyan" onClick={function () { setLevelPanelOpen(true); }}>等级节点</Button>
+                  <Button variant={progress.level >= progress.maxLevel ? "ghost" : "violet"} disabled={progress.level >= progress.maxLevel || accountState.skillBusy || getGame().accounts.getStatus() !== "ready"} onClick={function () { actions.upgradeSkill(progress.skillId); }}>{progress.level >= progress.maxLevel ? "已满级" : accountState.skillBusyId === progress.skillId ? "强化中…" : "强化"}</Button>
+                </div>
               </article>
             </div>
           ) : null}
@@ -128,12 +133,41 @@ export function SkillCodexScreen() {
               );
             })}
           </div>
+          {levelPanelOpen && progress ? (
+            <div className="modal-backdrop skill-level-backdrop" onClick={function () { setLevelPanelOpen(false); }}>
+              <section className="modal-card skill-level-modal" role="dialog" aria-modal="true" aria-labelledby="skill-level-title" onClick={function (event) { event.stopPropagation(); }}>
+                <button className="modal-close" aria-label="关闭等级节点" onClick={function () { setLevelPanelOpen(false); }}>×</button>
+                <header className="skill-level-heading">
+                  <span style={{ color: selected.color || "#68d8ff" }}>{selected.icon}</span>
+                  <div><small>技能等级节点</small><h2 id="skill-level-title">{selected.name}</h2><p>账户 Lv.{progress.level} / {progress.maxLevel}</p></div>
+                </header>
+                <div className="skill-level-stats">
+                  <div><span>技能伤害</span><b>+{Math.round(progress.damageBonus * 100)}%</b></div>
+                  <div><span>冷却缩减</span><b>−{Math.round(progress.cooldownReduction * 100)}%</b></div>
+                  <div><span>暴击加成</span><b>+{formatPercent(progress.critBonus)}</b></div>
+                  <div><span>下一节点</span><b>{progress.nextMilestone ? "Lv." + progress.nextMilestone : "全部解锁"}</b></div>
+                </div>
+                <div className="skill-level-section"><b>等级节点</b><span>已解锁 {unlockedCount} / {progress.milestones.length}</span></div>
+                <div className="skill-level-list">
+                  {progress.milestones.map(function (node) {
+                    return (
+                      <article className={"skill-level-node " + (node.unlocked ? "unlocked" : "locked")} key={node.level}>
+                        <div className="skill-level-node-rank"><b>Lv.{node.level}</b><span>{node.unlocked ? "已解锁" : "未解锁"}</span></div>
+                        <div><strong>{node.name}</strong><p>{node.detail}</p></div>
+                      </article>
+                    );
+                  })}
+                </div>
+                <Button variant="ghost" className="wide" onClick={function () { setLevelPanelOpen(false); }}>关闭</Button>
+              </section>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="skill-list">
           {groups.map(function (group) {
             return (
-              <button className="skill-row" key={group.id} onClick={function () { setSelectedId(group.id); }}>
+              <button className="skill-row" key={group.id} onClick={function () { setLevelPanelOpen(false); setSelectedId(group.id); }}>
                 <span style={{ color: group.color || "#68d8ff" }}>{group.icon}</span>
                 <div><strong>{group.name}</strong><small>{group.traits.length} 个词条</small></div>
                 <em>{group.status || "已实装"}</em>

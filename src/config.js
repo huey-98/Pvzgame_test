@@ -306,7 +306,19 @@
         bonusY: 282,
         nodeY: 300,
         costY: 318,
-        action: { x: 236, y: 252, w: 84, h: 28 }
+        action: { x: 236, y: 252, w: 84, h: 28 },
+        nodesAction: { x: 232, y: 306, w: 90, h: 24 }
+      },
+      levelPanel: {
+        panel: { x: 14, y: 48, w: 332, h: 544 },
+        close: { x: 296, y: 60, w: 32, h: 26 },
+        titleY: 82,
+        subtitleY: 104,
+        skillNameY: 128,
+        stats: { x: 34, y: 142, w: 292, h: 88, columns: 2, rows: 2, gapX: 8, gapY: 6 },
+        sectionY: 252,
+        list: { x: 26, y: 264, w: 308, rowHeight: 43, gap: 4 },
+        footer: { x: 98, y: 547, w: 164, h: 34 }
       },
       back: { x: 98, y: 561, w: 164, h: 36 }
     },

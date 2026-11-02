@@ -592,3 +592,11 @@ git diff --check
 - 规则：超级词条为局内词条，每个技能一局一次、无成长，选择后技能等级 +1；前置只要求拥有 3 条指定词条；二次产物不再触发本效果；所有新伤害仍走 `Game.damageEnemy` 并快照来源。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-super-traits.js` 全部通过（含池规则、前置、单次获取、12 条机制、来源快照与高级节点叠加）；`node tmp/check-skills.js`、`node tmp/check-bomber.js`、`node tmp/check-accounts.js` 176 项通过；`Get-ChildItem src -Filter *.js | node --check` 全部通过；`trace-draw.js` + `replay-draw.py` 回放核对超级升级卡、技能图鉴超级词条与混合战场。
 - 后端未改动，`SCHEMA_VERSION` 保持 7。
+
+## 2026-11-02 · 技能图鉴等级节点弹层
+
+- Canvas 技能图鉴详情新增「等级节点」按钮；点击后打开独立弹层，上半部分显示技能伤害、冷却缩减、暴击加成和下一节点，下半部分完整列出 Lv.2/7/12/18/22/26 六个节点。
+- 每个节点显示等级、名称和完整效果；达到账户等级时标为「已解锁」，未达到时标为「未解锁」并使用弱化配色。弹层打开时吞掉下层按钮、分页和返回操作，关闭按钮与 `Game.reset` 同步清理状态。
+- `config.skillCodexUI.levelPanel` 集中保存弹层、四项数值、节点列表和关闭按钮几何；`state.js` 暴露共享矩形函数，`render.js` 与 `input.js` 复用。
+- React 兼容层同步新增「等级节点」按钮、数值区和节点状态列表，并补充竖屏滚动样式。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-skills.js` 通过并新增节点按钮、四项数值、6 行节点与关闭按钮几何断言；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-level-button.png`、`tmp/skill-levels.png`，核对按钮位置、节点完整性和未解锁状态。

@@ -51,10 +51,18 @@
     if (screen === "skillCodex") {
       var group = getSkillCodexGroup();
       if (group) {
+        if (S.skillCodexLevelPanel) {
+          if (pointInRect(point, Game.getSkillCodexLevelCloseRect()) || pointInRect(point, Game.getSkillCodexLevelFooterRect())) S.skillCodexLevelPanel = false;
+          return;
+        }
         if ((C.skillProgress.order || []).indexOf(group.id) >= 0 && pointInRect(point, Game.getSkillCodexProgressActionRect())) {
           var view = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
           var resources = Game.accounts.getResources(), cost = view && view.nextCost, affordable = !view || !cost || ((resources.coin || 0) >= (cost.coin || 0) && (resources[view.blueprintId] || 0) >= (cost[view.blueprintId] || 0));
           if (Game.accounts.getStatus() === "ready" && !Game.accounts.state.skillBusy && view && view.level < view.maxLevel && affordable) Game.upgradeSkill(group.id);
+          return;
+        }
+        if ((C.skillProgress.order || []).indexOf(group.id) >= 0 && pointInRect(point, Game.getSkillCodexNodesActionRect())) {
+          S.skillCodexLevelPanel = true;
           return;
         }
         if (pointInRect(point, Game.getSkillCodexPagerRect("prev")) && getCodexPageCount(screen) > 1) {
@@ -65,14 +73,14 @@
           S.codexPage = Math.min(getCodexPageCount(screen) - 1, S.codexPage + 1);
           return;
         }
-        if (pointInRect(point, Game.getSkillCodexBackRect())) { S.selectedSkillCodexId = null; S.codexPage = 0; }
+        if (pointInRect(point, Game.getSkillCodexBackRect())) { S.selectedSkillCodexId = null; S.codexPage = 0; S.skillCodexLevelPanel = false; }
         return;
       }
       var skillIndex = Game.getSkillCodexCardIndex(point);
       if (skillIndex >= 0) {
         var skillList = Game.getSkillGroups(), skillPageNumber = S.codexPage || 0, skillPer = C.skillCodexUI.cards.perPage;
         var selectedSkill = skillList.slice(skillPageNumber * skillPer, skillPageNumber * skillPer + skillPer)[skillIndex];
-        if (selectedSkill) { S.selectedSkillCodexId = selectedSkill.id; S.codexPage = 0; }
+        if (selectedSkill) { S.selectedSkillCodexId = selectedSkill.id; S.codexPage = 0; S.skillCodexLevelPanel = false; }
         return;
       }
     }

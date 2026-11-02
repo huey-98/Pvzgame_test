@@ -6,7 +6,7 @@
     var node = typeof document !== "undefined" ? document.getElementById("start-hint") : null;
     if (node && node.style) node.style.display = display;
   }
-  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
   Game.reset = function () {
     var s = Game.state;
     var level = C.levels.find(function (item) { return item.id === s.selectedLevel; });
@@ -25,7 +25,7 @@
     s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.iceFields = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null;
     s.characterPart = "arm"; s.characterTab = "gem"; s.characterGemPage = 0; s.characterGems = null;
     s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0; s.characterResourcePage = 0; s.skillProgressPage = 0;
-    s.accountResourcePage = 0;
+    s.accountResourcePage = 0; s.skillCodexLevelPanel = false;
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
     s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
@@ -45,7 +45,7 @@
   };
   Game.closeLevelPreview = function () { Game.state.levelPreview = null; };
   Game.openZombieCodex = function () { Game.state.zombieCodexCategory = "minion"; Game.state.selectedZombieCodexId = null; Game.state.codexPage = 0; Game.state.screen = "zombieCodex"; };
-  Game.openSkillCodex = function () { Game.state.selectedSkillCodexId = null; Game.state.codexPage = 0; Game.state.screen = "skillCodex"; };
+  Game.openSkillCodex = function () { Game.state.selectedSkillCodexId = null; Game.state.codexPage = 0; Game.state.skillCodexLevelPanel = false; Game.state.screen = "skillCodex"; };
   Game.openAttributes = function () {
     Game.state.characterGems = null;
     Game.state.characterGemDetail = null;
@@ -477,6 +477,19 @@
   };
   Game.getSkillCodexPagerRect = function (key) { return C.skillCodexUI.pager[key === "next" ? "next" : "prev"]; };
   Game.getSkillCodexProgressActionRect = function () { return C.skillCodexUI.progress.action; };
+  Game.getSkillCodexNodesActionRect = function () { return C.skillCodexUI.progress.nodesAction; };
+  Game.getSkillCodexLevelCloseRect = function () { return C.skillCodexUI.levelPanel.close; };
+  Game.getSkillCodexLevelFooterRect = function () { return C.skillCodexUI.levelPanel.footer; };
+  Game.getSkillCodexLevelStatRect = function (index) {
+    var geo = C.skillCodexUI.levelPanel.stats, column = index % geo.columns, row = Math.floor(index / geo.columns);
+    var width = (geo.w - geo.gapX * (geo.columns - 1)) / geo.columns;
+    var height = (geo.h - geo.gapY * (geo.rows - 1)) / geo.rows;
+    return { x: geo.x + column * (width + geo.gapX), y: geo.y + row * (height + geo.gapY), w: width, h: height };
+  };
+  Game.getSkillCodexLevelNodeRect = function (index) {
+    var geo = C.skillCodexUI.levelPanel.list;
+    return { x: geo.x, y: geo.y + index * (geo.rowHeight + geo.gap), w: geo.w, h: geo.rowHeight };
+  };
   Game.getSkillCodexBackRect = function () { return C.skillCodexUI.back; };
   Game.getLevelInfoRect = function (index) {
     var geo = C.levelSelect, row = Game.getLevelRowRect(index), size = geo.infoSize;

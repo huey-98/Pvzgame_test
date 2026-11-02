@@ -3644,7 +3644,11 @@
     text("技能图鉴", C.width / 2, 95, "bold 23px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
     var groups = Game.getSkillGroups();
     var selected = S.selectedSkillCodexId ? groups.find(function (group) { return group.id === S.selectedSkillCodexId; }) : null;
-    if (selected) { drawSkillGroupDetail(selected); return; }
+    if (selected) {
+      drawSkillGroupDetail(selected);
+      if (S.skillCodexLevelPanel) drawSkillLevelPanel(selected);
+      return;
+    }
     text("选择技能查看介绍与专属词条 · 每局最多装备 " + C.maxSkillSlots + " 个", C.width / 2, 126, "11px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     var perPage = C.skillCodexUI.cards.perPage, pages = Math.max(1, Math.ceil(groups.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
     S.codexPage = page;
@@ -3690,6 +3694,9 @@
       var busy = accountState.skillBusy && accountState.skillBusyId === progress.skillId, enabled = ready && !busy && !maxed && affordable;
       U.roundedRect(ctx, action.x, action.y, action.w, action.h, 8, enabled ? color : "rgba(38, 56, 66, .90)", enabled ? "rgba(255,255,255,.24)" : "rgba(153,205,218,.16)");
       text(busy ? "强化中" : maxed ? "已满级" : !ready ? "未登录" : !affordable ? "材料不足" : "强化", action.x + action.w / 2, action.y + 18, "bold 9px Segoe UI, Microsoft YaHei", enabled ? "#071217" : C.colors.muted, "center");
+      var nodesAction = Game.getSkillCodexNodesActionRect();
+      U.roundedRect(ctx, nodesAction.x, nodesAction.y, nodesAction.w, nodesAction.h, 8, "rgba(24, 58, 75, .96)", "rgba(104, 216, 255, .48)");
+      text("等级节点", nodesAction.x + nodesAction.w / 2, nodesAction.y + 16, "bold 9px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
     }
     var traits = group.traits || [], perPage = progress ? 2 : 3, pages = Math.max(1, Math.ceil(traits.length / perPage)), page = U.clamp(S.codexPage || 0, 0, pages - 1);
     S.codexPage = page;
@@ -3712,6 +3719,46 @@
     if (!traits.length) text("该技能暂无专属词条。", C.width / 2, 336, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     if (pages > 1) { Game.button(94, 521, 54, 31, "‹", color); text((page + 1) + " / " + pages, C.width / 2, 542, "bold 11px Segoe UI, Microsoft YaHei", C.colors.text, "center"); Game.button(212, 521, 54, 31, "›", color); }
     Game.button(C.width / 2 - 82, 561, 164, 36, "返回技能列表", color);
+  }
+  function drawSkillLevelPanel(group) {
+    var ui = C.skillCodexUI.levelPanel, progress = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+    if (!progress) return;
+    var color = skillGroupColor(group), unlocked = progress.milestones.filter(function (node) { return node.unlocked; }).length;
+    var stats = [
+      { label: "技能伤害", value: "+" + Math.round(progress.damageBonus * 100) + "%" },
+      { label: "冷却缩减", value: "−" + Math.round(progress.cooldownReduction * 100) + "%" },
+      { label: "暴击加成", value: "+" + (progress.critBonus * 100).toFixed(1) + "%" },
+      { label: "下一节点", value: progress.nextMilestone ? "Lv." + progress.nextMilestone : "全部解锁" }
+    ];
+    Game.overlay();
+    panel(ui.panel.x, ui.panel.y, ui.panel.w, ui.panel.h, "rgba(7, 24, 34, .995)", "rgba(104, 216, 255, .36)", 20);
+    text("技能等级节点", C.width / 2, ui.titleY, "bold 21px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
+    text("账户成长数值与全部高级节点", C.width / 2, ui.subtitleY, "10px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    U.roundedRect(ctx, ui.close.x, ui.close.y, ui.close.w, ui.close.h, 8, "rgba(9, 26, 36, .9)", "rgba(153, 205, 218, .28)");
+    text("×", ui.close.x + ui.close.w / 2, ui.close.y + 18, "bold 15px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    drawSkillGlyph(group.id, 44, ui.skillNameY - 6, 24, color);
+    text(group.name, 64, ui.skillNameY, "bold 16px Segoe UI, Microsoft YaHei", C.colors.text);
+    text("Lv." + progress.level + " / " + progress.maxLevel, 320, ui.skillNameY, "bold 12px Segoe UI, Microsoft YaHei", color, "right");
+    stats.forEach(function (stat, index) {
+      var rect = Game.getSkillCodexLevelStatRect(index);
+      U.roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 9, "rgba(17, 47, 62, .86)", "rgba(153, 205, 218, .18)");
+      text(stat.label, rect.x + 10, rect.y + 15, "9px Segoe UI, Microsoft YaHei", C.colors.muted);
+      text(stat.value, rect.x + rect.w - 10, rect.y + 32, "bold 15px Segoe UI, Microsoft YaHei", index === 3 ? C.colors.cyan : color, "right");
+    });
+    text("等级节点", 30, ui.sectionY, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
+    text("已解锁 " + unlocked + " / " + progress.milestones.length, 330, ui.sectionY, "bold 10px Segoe UI, Microsoft YaHei", C.colors.green, "right");
+    progress.milestones.forEach(function (node, index) {
+      var rect = Game.getSkillCodexLevelNodeRect(index), unlockedNode = node.unlocked;
+      U.roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 9, unlockedNode ? "rgba(16, 49, 48, .94)" : "rgba(15, 28, 38, .90)", unlockedNode ? "rgba(99, 230, 160, .32)" : "rgba(153, 205, 218, .14)");
+      U.roundedRect(ctx, rect.x + 8, rect.y + 8, 48, 29, 7, unlockedNode ? "rgba(28, 92, 70, .9)" : "rgba(24, 39, 49, .92)", unlockedNode ? "rgba(99, 230, 160, .5)" : "rgba(153, 205, 218, .18)");
+      text("Lv." + node.level, rect.x + 32, rect.y + 27, "bold 10px Segoe UI, Microsoft YaHei", unlockedNode ? C.colors.green : C.colors.muted, "center");
+      text(node.name, rect.x + 66, rect.y + 16, "bold 10px Segoe UI, Microsoft YaHei", unlockedNode ? C.colors.text : "rgba(204, 224, 233, .5)");
+      text(unlockedNode ? "已解锁" : "未解锁", rect.x + rect.w - 10, rect.y + 16, "bold 9px Segoe UI, Microsoft YaHei", unlockedNode ? C.colors.green : C.colors.yellow, "right");
+      ctx.font = "8px Segoe UI, Microsoft YaHei"; ctx.fillStyle = unlockedNode ? "rgba(204, 224, 233, .7)" : "rgba(204, 224, 233, .4)"; ctx.textAlign = "left";
+      U.wrapText(ctx, node.detail || "效果待补充。", rect.x + 66, rect.y + 30, rect.w - 78, 8);
+    });
+    U.roundedRect(ctx, ui.footer.x, ui.footer.y, ui.footer.w, ui.footer.h, 10, "rgba(24, 58, 75, .96)", "rgba(104, 216, 255, .48)");
+    text("关闭", ui.footer.x + ui.footer.w / 2, ui.footer.y + 22, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
   }
   function traitRequirementNames(trait) {
     var names = [];
