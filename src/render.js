@@ -3711,14 +3711,13 @@
       panel(x, y, 308, 68, isSuper ? "#4a3317" : rare ? "#263352" : "#163b4d", isSuper ? "rgba(255,184,77,.7)" : rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
       drawSkillGlyph(group.id, x + 24, y + 32, 18, accent);
       text(trait.name, x + 46, y + 24, "bold 13px Segoe UI, Microsoft YaHei", C.colors.text);
-      if (isSuper) badge("超级 · 一次性", x + 216, y + 8, 80, "#ffb84d");
+      if (isSuper) badge("超级 · 查看前置", x + 196, y + 8, 100, "#ffb84d");
       else text(trait.rarity + " · 最高 Lv." + trait.max, x + 294, y + 22, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
       ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = isSuper ? "#ffe4b8" : C.colors.muted; ctx.textAlign = "left";
       U.wrapText(ctx, trait.desc || trait.detail || "", x + 46, y + 42, 244, 11);
       if (isSuper) {
         ctx.font = "8px Segoe UI, Microsoft YaHei"; ctx.fillStyle = "#ffd9a0"; ctx.textAlign = "left";
-        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + 46, y + 60, 170, 9);
-        text("查看前置 ›", x + 294, y + 62, "bold 8px Segoe UI, Microsoft YaHei", "#ffb84d", "right");
+        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + 46, y + 60, 244, 9);
       }
     });
     if (!traits.length) text("该技能暂无专属词条。", C.width / 2, 336, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");

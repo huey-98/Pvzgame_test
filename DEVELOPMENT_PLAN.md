@@ -411,7 +411,7 @@
 - **池规则**：`Game.isSuperTraitReady(trait)` 要求未拥有、技能已解锁、3 条前置词条均至少 1 级。`Game.rollTraits` 先按 20% 概率抽 1 张超级卡，再从普通池补足另外 2 张；普通池排除所有 `super` 条目，因此一轮最多 1 张且三张不重复，12 条拿完后自然回落。已拥有由 `max: 1` 的满级过滤挡掉，`Game.chooseTrait` 无需特判。
 - **效果**：12 条机制全部接入现有生成 / 命中 / 结算路径，新伤害继续走 `Game.damageEnemy` 并快照 `element`、`damageSource`、`progressSkillId`；新减速 / 麻痹走公开状态入口；护甲、状态免疫、状态缩放与狂暴规则保持不变。二次产物（弹射弹、分裂弹、子弹药、小火场、追踪弹）不触发本效果。
 - **新增实体与字段**：敌人新增 `scorchStacks` / `scorchTimer` / `napalmMark`；`S.iceFields` 保存冰川领域冰面；小旋风挂在对应龙卷风的 `whirls` 上，随主龙卷销毁；追踪弹复用 `S.skillProjectiles` 的 `swarmMissile` 类型；集束子弹药复用 `S.bombDrops` 并以 `cluster: true` 阻止再次分裂。
-- **界面**：Canvas 升级卡按普通 / 稀有 / 超级三档分色，超级卡使用金橙 `#ffb84d`、显示「超级 · Lv.1 / 1」与前置小字；技能图鉴详情在词条末尾显示超级徽标、前置行与一次性说明。React 兼容层的 `upgradeCards` 快照补充 `super` / `requires`，升级浮层与技能图鉴同步展示。
+- **界面**：Canvas 升级卡按普通 / 稀有 / 超级三档分色，超级卡使用金橙 `#ffb84d`、显示「超级 · Lv.1 / 1」与前置小字；技能图鉴详情在词条末尾显示超级徽标、前置行与一次性说明。点击技能图鉴中的超级词条会打开前置详情弹层，按顺序列出 3 条前置的名称、效果与等级上限，弹层打开时拦截底层翻页和返回操作。React 兼容层的 `upgradeCards` 快照补充 `super` / `requires`，升级浮层与技能图鉴同步展示。
 - **验证**：`tmp/check-super-traits.js` 覆盖池规则、前置、单次获取、技能等级 +1、12 条机制冒烟、伤害来源快照与高级节点叠加；`npm --prefix frontend run build`、`check-react-ssr.mjs`、`check-skills.js`、`check-bomber.js`、`check-accounts.js` 与 JS 语法检查通过；`trace-draw.js` + `replay-draw.py` 回放核对超级升级卡、技能图鉴超级词条与混合战场。
 
 ## 8. 技术与内容里程碑

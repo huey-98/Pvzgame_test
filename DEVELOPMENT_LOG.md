@@ -610,3 +610,11 @@ git diff --check
 - 接入 Lv.4 分裂子弹、Lv.14 快速换弹、Lv.24 局内射速词条解锁、Lv.36 射击间隔 ×0.96、Lv.44 边缘弹射一次、Lv.52 子弹初始穿透 +1。节点由等级推导，不写入局内 `player.traits`。
 - 技能图鉴与 React 兼容层同步步枪成长一行、步枪资源与升级命令；React account / ui-store / actions 补了步枪缓存与升级接口。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`compileall server` 通过；`tmp/check_db.py` 178 项通过；`check-accounts.js`、`check-character.js`、`check-equipment.js`、`check-gems.js`、`check-wall.js`、`check-skills.js`、`check-rewards.js`、`check-attributes.js`、`check-bomber.js` 全部通过；`git diff --check` 通过。
+
+## 2026-11-03 · 技能图鉴超级词条前置详情
+
+- Canvas 技能图鉴的超级词条卡片改为可点击，右上角徽标显示「超级 · 查看前置」；点击后打开独立弹层，按顺序展示 3 条前置词条的名称、品质、等级上限、简要效果与详细说明。
+- 前置弹层打开时拦截下层卡片、翻页和返回操作，顶部关闭按钮与底部「关闭」按钮均可收起；切换技能或重置游戏时清空前置弹层状态。
+- `config.skillCodexUI.traitCards` / `requirementPanel` 集中保存词条卡片、前置弹层、前置行和关闭按钮几何；`state.js` 提供共享矩形，`render.js` 与 `input.js` 复用。
+- React 兼容层把超级词条卡片改为可访问按钮，并同步前置详情弹层、序号卡片、关闭遮罩和键盘焦点样式。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-skills.js` 全部通过；`node tmp/check-super-traits.js` 全部通过；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-super-card.png`、`tmp/skill-super-requirements.png`，核对卡片提示、3 条前置的完整显示和关闭按钮布局。
