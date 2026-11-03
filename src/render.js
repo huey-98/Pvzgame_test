@@ -3647,6 +3647,7 @@
     if (selected) {
       drawSkillGroupDetail(selected);
       if (S.skillCodexLevelPanel) drawSkillLevelPanel(selected);
+      else if (S.skillCodexRequirementTraitId) drawSkillRequirementPanel(selected);
       return;
     }
     text("选择技能查看介绍与专属词条 · 每局最多装备 " + C.maxSkillSlots + " 个", C.width / 2, 126, "11px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
@@ -3665,7 +3666,9 @@
   };
   function drawSkillGroupDetail(group) {
     var color = skillGroupColor(group), implemented = !group.status || group.status === "已实装";
-    var isCore = (C.skillProgress.order || []).indexOf(group.id) >= 0, progress = isCore && Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+    var isCore = (C.skillProgress.order || []).indexOf(group.id) >= 0;
+    var progress = isCore && Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+    if (group.id === "rifle" && Game.rifleProgress) progress = Game.rifleProgress.getView();
     var accountState = Game.accounts.state, ready = Game.accounts.getStatus() === "ready", resources = Game.accounts.getResources();
     panel(24, 130, 312, 112, "rgba(17, 47, 62, .94)", "rgba(153,205,218,.28)", 16);
     if (group.id === "rifle" || (C.skillProgress.order || []).indexOf(group.id) >= 0) drawSkillGlyph(group.id, 52, 182, 34, color);
@@ -3687,13 +3690,13 @@
       var nextNode = null;
       for (var nodeIndex = 0; nodeIndex < progress.milestones.length; nodeIndex++) if (!progress.milestones[nodeIndex].unlocked) { nextNode = progress.milestones[nodeIndex]; break; }
       panel(progressUI.panel.x, progressUI.panel.y, progressUI.panel.w, progressUI.panel.h, "rgba(28, 39, 68, .94)", "rgba(201, 161, 255, .32)", 12);
-      text("账户强化 · Lv." + progress.level + " / " + progress.maxLevel, 38, progressUI.levelY, "bold 12px Segoe UI, Microsoft YaHei", color);
-      text("暴击 +" + (progress.critBonus * 100).toFixed(1) + "% · 伤害 +" + Math.round(progress.damageBonus * 100) + "% · 冷却 −" + Math.round(progress.cooldownReduction * 100) + "%", 38, progressUI.bonusY, "9px Segoe UI, Microsoft YaHei", C.colors.text);
+      text("步枪成长 · Lv." + progress.level + " / ∞", 38, progressUI.levelY, "bold 12px Segoe UI, Microsoft YaHei", color);
+      text("伤害 +5 / 级 · 6 个步枪成长节点", 38, progressUI.bonusY, "9px Segoe UI, Microsoft YaHei", C.colors.text);
       text(accountState.skillError || (nextNode ? "下一节点 Lv." + nextNode.level + " · " + nextNode.name : "全部高级节点已解锁"), 38, progressUI.nodeY, "bold 9px Segoe UI, Microsoft YaHei", accountState.skillError ? C.colors.red : C.colors.cyan);
-      text(maxed ? "已达到最高等级" : "金币 " + (cost.coin || 0) + " · 图纸 " + blueprint + "/" + (cost[progress.blueprintId] || 0), 38, progressUI.costY, "9px Segoe UI, Microsoft YaHei", maxed ? C.colors.green : C.colors.muted);
-      var busy = accountState.skillBusy && accountState.skillBusyId === progress.skillId, enabled = ready && !busy && !maxed && affordable;
+      text("金币 " + (cost.coin || 0) + " · 图纸 " + blueprint + "/" + (cost[progress.blueprintId] || 0), 38, progressUI.costY, "9px Segoe UI, Microsoft YaHei", C.colors.muted);
+      var busy = accountState.rifleBusy, enabled = ready && !busy && affordable;
       U.roundedRect(ctx, action.x, action.y, action.w, action.h, 8, enabled ? color : "rgba(38, 56, 66, .90)", enabled ? "rgba(255,255,255,.24)" : "rgba(153,205,218,.16)");
-      text(busy ? "强化中" : maxed ? "已满级" : !ready ? "未登录" : !affordable ? "材料不足" : "强化", action.x + action.w / 2, action.y + 18, "bold 9px Segoe UI, Microsoft YaHei", enabled ? "#071217" : C.colors.muted, "center");
+      text(busy ? "强化中" : !ready ? "未登录" : !affordable ? "材料不足" : "强化", action.x + action.w / 2, action.y + 18, "bold 9px Segoe UI, Microsoft YaHei", enabled ? "#071217" : C.colors.muted, "center");
       var nodesAction = Game.getSkillCodexNodesActionRect();
       U.roundedRect(ctx, nodesAction.x, nodesAction.y, nodesAction.w, nodesAction.h, 8, "rgba(24, 58, 75, .96)", "rgba(104, 216, 255, .48)");
       text("等级节点", nodesAction.x + nodesAction.w / 2, nodesAction.y + 16, "bold 9px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
@@ -3702,7 +3705,8 @@
     S.codexPage = page;
     text("专属词条", 40, progress ? 358 : 268, "bold 13px Segoe UI, Microsoft YaHei", C.colors.yellow);
     traits.slice(page * perPage, page * perPage + perPage).forEach(function (trait, index) {
-      var x = 26, y = (progress ? 372 : 282) + index * 76, isSuper = trait.super || trait.rarity === "超级", rare = trait.rarity === "稀有" || trait.rarity === "史诗";
+      var cardRect = Game.getSkillCodexTraitCardRect(index, !!progress), x = cardRect.x, y = cardRect.y;
+      var isSuper = trait.super || trait.rarity === "超级", rare = trait.rarity === "稀有" || trait.rarity === "史诗";
       var accent = isSuper ? "#ffb84d" : rare ? C.colors.purple : C.colors.cyan;
       panel(x, y, 308, 68, isSuper ? "#4a3317" : rare ? "#263352" : "#163b4d", isSuper ? "rgba(255,184,77,.7)" : rare ? "rgba(201,161,255,.34)" : "rgba(104,216,255,.24)", 12);
       drawSkillGlyph(group.id, x + 24, y + 32, 18, accent);
@@ -3713,7 +3717,8 @@
       U.wrapText(ctx, trait.desc || trait.detail || "", x + 46, y + 42, 244, 11);
       if (isSuper) {
         ctx.font = "8px Segoe UI, Microsoft YaHei"; ctx.fillStyle = "#ffd9a0"; ctx.textAlign = "left";
-        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + 46, y + 60, 244, 9);
+        U.wrapText(ctx, "前置：" + traitRequirementNames(trait), x + 46, y + 60, 170, 9);
+        text("查看前置 ›", x + 294, y + 62, "bold 8px Segoe UI, Microsoft YaHei", "#ffb84d", "right");
       }
     });
     if (!traits.length) text("该技能暂无专属词条。", C.width / 2, 336, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
@@ -3722,6 +3727,7 @@
   }
   function drawSkillLevelPanel(group) {
     var ui = C.skillCodexUI.levelPanel, progress = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+    if (group.id === "rifle" && Game.rifleProgress) progress = Game.rifleProgress.getView();
     if (!progress) return;
     var color = skillGroupColor(group), unlocked = progress.milestones.filter(function (node) { return node.unlocked; }).length;
     var stats = [
@@ -3759,6 +3765,39 @@
     });
     U.roundedRect(ctx, ui.footer.x, ui.footer.y, ui.footer.w, ui.footer.h, 10, "rgba(24, 58, 75, .96)", "rgba(104, 216, 255, .48)");
     text("关闭", ui.footer.x + ui.footer.w / 2, ui.footer.y + 22, "bold 12px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
+  }
+  function drawSkillRequirementPanel(group) {
+    var ui = C.skillCodexUI.requirementPanel, superTrait = null, requirements = [];
+    (group.traits || []).forEach(function (trait) {
+      if (trait.id === S.skillCodexRequirementTraitId) superTrait = trait;
+    });
+    if (!superTrait) return;
+    (superTrait.requires || []).forEach(function (id) {
+      var found = (C.skillTraits || []).filter(function (trait) { return trait.id === id; })[0];
+      if (found) requirements.push(found);
+    });
+    Game.overlay();
+    panel(ui.panel.x, ui.panel.y, ui.panel.w, ui.panel.h, "rgba(7, 24, 34, .995)", "rgba(255, 184, 77, .46)", 20);
+    text("超级词条前置", C.width / 2, ui.titleY, "bold 21px Segoe UI, Microsoft YaHei", "#ffb84d", "center");
+    text("需同时拥有以下词条（各至少 1 级）", C.width / 2, ui.subtitleY, "10px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
+    U.roundedRect(ctx, ui.close.x, ui.close.y, ui.close.w, ui.close.h, 8, "rgba(9, 26, 36, .9)", "rgba(255, 184, 77, .34)");
+    text("×", ui.close.x + ui.close.w / 2, ui.close.y + 18, "bold 15px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    drawSkillGlyph(group.id, 42, 174, 20, "#ffb84d");
+    text(superTrait.name, 60, 180, "bold 14px Segoe UI, Microsoft YaHei", C.colors.text);
+    text("超级 · 一次性", 330, 180, "bold 9px Segoe UI, Microsoft YaHei", "#ffb84d", "right");
+    requirements.forEach(function (trait, index) {
+      var rect = Game.getSkillCodexRequirementRowRect(index), rare = trait.rarity === "稀有" || trait.rarity === "史诗";
+      U.roundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 10, rare ? "#263352" : "#163b4d", rare ? "rgba(201, 161, 255, .34)" : "rgba(104, 216, 255, .24)");
+      text(String(index + 1), rect.x + 18, rect.y + 20, "bold 12px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.cyan, "center");
+      text(trait.name, rect.x + 36, rect.y + 19, "bold 12px Segoe UI, Microsoft YaHei", C.colors.text);
+      text((trait.rarity || "普通") + " · 最高 Lv." + trait.max, rect.x + rect.w - 12, rect.y + 19, "bold 9px Segoe UI, Microsoft YaHei", rare ? C.colors.purple : C.colors.green, "right");
+      ctx.font = "10px Segoe UI, Microsoft YaHei"; ctx.fillStyle = C.colors.muted; ctx.textAlign = "left";
+      U.wrapText(ctx, trait.desc || "", rect.x + 14, rect.y + 41, rect.w - 28, 12);
+      ctx.font = "8px Segoe UI, Microsoft YaHei"; ctx.fillStyle = "rgba(204, 224, 233, .62)"; ctx.textAlign = "left";
+      U.wrapText(ctx, trait.detail || "", rect.x + 14, rect.y + 66, rect.w - 28, 9);
+    });
+    U.roundedRect(ctx, ui.footer.x, ui.footer.y, ui.footer.w, ui.footer.h, 10, "rgba(74, 51, 23, .96)", "rgba(255, 184, 77, .5)");
+    text("关闭", ui.footer.x + ui.footer.w / 2, ui.footer.y + 22, "bold 12px Segoe UI, Microsoft YaHei", "#ffd9a0", "center");
   }
   function traitRequirementNames(trait) {
     var names = [];

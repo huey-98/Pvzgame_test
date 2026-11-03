@@ -71,6 +71,7 @@ export const actions = {
   equipEquipment: function (itemId) { return track(Game().accounts.equipEquipment(itemId)); },
   upgradeWall: function (action) { return track(Game().upgradeWall(action)); },
   upgradeSkill: function (skillId) { return track(Game().upgradeSkill(skillId)); },
+  upgradeRifle: function () { return track(Game().accounts.upgradeRifle()); },
   socketGem: function (gemId, slotIndex) { return track(Game().accounts.socketGem(gemId, slotIndex)); },
   unsocketGem: function (gemId) { return track(Game().accounts.unsocketGem(gemId)); },
   toggleGemLock: function (gemId, locked) { return track(Game().accounts.toggleGemLock(gemId, locked)); },

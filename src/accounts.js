@@ -33,6 +33,10 @@
     skillBusyId: null,
     skillError: "",
     skillNotice: "",
+    rifle: null,
+    rifleBusy: false,
+    rifleError: "",
+    rifleNotice: "",
     error: "",
     busy: false,
     lastReportSaved: false,
@@ -114,6 +118,7 @@
     if (Game.wall) Game.wall.clear();
     if (Game.gems) Game.gems.clear();
     if (Game.skillProgress) Game.skillProgress.clear();
+    if (Game.rifleProgress) Game.rifleProgress.clear();
   }
 
   function applyMe(data) {
@@ -126,12 +131,14 @@
     state.wall = data.wall || null;
     state.gems = data.gems || [];
     state.skills = data.skills || {};
+    state.rifle = data.rifle || null;
     state.status = state.account ? "ready" : "guest";
     state.error = "";
     if (Game.equipment) { Game.equipment.applyAccount(state.equipment); Game.equipment.applyBag(state.equipmentBag); }
     if (Game.wall) Game.wall.applyAccount(state.wall);
     if (Game.gems) Game.gems.applyAccount(state.gems);
     if (Game.skillProgress) Game.skillProgress.applyAccount(state.skills);
+    if (Game.rifleProgress) Game.rifleProgress.applyAccount(state.rifle);
   }
 
   function applyResources(values) {
@@ -291,8 +298,10 @@
         state.equipment = result.data.equipment || state.equipment;
         state.equipmentBag = result.data.equipmentBag || [];
         state.gems = result.data.gems || [];
+        state.rifle = result.data.rifle || state.rifle;
         if (Game.equipment) { Game.equipment.applyAccount(state.equipment); Game.equipment.applyBag(state.equipmentBag); }
         if (Game.gems) Game.gems.applyAccount(state.gems);
+        if (Game.rifleProgress) Game.rifleProgress.applyAccount(state.rifle);
         return { ok: true, tier: result.data.tier, rewards: result.data.rewards };
       }
       if (result.status === 401) {
@@ -439,6 +448,36 @@
       state.skillBusyId = null;
       state.skillError = "未连接数据库";
       return { ok: false, error: state.skillError };
+    });
+  }
+
+  function upgradeRifle() {
+    if (state.status !== "ready") return Promise.resolve({ ok: false, error: "登录后才能强化步枪" });
+    if (state.rifleBusy) return Promise.resolve({ ok: false, error: "正在强化步枪" });
+    state.rifleBusy = true;
+    state.rifleError = "";
+    state.rifleNotice = "";
+    return request("/api/me/rifle/upgrade", { method: "POST" }).then(function (result) {
+      state.rifleBusy = false;
+      if (result.status === 200 && result.data && result.data.rifle) {
+        state.rifle = result.data.rifle;
+        applyResources(result.data.resources || {});
+        state.rifleNotice = "步枪强化成功 · Lv." + (result.data.level || 0);
+        if (Game.rifleProgress) Game.rifleProgress.applyAccount(state.rifle);
+        return { ok: true, level: result.data.level };
+      }
+      if (result.status === 401) {
+        state.status = "guest";
+        forgetAccount();
+        state.rifleError = "登录已过期";
+        return { ok: false, error: state.rifleError, status: 401 };
+      }
+      state.rifleError = errorMessage(result, result.networkError ? "未连接数据库" : "步枪强化失败");
+      return { ok: false, error: state.rifleError, status: result.status };
+    }, function () {
+      state.rifleBusy = false;
+      state.rifleError = "未连接数据库";
+      return { ok: false, error: state.rifleError };
     });
   }
 
@@ -610,6 +649,8 @@
     getEquipmentBag: function () { return state.equipmentBag; },
     upgradeWall: upgradeWall,
     upgradeSkill: upgradeSkill,
+    upgradeRifle: upgradeRifle,
+    getRifle: function () { return state.rifle; },
     getSkills: function () { return state.skills; },
     getWall: function () { return state.wall; },
     socketGem: socketGem,

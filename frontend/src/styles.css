@@ -115,6 +115,10 @@ button { color: inherit; }
 .trait-card.super { border-color: rgba(255, 184, 77, .72); background: rgba(74, 51, 23, .92); box-shadow: 0 0 14px rgba(255, 184, 77, .22); }
 .trait-card.super small { color: #ffb84d; }
 .trait-card .trait-requirement { color: #ffd9a0; }
+.trait-card-button { display: block; width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.trait-card-button:hover { border-color: rgba(255, 184, 77, .95); filter: brightness(1.08); }
+.trait-card-button:focus-visible { outline: 2px solid #ffb84d; outline-offset: 2px; }
+.trait-requirement-action { margin-left: 8px; color: #ffb84d; font-weight: 800; white-space: nowrap; }
 .trait-card div { display: flex; justify-content: space-between; gap: 8px; }
 .trait-card b { font-size: 11px; }
 .trait-card small { color: #63e6a0; font-size: 8px; }
@@ -151,6 +155,25 @@ button { color: inherit; }
 .skill-level-node.unlocked strong { color: #f4f8fb; }
 .skill-level-node p { margin: 3px 0 0; color: rgba(204, 224, 233, .4); font-size: 8px; line-height: 1.45; }
 .skill-level-node.unlocked p { color: rgba(204, 224, 233, .7); }
+.skill-requirement-backdrop { padding: 12px; }
+.skill-requirement-modal { position: relative; display: flex; max-width: 330px; max-height: 94%; flex-direction: column; gap: 12px; overflow: hidden; padding: 16px; }
+.skill-requirement-heading { display: flex; align-items: center; gap: 12px; padding-right: 28px; }
+.skill-requirement-heading > span { flex: 0 0 auto; color: #ffb84d; font-size: 30px; line-height: 1; }
+.skill-requirement-heading small { color: #ffb84d; font-size: 9px; font-weight: 800; }
+.skill-requirement-heading h2 { margin: 2px 0 0; color: #ffd166; font-size: 21px; text-align: left; }
+.skill-requirement-heading p { margin: 3px 0 0; color: rgba(204, 224, 233, .62); font-size: 10px; }
+.skill-requirement-heading, .skill-requirement-modal > .ui-button { flex: 0 0 auto; }
+.skill-requirement-list { display: grid; flex: 1 1 auto; min-height: 0; gap: 7px; overflow-y: auto; padding-right: 2px; scrollbar-width: thin; scrollbar-color: rgba(255, 184, 77, .34) transparent; }
+.skill-requirement-item { padding: 9px 10px; border: 1px solid rgba(104, 216, 255, .2); border-radius: 9px; background: rgba(17, 47, 62, .78); }
+.skill-requirement-item.rare { border-color: rgba(201, 161, 255, .34); background: rgba(40, 31, 61, .82); }
+.skill-requirement-item > div { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 6px; }
+.skill-requirement-item > div > span { color: #68d8ff; font-size: 14px; text-align: center; }
+.skill-requirement-item.rare > div > span { color: #c9a1ff; }
+.skill-requirement-item b { font-size: 11px; }
+.skill-requirement-item small { color: #63e6a0; font-size: 8px; }
+.skill-requirement-item.rare small { color: #c9a1ff; }
+.skill-requirement-item p { margin: 5px 0 0; color: rgba(204, 224, 233, .62); font-size: 9px; line-height: 1.5; }
+.skill-requirement-item p + p { margin-top: 3px; color: rgba(204, 224, 233, .46); }
 .auth-form { display: grid; gap: 11px; max-width: 300px; margin: 30px auto 0; }
 .auth-form label { display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 8px; }
 .auth-form label span { color: #68d8ff; font-size: 11px; font-weight: 800; }

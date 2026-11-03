@@ -6,7 +6,7 @@
     var node = typeof document !== "undefined" ? document.getElementById("start-hint") : null;
     if (node && node.style) node.style.display = display;
   }
-  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, skillCodexRequirementTraitId: null, rifleProgressMilestonePanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
   Game.reset = function () {
     var s = Game.state;
     var level = C.levels.find(function (item) { return item.id === s.selectedLevel; });
@@ -21,11 +21,19 @@
       skills[id].burstAngle = -Math.PI / 2;
       skills[id].progressSkillId = id;
     });
-    s.player = { x: C.width / 2, y: C.height - 58, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 28, fireInterval: .52, fireTimer: .05, magazineSize: C.magazineCapacity, ammo: C.magazineCapacity, reloadDuration: C.reloadDuration, reloadTimer: 0, rifleEnabled: true, burst: 0, burstShotsRemaining: 0, burstTimer: 0, burstAngle: -Math.PI / 2, spread: 0, pierce: 0, bulletRadius: 4, crit: C.attributes.base.critRate, critDamage: C.attributes.base.critDamage, burn: 0, freeze: 0, bulletType: "normal", skills: skills, skillOrder: [], accountSkills: Game.skillProgress ? Game.skillProgress.getCombatSnapshot() : {}, level: 1, xp: 0, nextXp: C.xpBase, traits: {} };
+    s.player = { x: C.width / 2, y: C.height - 58, aimAngle: -Math.PI / 2, manualAimTimer: 0, maxHp: 100, hp: 100, damage: 28, fireInterval: .52, fireTimer: .05, magazineSize: C.magazineCapacity, ammo: C.magazineCapacity, reloadDuration: C.reloadDuration, reloadTimer: 0, rifleEnabled: true, burst: 0, burstShotsRemaining: 0, burstTimer: 0, burstAngle: -Math.PI / 2, spread: 0, pierce: 0, bulletRadius: 4, crit: C.attributes.base.critRate, critDamage: C.attributes.base.critDamage, burn: 0, freeze: 0, bulletType: "normal", skills: skills, skillOrder: [], accountSkills: Game.skillProgress ? Game.skillProgress.getCombatSnapshot() : {}, accountRifle: Game.rifleProgress ? Game.rifleProgress.getCombatSnapshot() : { level: 1, damage: 28, fireRateScale: 1, reloadScale: 1, bonusPierce: 0, milestones: {} }, level: 1, xp: 0, nextXp: C.xpBase, traits: {} };
+    if (s.player && s.player.accountRifle) {
+      s.player.damage = s.player.accountRifle.damage;
+      s.player.fireInterval = .52 * (s.player.accountRifle.fireRateScale || 1);
+      s.player.reloadDuration = C.reloadDuration * (s.player.accountRifle.reloadScale || 1);
+      s.player.pierce = s.player.accountRifle.bonusPierce || 0;
+      s.player.rifleLevel = s.player.accountRifle.level;
+      s.player.milestones = s.player.accountRifle.milestones;
+    }
     s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.iceFields = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null;
     s.characterPart = "arm"; s.characterTab = "gem"; s.characterGemPage = 0; s.characterGems = null;
     s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0; s.characterResourcePage = 0; s.skillProgressPage = 0;
-    s.accountResourcePage = 0; s.skillCodexLevelPanel = false;
+    s.accountResourcePage = 0; s.skillCodexLevelPanel = false; s.skillCodexRequirementTraitId = null; s.rifleProgressMilestonePanel = false;
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
     s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
@@ -45,7 +53,7 @@
   };
   Game.closeLevelPreview = function () { Game.state.levelPreview = null; };
   Game.openZombieCodex = function () { Game.state.zombieCodexCategory = "minion"; Game.state.selectedZombieCodexId = null; Game.state.codexPage = 0; Game.state.screen = "zombieCodex"; };
-  Game.openSkillCodex = function () { Game.state.selectedSkillCodexId = null; Game.state.codexPage = 0; Game.state.skillCodexLevelPanel = false; Game.state.screen = "skillCodex"; };
+  Game.openSkillCodex = function () { Game.state.selectedSkillCodexId = null; Game.state.codexPage = 0; Game.state.skillCodexLevelPanel = false; Game.state.skillCodexRequirementTraitId = null; Game.state.screen = "skillCodex"; };
   Game.openAttributes = function () {
     Game.state.characterGems = null;
     Game.state.characterGemDetail = null;
@@ -212,6 +220,15 @@
     s.selectedLevel = 1;
     Game.reset();
     if (s.player && Game.skillProgress) s.player.accountSkills = Game.skillProgress.getCombatSnapshot(true);
+    if (s.player && Game.rifleProgress) {
+      s.player.accountRifle = Game.rifleProgress.getCombatSnapshot(true);
+      s.player.damage = s.player.accountRifle.damage;
+      s.player.fireInterval = .52 * (s.player.accountRifle.fireRateScale || 1);
+      s.player.reloadDuration = C.reloadDuration * (s.player.accountRifle.reloadScale || 1);
+      s.player.pierce = s.player.accountRifle.bonusPierce || 0;
+      s.player.rifleLevel = s.player.accountRifle.level;
+      s.player.milestones = s.player.accountRifle.milestones;
+    }
     s.testArena = { enemyIds: enemyIds, enemyIndex: 0, skillIndex: 0, traitIndex: 0, controlsVisible: true };
     s.session.testArena = true;
     s.session.level = 0;
@@ -478,6 +495,16 @@
   Game.getSkillCodexPagerRect = function (key) { return C.skillCodexUI.pager[key === "next" ? "next" : "prev"]; };
   Game.getSkillCodexProgressActionRect = function () { return C.skillCodexUI.progress.action; };
   Game.getSkillCodexNodesActionRect = function () { return C.skillCodexUI.progress.nodesAction; };
+  Game.getSkillCodexTraitCardRect = function (index, hasProgress) {
+    var geo = C.skillCodexUI.traitCards, startY = hasProgress ? geo.withProgressY : geo.withoutProgressY;
+    return { x: geo.x, y: startY + index * (geo.height + geo.gap), w: geo.width, h: geo.height };
+  };
+  Game.getSkillCodexRequirementCloseRect = function () { return C.skillCodexUI.requirementPanel.close; };
+  Game.getSkillCodexRequirementFooterRect = function () { return C.skillCodexUI.requirementPanel.footer; };
+  Game.getSkillCodexRequirementRowRect = function (index) {
+    var geo = C.skillCodexUI.requirementPanel.list;
+    return { x: geo.x, y: geo.y + index * (geo.height + geo.gap), w: geo.w, h: geo.height };
+  };
   Game.getSkillCodexLevelCloseRect = function () { return C.skillCodexUI.levelPanel.close; };
   Game.getSkillCodexLevelFooterRect = function () { return C.skillCodexUI.levelPanel.footer; };
   Game.getSkillCodexLevelStatRect = function (index) {

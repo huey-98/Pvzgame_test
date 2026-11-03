@@ -29,6 +29,11 @@
     if (!S.selectedSkillCodexId) return null;
     return Game.getSkillGroups().find(function (group) { return group.id === S.selectedSkillCodexId; });
   }
+  function skillCodexHasProgress(group) {
+    if (!group) return false;
+    if (group.id === "rifle") return !!Game.rifleProgress;
+    return (C.skillProgress.order || []).indexOf(group.id) >= 0 && !!Game.skillProgress;
+  }
   function getCodexPageCount(screen) {
     if (screen === "zombieCodex") {
       var count = Game.getCodexEnemyIds(S.zombieCodexCategory).length;
@@ -36,8 +41,7 @@
     }
     var group = getSkillCodexGroup();
     if (group) {
-      var core = (C.skillProgress.order || []).indexOf(group.id) >= 0;
-      return Math.max(1, Math.ceil(group.traits.length / (core ? 2 : 3)));
+      return Math.max(1, Math.ceil(group.traits.length / (skillCodexHasProgress(group) ? 2 : 3)));
     }
     return Math.max(1, Math.ceil(Game.getSkillGroups().length / C.skillCodexUI.cards.perPage));
   }
@@ -55,14 +59,30 @@
           if (pointInRect(point, Game.getSkillCodexLevelCloseRect()) || pointInRect(point, Game.getSkillCodexLevelFooterRect())) S.skillCodexLevelPanel = false;
           return;
         }
-        if ((C.skillProgress.order || []).indexOf(group.id) >= 0 && pointInRect(point, Game.getSkillCodexProgressActionRect())) {
-          var view = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
-          var resources = Game.accounts.getResources(), cost = view && view.nextCost, affordable = !view || !cost || ((resources.coin || 0) >= (cost.coin || 0) && (resources[view.blueprintId] || 0) >= (cost[view.blueprintId] || 0));
-          if (Game.accounts.getStatus() === "ready" && !Game.accounts.state.skillBusy && view && view.level < view.maxLevel && affordable) Game.upgradeSkill(group.id);
+        if (S.skillCodexRequirementTraitId) {
+          if (pointInRect(point, Game.getSkillCodexRequirementCloseRect()) || pointInRect(point, Game.getSkillCodexRequirementFooterRect())) S.skillCodexRequirementTraitId = null;
           return;
         }
-        if ((C.skillProgress.order || []).indexOf(group.id) >= 0 && pointInRect(point, Game.getSkillCodexNodesActionRect())) {
+        if (skillCodexHasProgress(group) && pointInRect(point, Game.getSkillCodexProgressActionRect())) {
+          var view = Game.skillProgress ? Game.skillProgress.getView(group.id) : null;
+          var resources = Game.accounts.getResources(), cost = view && view.nextCost, affordable = !view || !cost || ((resources.coin || 0) >= (cost.coin || 0) && (resources[view.blueprintId] || 0) >= (cost[view.blueprintId] || 0));
+          if (Game.accounts.getStatus() === "ready" && !Game.accounts.state.rifleBusy && view && affordable) Game.accounts.upgradeRifle();
+          return;
+        }
+        if (skillCodexHasProgress(group) && pointInRect(point, Game.getSkillCodexNodesActionRect())) {
+          S.skillCodexRequirementTraitId = null;
           S.skillCodexLevelPanel = true;
+          return;
+        }
+        var hasProgress = skillCodexHasProgress(group), perPage = hasProgress ? 2 : 3;
+        var page = Math.max(0, Math.min(S.codexPage || 0, getCodexPageCount(screen) - 1));
+        for (var traitIndex = 0; traitIndex < perPage; traitIndex++) {
+          var trait = (group.traits || [])[page * perPage + traitIndex];
+          if (!trait || !pointInRect(point, Game.getSkillCodexTraitCardRect(traitIndex, hasProgress))) continue;
+          if (trait.super || trait.rarity === "超级") {
+            S.skillCodexLevelPanel = false;
+            S.skillCodexRequirementTraitId = trait.id;
+          }
           return;
         }
         if (pointInRect(point, Game.getSkillCodexPagerRect("prev")) && getCodexPageCount(screen) > 1) {
@@ -73,14 +93,14 @@
           S.codexPage = Math.min(getCodexPageCount(screen) - 1, S.codexPage + 1);
           return;
         }
-        if (pointInRect(point, Game.getSkillCodexBackRect())) { S.selectedSkillCodexId = null; S.codexPage = 0; S.skillCodexLevelPanel = false; }
+        if (pointInRect(point, Game.getSkillCodexBackRect())) { S.selectedSkillCodexId = null; S.codexPage = 0; S.skillCodexLevelPanel = false; S.skillCodexRequirementTraitId = null; }
         return;
       }
       var skillIndex = Game.getSkillCodexCardIndex(point);
       if (skillIndex >= 0) {
         var skillList = Game.getSkillGroups(), skillPageNumber = S.codexPage || 0, skillPer = C.skillCodexUI.cards.perPage;
         var selectedSkill = skillList.slice(skillPageNumber * skillPer, skillPageNumber * skillPer + skillPer)[skillIndex];
-        if (selectedSkill) { S.selectedSkillCodexId = selectedSkill.id; S.codexPage = 0; S.skillCodexLevelPanel = false; }
+        if (selectedSkill) { S.selectedSkillCodexId = selectedSkill.id; S.codexPage = 0; S.skillCodexLevelPanel = false; S.skillCodexRequirementTraitId = null; }
         return;
       }
     }

@@ -48,12 +48,21 @@
         if (bullet.hitEnemies.indexOf(enemy) >= 0 || Math.pow(bullet.x - enemy.x, 2) + Math.pow(bullet.y - enemy.y, 2) >= radius * radius) continue;
         bullet.hitEnemies.push(enemy);
         Game.damageEnemy(enemy, bullet.damage, bullet);
+        Game.spawnRifleSubBullets(bullet);
         if (enemy.hp <= 0) Game.killEnemy(j);
         if (Game.blocksProjectile(enemy)) removed = true;
         else {
           bullet.pierce--;
           if (bullet.pierce < 0) removed = true;
         }
+      }
+      if (!bullet.bounced && Math.abs(bullet.vx) > 1 && (bullet.x <= 4 || bullet.x >= C.width - 4)) {
+        bullet.vx = -bullet.vx;
+        bullet.bounced = true;
+      }
+      if (!bullet.bounced && Math.abs(bullet.vy) > 1 && (bullet.y <= 4 || bullet.y >= C.height - 4)) {
+        bullet.vy = -bullet.vy;
+        bullet.bounced = true;
       }
       if (removed) S.bullets.splice(i, 1);
     }

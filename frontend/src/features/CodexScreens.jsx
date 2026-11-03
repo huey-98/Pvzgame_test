@@ -32,10 +32,14 @@ function mechanicLabels(enemy) {
 }
 
 function skillTraitRequirement(trait, config) {
+  return skillTraitRequirements(trait, config).map(function (item) { return item.name; }).join(" · ");
+}
+
+function skillTraitRequirements(trait, config) {
   return (trait.requires || []).map(function (id) {
     const found = (config.skillTraits || []).find(function (item) { return item.id === id; });
-    return found ? found.name : id;
-  }).join(" · ");
+    return found || { id: id, name: id, rarity: "", max: 1, desc: "", detail: "词条配置缺失" };
+  });
 }
 
 export function ZombieCodexScreen() {
@@ -92,17 +96,20 @@ export function ZombieCodexScreen() {
 export function SkillCodexScreen() {
   const [selectedId, setSelectedId] = useState(null);
   const [levelPanelOpen, setLevelPanelOpen] = useState(false);
+  const [requirementTraitId, setRequirementTraitId] = useState(null);
   const config = getConfig();
   const groups = useMemo(function () { return getGame().getSkillGroups(); }, []);
   const selected = selectedId ? groups.find(function (group) { return group.id === selectedId; }) : null;
-  const progress = selected && config.skillProgress.order.indexOf(selected.id) >= 0 && getGame().skillProgress ? getGame().skillProgress.getView(selected.id) : null;
+  const progress = selected && (selected.id === "rifle" && getGame().rifleProgress ? getGame().rifleProgress.getView() : config.skillProgress.order.indexOf(selected.id) >= 0 && getGame().skillProgress ? getGame().skillProgress.getView(selected.id) : null);
   const accountState = getGame().accounts.state;
   const unlockedCount = progress ? progress.milestones.filter(function (node) { return node.unlocked; }).length : 0;
+  const requirementTrait = selected && requirementTraitId ? selected.traits.find(function (trait) { return trait.id === requirementTraitId; }) : null;
+  const requirementTraits = requirementTrait ? skillTraitRequirements(requirementTrait, config) : [];
   return (
     <Screen title="技能图鉴" subtitle={"每局最多装备 " + config.maxSkillSlots + " 个核心技能"} badge="FIELD GUIDE · SKILLS" onBack={actions.backToMenu}>
       {selected ? (
         <div className="codex-detail">
-          <Button variant="ghost" className="detail-back" onClick={function () { setLevelPanelOpen(false); setSelectedId(null); }}>‹ 返回列表</Button>
+          <Button variant="ghost" className="detail-back" onClick={function () { setLevelPanelOpen(false); setRequirementTraitId(null); setSelectedId(null); }}>‹ 返回列表</Button>
           <div className="skill-hero">
             <span style={{ color: selected.color || "#68d8ff" }}>{selected.icon}</span>
             <div><h2>{selected.name}</h2><p>{selected.status || "已实装"} · {selected.traits.length} 个词条{progress ? " · 账户 Lv." + progress.level + " / " + progress.maxLevel : ""}</p></div>
@@ -113,10 +120,10 @@ export function SkillCodexScreen() {
               <article className="trait-card rare">
                 <div><b>账户强化 Lv.{progress.level} / {progress.maxLevel}</b><small>暴击 +{formatPercent(progress.critBonus)} · 伤害 +{Math.round(progress.damageBonus * 100)}% · 冷却 −{Math.round(progress.cooldownReduction * 100)}%</small></div>
                 <p>{progress.milestones.filter(function (node) { return node.unlocked; }).map(function (node) { return node.name; }).join(" · ") || "尚未解锁高级节点"}</p>
-                <p>{progress.nextCost ? "金币 " + progress.nextCost.coin + " · 专属图纸 " + progress.nextCost[progress.blueprintId] : "已达到最高等级"}</p>
+                <p>{progress.nextCost ? "金币 " + progress.nextCost.coin + " · 图纸 " + progress.nextCost[progress.blueprintId] : "已达到最高等级"}</p>
                 <div className="skill-progress-actions">
-                  <Button variant="cyan" onClick={function () { setLevelPanelOpen(true); }}>等级节点</Button>
-                  <Button variant={progress.level >= progress.maxLevel ? "ghost" : "violet"} disabled={progress.level >= progress.maxLevel || accountState.skillBusy || getGame().accounts.getStatus() !== "ready"} onClick={function () { actions.upgradeSkill(progress.skillId); }}>{progress.level >= progress.maxLevel ? "已满级" : accountState.skillBusyId === progress.skillId ? "强化中…" : "强化"}</Button>
+                  <Button variant="cyan" onClick={function () { setRequirementTraitId(null); setLevelPanelOpen(true); }}>等级节点</Button>
+                  <Button variant={progress.level >= progress.maxLevel ? "ghost" : "violet"} disabled={progress.level >= progress.maxLevel || accountState.rifleBusy || getGame().accounts.getStatus() !== "ready"} onClick={function () { if (selected.id === "rifle") return actions.upgradeRifle(); return actions.upgradeSkill(progress.skillId); }}>{progress.level >= progress.maxLevel ? "已满级" : accountState.rifleBusy ? "强化中…" : "强化"}</Button>
                 </div>
               </article>
             </div>
@@ -124,13 +131,17 @@ export function SkillCodexScreen() {
           <div className="trait-cards">
             {selected.traits.map(function (trait) {
               const isSuper = trait.super || trait.rarity === "超级";
-              return (
-                <article key={trait.id} className={"trait-card " + (isSuper ? "super" : trait.rarity === "稀有" || trait.rarity === "史诗" ? "rare" : "")}>
+              const className = "trait-card " + (isSuper ? "super trait-card-button" : trait.rarity === "稀有" || trait.rarity === "史诗" ? "rare" : "");
+              const content = (
+                <>
                   <div><b>{trait.name}</b><small>{isSuper ? "超级 · 一次性" : trait.rarity + " · 最多 " + trait.max + " 级"}</small></div>
                   <p>{trait.desc}</p>
-                  {isSuper ? <p className="trait-requirement">前置：{skillTraitRequirement(trait, config)}</p> : null}
-                </article>
+                  {isSuper ? <p className="trait-requirement">前置：{skillTraitRequirement(trait, config)}<span className="trait-requirement-action">查看前置 ›</span></p> : null}
+                </>
               );
+              return isSuper ? (
+                <button type="button" key={trait.id} className={className} onClick={function () { setLevelPanelOpen(false); setRequirementTraitId(trait.id); }}>{content}</button>
+              ) : <article key={trait.id} className={className}>{content}</article>;
             })}
           </div>
           {levelPanelOpen && progress ? (
@@ -162,12 +173,35 @@ export function SkillCodexScreen() {
               </section>
             </div>
           ) : null}
+          {requirementTrait ? (
+            <div className="modal-backdrop skill-requirement-backdrop" onClick={function () { setRequirementTraitId(null); }}>
+              <section className="modal-card skill-requirement-modal" role="dialog" aria-modal="true" aria-labelledby="skill-requirement-title" onClick={function (event) { event.stopPropagation(); }}>
+                <button className="modal-close" aria-label="关闭前置词条" onClick={function () { setRequirementTraitId(null); }}>×</button>
+                <header className="skill-requirement-heading">
+                  <span>{requirementTrait.icon || "✷"}</span>
+                  <div><small>超级词条前置</small><h2 id="skill-requirement-title">{requirementTrait.name}</h2><p>需同时拥有以下词条，各至少 1 级</p></div>
+                </header>
+                <div className="skill-requirement-list">
+                  {requirementTraits.map(function (trait, index) {
+                    return (
+                      <article className={"skill-requirement-item " + (trait.rarity === "稀有" || trait.rarity === "史诗" ? "rare" : "")} key={trait.id}>
+                        <div><span>{index + 1}</span><b>{trait.name}</b><small>{trait.rarity} · 最高 Lv.{trait.max}</small></div>
+                        <p>{trait.desc}</p>
+                        <p>{trait.detail}</p>
+                      </article>
+                    );
+                  })}
+                </div>
+                <Button variant="ghost" className="wide" onClick={function () { setRequirementTraitId(null); }}>关闭</Button>
+              </section>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="skill-list">
           {groups.map(function (group) {
             return (
-              <button className="skill-row" key={group.id} onClick={function () { setLevelPanelOpen(false); setSelectedId(group.id); }}>
+              <button className="skill-row" key={group.id} onClick={function () { setLevelPanelOpen(false); setRequirementTraitId(null); setSelectedId(group.id); }}>
                 <span style={{ color: group.color || "#68d8ff" }}>{group.icon}</span>
                 <div><strong>{group.name}</strong><small>{group.traits.length} 个词条</small></div>
                 <em>{group.status || "已实装"}</em>

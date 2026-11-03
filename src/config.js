@@ -309,6 +309,14 @@
         action: { x: 236, y: 252, w: 84, h: 28 },
         nodesAction: { x: 232, y: 306, w: 90, h: 24 }
       },
+      traitCards: {
+        x: 26,
+        width: 308,
+        height: 68,
+        gap: 8,
+        withProgressY: 372,
+        withoutProgressY: 282
+      },
       levelPanel: {
         panel: { x: 14, y: 48, w: 332, h: 544 },
         close: { x: 296, y: 60, w: 32, h: 26 },
@@ -319,6 +327,14 @@
         sectionY: 252,
         list: { x: 26, y: 264, w: 308, rowHeight: 43, gap: 4 },
         footer: { x: 98, y: 547, w: 164, h: 34 }
+      },
+      requirementPanel: {
+        panel: { x: 18, y: 88, w: 324, h: 464 },
+        close: { x: 294, y: 100, w: 34, h: 26 },
+        titleY: 126,
+        subtitleY: 148,
+        list: { x: 30, y: 190, w: 300, height: 94, gap: 8 },
+        footer: { x: 98, y: 506, w: 164, h: 34 }
       },
       back: { x: 98, y: 561, w: 164, h: 36 }
     },
@@ -447,6 +463,7 @@
       { id: "blueprintPants", name: "裤子图纸", color: "#9ab0bc", description: "记录裤子装备结构的专用强化图纸。", usage: "强化裤子装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
       { id: "blueprintShoes", name: "鞋子图纸", color: "#c9a1ff", description: "记录鞋子装备结构的专用强化图纸。", usage: "强化鞋子装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
       { id: "blueprintGloves", name: "手套图纸", color: "#ff9b52", description: "记录手套装备结构的专用强化图纸。", usage: "强化手套装备时与金币一同消耗。", source: "关卡奖励随机掉落。" },
+      { id: "rifleBlueprint", name: "步枪图纸", color: "#9fe6ff", description: "记录步枪枪膛、弹头与击发结构的专属强化图纸。", usage: "强化步枪等级时与金币一同消耗。", source: "关卡奖励随机掉落。" },
       { id: "steel", name: "钢材", color: "#c8d6dd", description: "经过粗炼的防线钢板，是城墙普通强化的主要材料。", usage: "城墙升级时消耗 20 × 当前等级钢材。", source: "关卡奖励随机掉落。" },
       { id: "rareEarth", name: "稀土", color: "#f2c14e", description: "用于突破城墙等级瓶颈的稀有金属材料。", usage: "每 10 级城墙节点突破时消耗，需求逐次增加。", source: "关卡奖励随机掉落。" },
       { id: "skillBlueprintBombardment", name: "空投轰炸图纸", color: "#ffd166", description: "记录空投轰炸战术结构的专属技能图纸。", usage: "强化空投轰炸时与金币一同消耗。", source: "关卡奖励随机掉落。" },
@@ -486,6 +503,30 @@
         drone: "skillBlueprintDrone",
         chainLightning: "skillBlueprintChainLightning"
       }
+    },
+    rifleProgress: {
+      order: ["rifle"],
+      baseLevel: 1,
+      baseDamage: 28,
+      damagePerLevel: 5,
+      coinBase: 200,
+      coinPerLevel: 60,
+      blueprintPerLevel: 10,
+      blueprintId: "rifleBlueprint",
+      milestones: [4, 14, 24, 36, 44, 52],
+      reloadScale: 0.94,
+      fireRateScale: 0.96,
+      bonusPierce: 1,
+      subDamageScale: 0.45,
+      subSpread: 0.34
+    },
+    rifleProgressTraits: {
+      4: { name: "分裂子弹", detail: "步枪子弹命中后分裂 2 枚次级子弹。" },
+      14: { name: "快速换弹", detail: "换弹时间 ×0.94。" },
+      24: { name: "射速解锁", detail: "解锁局内射速词条。" },
+      36: { name: "火力同步", detail: "射击间隔额外 ×0.96。" },
+      44: { name: "子弹弹射", detail: "步枪子弹命中战场边缘后弹射一次。" },
+      52: { name: "战术穿透", detail: "步枪子弹初始穿透 +1。" }
     },
     skillProgressTraits: {
       bombardment: {

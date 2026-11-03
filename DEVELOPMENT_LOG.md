@@ -574,11 +574,11 @@ git diff --check
 
 - 数据库 `SCHEMA_VERSION` 升至 7，新增 `skill_progress(account_id, skill_id, level)`；`GET /api/me` 为 12 个核心技能幂等补齐 Lv.1，账户删除由外键级联清理。
 - 新增 `server/app/skills.py` 与 `POST /api/me/skills/upgrade`。服务端统一计算金币 `150 + 50 × (当前等级 - 1)` 和专属图纸 `10 × 当前等级`，在事务内校验并扣费；支持未知技能、满级和材料不足错误。
-- 资源从 11 项扩展到 23 项，新增 12 种技能图纸。关卡奖励只追加技能图纸：档 1 固定 2 张，档 2 随机 6–12 张，档 3 随机 10–16 张。
+- 资源从 11 项扩展到 24 项，新增 12 种技能图纸和 1 种步枪图纸。关卡奖励只追加技能图纸：档 1 固定 2 张，档 2 随机 6–12 张，档 3 随机 10–16 张。
 - 新增 `src/skills.js`（`Game.skillProgress`）与账户 `upgradeSkill`；技能账户等级改为开局快照到 `player.accountSkills`，测试场固定 Lv.1，局内 `player.skills[id].level` 与 HUD 等级语义保持不变。
 - 通用成长接入：每级暴击 +0.5%、对应技能伤害 +8%、冷却速率 ×0.985；暴击受 95% 上限，冷却只调整 `fireTimer` 推进。所有直伤、区域伤害、持续伤害与新增实体均标注技能来源。
 - 实现 12 个技能共 72 个 Lv.2/7/12/18/22/26 高级节点，覆盖温压二段爆炸、轰炸余爆、电磁电链与小冰弹、射线折返与双射线、旋风残风、冰雹叠层、燃油眩晕、气刃 90% 治疗压制、无人机僚机、跃迁电子无强化电链等机制。
-- Canvas 技能图鉴详情增加账户成长、下一节点、价格与强化按钮；角色页新增第三个「技能强化」入口并支持技能分页；账户和角色资源分页显示 23 项；结算页分隔装备图纸与技能图纸并重新压缩行距。React 兼容层同步快照、命令、图鉴和资源分页。
+- Canvas 技能图鉴详情增加账户成长、下一节点、价格与强化按钮；角色页新增第三个「技能强化」入口并支持技能分页；账户和角色资源分页显示 24 项；结算页分隔装备图纸与技能图纸并重新压缩行距。React 兼容层同步快照、命令、图鉴和资源分页。
 - 验证：`check_db.py` 177 项、`check_api.py` 188 项、`check-skills.js` 全部通过；`check-accounts.js` 176 项、`check-character.js` 262 项、`check-rewards.js` 65 项、`check-fuel.js` 全量通过。`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、JS/Python 语法检查、`git diff --check` 通过；`trace-draw.js` + `replay-draw.py` 已回放核对技能图鉴、技能强化页、账户资源第二页与结算分类。
 - 环境备注：本机 Python 缺少原生 `pbkdf2_hmac`/`_ssl` DLL，密码哈希回退到 OpenSSL CLI，API 服务需在沙箱外启动；Pillow 回放也需沙箱外执行。全量旧关卡与视觉脚本仍有历史断言失败，未归因于本次技能功能。
 
@@ -600,3 +600,13 @@ git diff --check
 - `config.skillCodexUI.levelPanel` 集中保存弹层、四项数值、节点列表和关闭按钮几何；`state.js` 暴露共享矩形函数，`render.js` 与 `input.js` 复用。
 - React 兼容层同步新增「等级节点」按钮、数值区和节点状态列表，并补充竖屏滚动样式。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-skills.js` 通过并新增节点按钮、四项数值、6 行节点与关闭按钮几何断言；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-level-button.png`、`tmp/skill-levels.png`，核对按钮位置、节点完整性和未解锁状态。
+
+## 2026-11-03 · 步枪图纸与等级
+
+- 新增 `server/app/rifle.py` 与 `rifle_progress(account_id, level)` 表；`SCHEMA_VERSION` 升至 8。新 / 旧账户在 `/api/me` 时幂等补齐 Lv.1，删除账户由外键级联清理。
+- 新增 `POST /api/me/rifle/upgrade`：服务端校验等级与材料，按金币 `200 + 60 × (当前等级 - 1)` 与步枪图纸 `10 × 当前等级` 扣费并升级。等级不设上限，`Lv.1` 不额外加成，之后每级加 5 点步枪最终伤害。
+- 新增 `rifleBlueprint` 资源，与六种部位图纸、12 种技能图纸分开；本局结算按档位追加步枪图纸，仍由服务端统一计算和落库。
+- 新增 `src/rifle.js` 作为步枪账户成长只读层，登录 / 刷新 / 401 / 离线时与 `accounts.js` 同步；战斗快照接入等级、伤害、射速、换弹、穿透、节点标记。测试场固定 Lv.1，正式关卡读取真实账户等级。
+- 接入 Lv.4 分裂子弹、Lv.14 快速换弹、Lv.24 局内射速词条解锁、Lv.36 射击间隔 ×0.96、Lv.44 边缘弹射一次、Lv.52 子弹初始穿透 +1。节点由等级推导，不写入局内 `player.traits`。
+- 技能图鉴与 React 兼容层同步步枪成长一行、步枪资源与升级命令；React account / ui-store / actions 补了步枪缓存与升级接口。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`compileall server` 通过；`tmp/check_db.py` 178 项通过；`check-accounts.js`、`check-character.js`、`check-equipment.js`、`check-gems.js`、`check-wall.js`、`check-skills.js`、`check-rewards.js`、`check-attributes.js`、`check-bomber.js` 全部通过；`git diff --check` 通过。

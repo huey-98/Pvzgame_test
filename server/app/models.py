@@ -76,6 +76,13 @@ class SkillProgress(Base):
     level: Mapped[int] = mapped_column(Integer, default=1)
 
 
+class RifleProgress(Base):
+    __tablename__ = "rifle_progress"
+
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True)
+    level: Mapped[int] = mapped_column(Integer, default=1)
+
+
 class EquipmentItem(Base):
     __tablename__ = "equipment_bag"
 

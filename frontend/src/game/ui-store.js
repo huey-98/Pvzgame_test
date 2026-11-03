@@ -22,6 +22,7 @@ const emptySnapshot = {
   skillBusyId: null,
   skillError: "",
   skillNotice: "",
+  rifle: null,
   hud: null,
   upgradeCards: [],
   reward: null,
@@ -126,6 +127,7 @@ function capture() {
     equipmentBag: Game.equipment ? Game.equipment.getBag() : [],
     wall: Game.wall ? Game.wall.getView() : null,
     skills: Game.skillProgress ? Game.skillProgress.getAll() : [],
+    rifle: Game.rifleProgress ? Game.rifleProgress.getView() : null,
     equipmentBusy: !!accountState.equipmentBusy,
     equipmentBusySlot: accountState.equipmentBusySlot || null,
     equipmentError: accountState.equipmentError || "",
@@ -142,9 +144,12 @@ function capture() {
     gemError: accountState.gemError || "",
     gemNotice: accountState.gemNotice || "",
     skillBusy: !!accountState.skillBusy,
+  rifleBusy: !!accountState.rifleBusy,
     skillBusyId: accountState.skillBusyId || null,
     skillError: accountState.skillError || "",
     skillNotice: accountState.skillNotice || "",
+  rifleError: accountState.rifleError || "",
+  rifleNotice: accountState.rifleNotice || "",
     hud: captureHud(Game),
     upgradeCards: (state.upgradeCards || []).map(function (card) {
       return {

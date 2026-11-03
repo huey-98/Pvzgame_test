@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from .. import config, equipment, gems, models, rewards, security, skills, times, wall
+from .. import config, equipment, gems, models, rewards, rifle, security, skills, times, wall
 from ..database import get_db
 from ..errors import ApiError
 from ..schemas import EquipmentEquip, EquipmentUpgrade, GemGrant, GemLock, GemSocket, GemSynthesis, GemSynthesizeAll, PasswordConfirm, ProgressReport, ResourceChange, RewardClaim, SkillUpgrade, WallUpgrade
@@ -33,6 +33,7 @@ def me(account: models.Account = Depends(security.current_account), db: Session 
     equipment_rows = equipment.ensure_rows(db, account.id)
     skill_rows = skills.ensure_rows(db, account.id)
     wall_row = wall.ensure_state(db, account.id)
+    rifle_row = rifle.ensure_row(db, account.id)
     return {
         "account": account_payload(account),
         "progress": progress_payload(_progress_rows(db, account.id)),
@@ -42,6 +43,7 @@ def me(account: models.Account = Depends(security.current_account), db: Session 
         "wall": wall_payload(wall_row),
         "gems": gems_payload(_gem_rows(db, account.id)),
         "skills": skills.payload(skill_rows),
+        "rifle": rifle.payload(rifle_row),
     }
 
 
@@ -155,6 +157,14 @@ def upgrade_skill(
     db: Session = Depends(get_db),
 ) -> dict:
     return skills.upgrade(db, account.id, payload.skillId)
+
+
+@router.post("/rifle/upgrade")
+def upgrade_rifle(
+    account: models.Account = Depends(security.current_account),
+    db: Session = Depends(get_db),
+) -> dict:
+    return rifle.upgrade(db, account.id)
 
 
 @router.post("/gems/socket")
