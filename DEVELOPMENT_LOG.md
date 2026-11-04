@@ -607,9 +607,17 @@ git diff --check
 - 新增 `POST /api/me/rifle/upgrade`：服务端校验等级与材料，按金币 `200 + 60 × (当前等级 - 1)` 与步枪图纸 `10 × 当前等级` 扣费并升级。等级不设上限，`Lv.1` 不额外加成，之后每级加 5 点步枪最终伤害。
 - 新增 `rifleBlueprint` 资源，与六种部位图纸、12 种技能图纸分开；本局结算按档位追加步枪图纸，仍由服务端统一计算和落库。
 - 新增 `src/rifle.js` 作为步枪账户成长只读层，登录 / 刷新 / 401 / 离线时与 `accounts.js` 同步；战斗快照接入等级、伤害、射速、换弹、穿透、节点标记。测试场固定 Lv.1，正式关卡读取真实账户等级。
-- 接入 Lv.4 分裂子弹、Lv.14 快速换弹、Lv.24 局内射速词条解锁、Lv.36 射击间隔 ×0.96、Lv.44 边缘弹射一次、Lv.52 子弹初始穿透 +1。节点由等级推导，不写入局内 `player.traits`。
+- 接入 Lv.4 分裂子弹词条解锁、Lv.14 快速换弹、Lv.24 局内射速词条解锁、Lv.36 射击间隔 ×0.96、Lv.44 子弹弹射词条解锁、Lv.52 子弹初始穿透 +1。Lv.4、Lv.24、Lv.44 只负责放行对应词条进入升级池，不直接发放效果；节点由等级推导，不写入局内 `player.traits`。
 - 技能图鉴与 React 兼容层同步步枪成长一行、步枪资源与升级命令；React account / ui-store / actions 补了步枪缓存与升级接口。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`compileall server` 通过；`tmp/check_db.py` 178 项通过；`check-accounts.js`、`check-character.js`、`check-equipment.js`、`check-gems.js`、`check-wall.js`、`check-skills.js`、`check-rewards.js`、`check-attributes.js`、`check-bomber.js` 全部通过；`git diff --check` 通过。
+
+## 2026-11-04 · 步枪节点与弹射门禁修正
+
+- 修正 Lv.4“分裂子弹”和 Lv.44“子弹弹射”的语义：等级只解锁词条，不直接赋予效果；局内到达对应等级后，词条才进入普通升级三选一池，抽到后才把 `player.rifleSplit` / `player.rifleRicochet` 置为启用。
+- 新增两个步枪专属词条 `rifleSplit` / `rifleRicochet`，`max: 1`，通过通用 `requiresRifleLevel` 条件控制升级池可见性；Lv.24 的“射速”也改为同一套 `requiresRifleLevel` 门禁，删除硬编码特判。
+- 修复步枪弹射无条件生效：`update.js` 的边缘反射现在同时要求 `bullet.bounce` 与 `!bullet.bounced`，未获得“子弹弹射”词条的任何子弹不会反射；分裂子弹只读取 `player.rifleSplit`，不再读取账户节点。
+- 更新 README、步枪开发计划与测试脚本中的节点描述，明确 Lv.4 / Lv.24 / Lv.44 都是“解锁词条，等待局内抽取”。
+- 验证：前端构建、React SSR、`compileall server`、`check_db.py` 与既有账户 / 角色 / 装备 / 宝石 / 城墙 / 技能 / 奖励检查通过；`git diff --check` 通过。
 
 ## 2026-11-03 · 技能图鉴超级词条前置详情
 

@@ -56,11 +56,11 @@
           if (bullet.pierce < 0) removed = true;
         }
       }
-      if (!bullet.bounced && Math.abs(bullet.vx) > 1 && (bullet.x <= 4 || bullet.x >= C.width - 4)) {
+      if (bullet.bounce && !bullet.bounced && Math.abs(bullet.vx) > 1 && (bullet.x <= 4 || bullet.x >= C.width - 4)) {
         bullet.vx = -bullet.vx;
         bullet.bounced = true;
       }
-      if (!bullet.bounced && Math.abs(bullet.vy) > 1 && (bullet.y <= 4 || bullet.y >= C.height - 4)) {
+      if (bullet.bounce && !bullet.bounced && Math.abs(bullet.vy) > 1 && (bullet.y <= 4 || bullet.y >= C.height - 4)) {
         bullet.vy = -bullet.vy;
         bullet.bounced = true;
       }

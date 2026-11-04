@@ -154,7 +154,7 @@
       skills[id].burstAngle = -Math.PI / 2;
       skills[id].progressSkillId = id;
     });
-    p.damage = 28; p.fireInterval = .52; p.burst = 0; p.spread = 0; p.pierce = 0; p.bulletRadius = 4; p.crit = C.attributes.base.critRate; p.critDamage = C.attributes.base.critDamage; p.burn = 0; p.freeze = 0; p.bulletType = "normal"; p.skills = skills; p.traits = {}; p.skillOrder = [];
+    p.damage = 28; p.fireInterval = .52; p.burst = 0; p.spread = 0; p.pierce = 0; p.bulletRadius = 4; p.crit = C.attributes.base.critRate; p.critDamage = C.attributes.base.critDamage; p.burn = 0; p.freeze = 0; p.bulletType = "normal"; p.rifleSplit = false; p.rifleRicochet = false; p.skills = skills; p.traits = {}; p.skillOrder = [];
     p.ammo = p.magazineSize; p.reloadTimer = 0; p.rifleEnabled = true; p.fireTimer = 0; p.burstShotsRemaining = 0; p.burstTimer = 0;
     if (p.accountRifle) {
       p.damage = p.accountRifle.damage;
@@ -323,8 +323,7 @@
     for (var lane = 0; lane < lanes; lane++) {
       var spreadOffset = lane - (lanes - 1) / 2, bulletAngle = shotAngle + spreadOffset * C.spreadAngle;
       var laneMuzzle = Game.getWeaponMuzzle(p, C.muzzleDistance, bulletAngle), critical = Math.random() < U.clamp(p.crit || 0, 0, 1);
-      var rifle = p.accountRifle || {};
-      S.bullets.push({ x: laneMuzzle.x, y: laneMuzzle.y, vx: Math.cos(bulletAngle) * 300, vy: Math.sin(bulletAngle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce, color: bulletColor, element: Game.getRifleElement(p), damageSource: "rifle", hitEnemies: [], splitCount: rifle.milestones && rifle.milestones[4] ? 2 : 0, lastSplit: false, bounce: rifle.milestones && rifle.milestones[44], bounced: false });
+      S.bullets.push({ x: laneMuzzle.x, y: laneMuzzle.y, vx: Math.cos(bulletAngle) * 300, vy: Math.sin(bulletAngle) * 300, damage: p.damage * (critical ? p.critDamage : 1), critical: critical, radius: p.bulletRadius, pierce: p.pierce, color: bulletColor, element: Game.getRifleElement(p), damageSource: "rifle", hitEnemies: [], splitCount: p.rifleSplit ? 2 : 0, lastSplit: false, bounce: !!p.rifleRicochet, bounced: false });
     }
     for (var i = 0; i < 3; i++) S.particles.push({ x: muzzle.x + U.rand(-3, 3), y: muzzle.y + U.rand(-3, 3), vx: U.rand(-20, 20), vy: U.rand(-65, -25), life: .18, maxLife: .18, color: bulletColor, size: U.rand(2, 4) });
     return lanes;
@@ -1895,7 +1894,7 @@
       if (trait.super) return false;
       if ((p.traits[trait.id] || 0) >= trait.max) return false;
       if (trait.unlocksSkill) return !slotsFull && !p.skills[trait.skillId].unlocked;
-      if (trait.id === "firerate" && !(p.accountRifle && p.accountRifle.milestones[24])) return false;
+      if (trait.requiresRifleLevel && !(p.accountRifle && p.accountRifle.milestones[trait.requiresRifleLevel])) return false;
       if (trait.skillId) return p.skills[trait.skillId].unlocked;
       return true;
     }).slice();

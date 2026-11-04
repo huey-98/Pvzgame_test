@@ -521,11 +521,11 @@
       subSpread: 0.34
     },
     rifleProgressTraits: {
-      4: { name: "分裂子弹", detail: "步枪子弹命中后分裂 2 枚次级子弹。" },
+      4: { name: "分裂子弹", detail: "解锁“分裂子弹”词条；达到 Lv.4 后才可能在局内三选一出现，不会直接获得效果。" },
       14: { name: "快速换弹", detail: "换弹时间 ×0.94。" },
       24: { name: "射速解锁", detail: "解锁局内射速词条。" },
       36: { name: "火力同步", detail: "射击间隔额外 ×0.96。" },
-      44: { name: "子弹弹射", detail: "步枪子弹命中战场边缘后弹射一次。" },
+      44: { name: "子弹弹射", detail: "解锁“子弹弹射”词条；达到 Lv.44 后才可能在局内三选一出现，不会直接获得效果。" },
       52: { name: "战术穿透", detail: "步枪子弹初始穿透 +1。" }
     },
     skillProgressTraits: {
@@ -775,14 +775,16 @@
     traits: [
       { id: "damage", name: "增伤", rarity: "普通", max: 5, icon: "✦", desc: "子弹伤害 +25%", detail: "每级使所有步枪子弹伤害提高 25%，最高 5 级。稳定提升清理普通敌人和攻击首领的效率。", apply: function (p) { p.damage *= 1.25; } },
       { id: "burst", name: "连发", rarity: "普通", max: 3, icon: "➤", desc: "每次沿同一弹道连续发射 1 枚子弹", detail: "每级令每次攻击沿同一条弹道追加 1 颗子弹，最高 3 级；额外子弹不改变方向，连发整轮只消耗 1 发弹药。", apply: function (p) { p.burst += 1; } },
-      { id: "firerate", name: "射速", rarity: "普通", max: 5, icon: "⚡", desc: "射击间隔 -15%", detail: "每级将步枪射击间隔缩短 15%，最高 5 级。提高持续输出频率，但弹匣耗尽时仍需完成换弹。", apply: function (p) { p.fireInterval *= .85; } },
+      { id: "firerate", name: "射速", requiresRifleLevel: 24, rarity: "普通", max: 5, icon: "⚡", desc: "射击间隔 -15%", detail: "每级将步枪射击间隔缩短 15%，最高 5 级。提高持续输出频率，但弹匣耗尽时仍需完成换弹。", apply: function (p) { p.fireInterval *= .85; } },
       { id: "spread", name: "齐射", rarity: "稀有", max: 3, icon: "✣", desc: "每级增加 1 条分角弹道", detail: "每级增加 1 条同时发射的分角弹道，最高 3 级；相邻弹道角度间隔为 0.12 弧度，形成扇形覆盖。齐射整轮只消耗 1 发弹药。", apply: function (p) { p.spread += 1; } },
       { id: "pierce", name: "穿透", rarity: "稀有", max: 4, icon: "↠", desc: "子弹额外穿透 1 个敌人", detail: "每级令子弹额外穿过 1 个敌人，最高 4 级。适合沿同一方向聚集的尸潮。", apply: function (p) { p.pierce += 1; } },
       { id: "caliber", name: "大口径", rarity: "稀有", max: 3, icon: "●", desc: "子弹更大，伤害 +15%", detail: "每级令子弹半径增加 2，并使伤害提高 15%，最高 3 级；更容易命中，也能提升单发伤害。", apply: function (p) { p.bulletRadius += 2; p.damage *= 1.15; } },
       { id: "crit", name: "暴击", rarity: "普通", max: 5, icon: "♦", desc: "暴击率 +12%", detail: "每级增加 12% 暴击率，最高 5 级。暴击子弹造成基础伤害的 1.5 倍；可与弱点打击叠加。", apply: function (p) { p.crit += .12; } },
       { id: "weakpoint", name: "弱点打击", rarity: "稀有", max: 3, icon: "☄", desc: "暴击伤害 +50%", detail: "每级使暴击伤害倍率增加 0.5，最高 3 级。与暴击率配合时收益更高。", apply: function (p) { p.critDamage += .5; } },
       { id: "burn", name: "燃烧弹", rarity: "稀有", max: 3, icon: "♨", desc: "命中后附加持续伤害", detail: "将子弹切换为火焰属性，命中后施加持续燃烧；燃烧伤害和持续时间随等级提升，最高 3 级。", apply: function (p) { p.burn += 1; p.bulletType = "fire"; } },
-      { id: "freeze", name: "冰冻弹", rarity: "稀有", max: 3, icon: "❄", desc: "命中后冻结并减速", detail: "将子弹切换为冰冻属性，命中后短暂冻结敌人（0.35 秒）并减缓其移动；减速持续时间随等级提升，最高 3 级。", apply: function (p) { p.freeze += .12; p.bulletType = "ice"; } }
+      { id: "freeze", name: "冰冻弹", rarity: "稀有", max: 3, icon: "❄", desc: "命中后冻结并减速", detail: "将子弹切换为冰冻属性，命中后短暂冻结敌人（0.35 秒）并减缓其移动；减速持续时间随等级提升，最高 3 级。", apply: function (p) { p.freeze += .12; p.bulletType = "ice"; } },
+      { id: "rifleSplit", name: "分裂子弹", requiresRifleLevel: 4, rarity: "稀有", max: 1, icon: "✹", desc: "子弹命中后分裂 2 枚次级子弹", detail: "步枪子弹命中后向不同方向分裂出 2 枚次级子弹；需要步枪等级达到 Lv.4 后才有概率在局内三选一出现，获得后本局生效。", apply: function (p) { p.rifleSplit = true; } },
+      { id: "rifleRicochet", name: "子弹弹射", requiresRifleLevel: 44, rarity: "稀有", max: 1, icon: "↻", desc: "子弹触及战场边缘后弹射一次", detail: "步枪子弹触及战场边缘后反射一次；需要步枪等级达到 Lv.44 后才有概率在局内三选一出现，获得后本局生效。", apply: function (p) { p.rifleRicochet = true; } }
     ],
     skillTraits: [
       { id: "unlockThermobaric", skillId: "thermobaric", unlocksSkill: true, name: "温压弹", rarity: "稀有", max: 1, icon: "♨", desc: "解锁温压弹技能", detail: "首次获取后解锁温压弹，技能槽显示 Lv1；之后可获取温压弹专属词条继续升级。", apply: function () {} },
