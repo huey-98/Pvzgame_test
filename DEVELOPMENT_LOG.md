@@ -644,3 +644,11 @@ git diff --check
 - 固化后续关卡规格：新增关卡统一 20 波投放量、LV.20 局内上限，LV.2～LV.20 的每次升级都必须提供三选一词条。
 - 新增 `tmp/check-level21.js`，覆盖 20 波结构、阵容、火焰精英、暴食者实际生成、20 波经验节奏、LV.2～LV.20 共 19 次词条，以及 21 行关卡列表和简介绘制。
 - 验证：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过；`check-level21.js`、`check-level.js 21`、`check-xp.js`、`check-hp-budget.js`、`check-bomber.js` 与 `src/*.js` 语法检查通过，21 个关卡均获得 19 次升级词条；`git diff --check` 通过。`trace-level-select.js 21` 回放生成 `tmp/level-brief-21.png`，无预览场景生成 `tmp/level-select-21.png`，21 行列表末行与返回按钮无重叠。
+
+## 2026-11-05 · 第 22 关沉没码头
+
+- 新增第 22 关「沉没码头」：小怪为盾牌僵尸、炸弹僵尸与蜥蜴僵尸，盾牌僵尸精英固定在第 4 波，第 7 波由深海巨兽与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 波次投放量、间隔与逐波血量倍率沿用第 21 关；关卡 `hpScale` 为 1.3、`xpScale` 为 0.06，等效血量预算 987831，约为第 21 关的 1.12 倍。
+- 关卡选择列表改为 22 行滚动列表：固定 54 像素行高，视口固定在标题与返回按钮之间，支持滚轮和触摸拖动，并显示滚动条；绘制与点击区继续共用同一套可见行矩形和简介按钮几何，拖动超过阈值后松手不会误开战。
+- 新增 `tmp/check-level22.js`，覆盖阵容、盾牌精英、深海巨兽实际生成、抗性/冻结回血、20 波经验节奏、LV.2～LV.20 共 19 次词条，以及 22 行列表和简介绘制。
+- 验证：`check-level22.js`、`check-level21.js`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js` 与 `src/*.js` 语法检查通过；`npm --prefix frontend run build` 和 `check-react-ssr.mjs` 在沙箱外通过，22 个关卡均获得 19 次升级词条，第 22 关在第 20/20 波满级。回放生成 `tmp/level-select-22-scroll.png` 与 `tmp/level-brief-22-scroll.png`，滚动列表和简介内容无重叠。

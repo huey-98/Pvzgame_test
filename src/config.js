@@ -288,6 +288,18 @@
     { total: 364, interval: .17, mix: ["flame", "normal", "runner", "flame", "normal"], hpScale: 3.85 },
     { total: 404, interval: .16, mix: ["runner", "flame", "normal", "runner", "normal"], hpScale: 4.05 }
   ]);
+  var levelTwentyTwoMixMap = { normal: "shield", runner: "bomber", flame: "lizard" };
+  var levelTwentyTwoWaves = levelTwentyOneWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentyTwoMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "shieldElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "deepSeaBeast"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16,
     sprites: {
@@ -296,7 +308,7 @@
     },
     skillRing: { offsetX: 64, offsetY: -100 },
     skillSlots: { offsetX: -54, y: 46, width: 48, height: 18, gap: 3 },
-    levelSelect: { panelX: 16, panelY: 42, panelWidth: 328, panelHeight: 578, listX: 30, listY: 144, listWidth: 300, rowHeight: 66, backY: 566, backHeight: 40, infoX: 150, infoSize: 20, briefX: 22, briefY: 72, briefWidth: 316, briefTop: 190, briefHeadingStep: 20, briefRowStep: 22, briefGroupGap: 6, briefBottom: 20, briefMinHeight: 340, briefCloseSize: 28 },
+    levelSelect: { panelX: 16, panelY: 42, panelWidth: 328, panelHeight: 578, listX: 30, listY: 144, listWidth: 300, listHeight: 394, rowHeight: 54, scrollbarWidth: 4, scrollbarGap: 5, scrollWheelStep: 48, dragThreshold: 5, backY: 566, backHeight: 40, infoX: 154, infoSize: 20, briefX: 22, briefY: 72, briefWidth: 316, briefTop: 190, briefHeadingStep: 20, briefRowStep: 22, briefGroupGap: 6, briefBottom: 20, briefMinHeight: 340, briefCloseSize: 28 },
     menu: {
       panelX: 28, panelY: 80, panelWidth: 304, panelHeight: 474,
       bannerY: 14, bannerHeight: 22, bannerLeft: 80,
@@ -934,7 +946,8 @@
       { id: 18, name: "霜影裂谷", subtitle: "寒霜兽精英领队推进", brief: "阵容沿用第 17 关的蜥蜴、毒蜂与寒霜兽；第 4 波由寒霜兽精英领队，第 7 波尸潮领主与小怪同场。", unlocked: true, hpScale: 3.2, xpScale: .1, waves: levelEighteenWaves },
       { id: 19, name: "傀儡雪原", subtitle: "冰雪掩护下的傀儡攻势", brief: "雪人、蜥蜴与傀儡依次登场，第 4 波傀儡精英领队。", unlocked: true, hpScale: 3.3, xpScale: .09, waves: levelNineteenWaves },
       { id: 20, name: "蜂球傀儡馆", subtitle: "篮球、傀儡与毒蜂混编", brief: "篮球僵尸远程投掷，傀儡会分批召唤木偶，毒蜂从空中针刺；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.4, xpScale: .08, waves: levelTwentyWaves },
-      { id: 21, name: "焦土盛宴", subtitle: "烈焰尸潮与暴食者压境", brief: "20 波烈焰尸潮持续冲线，第 4 波火焰精英登场，第 7 波暴食者现身。", unlocked: true, hpScale: 3.15, xpScale: .12, waves: levelTwentyOneWaves }
+      { id: 21, name: "焦土盛宴", subtitle: "烈焰尸潮与暴食者压境", brief: "20 波烈焰尸潮持续冲线，第 4 波火焰精英登场，第 7 波暴食者现身。", unlocked: true, hpScale: 3.15, xpScale: .12, waves: levelTwentyOneWaves },
+      { id: 22, name: "沉没码头", subtitle: "盾牌、炸弹与蜥蜴混编", brief: "盾牌、炸弹与蜥蜴僵尸混编，第 4 波盾牌精英领队，第 7 波深海巨兽破水而出。", unlocked: true, hpScale: 1.3, xpScale: .06, waves: levelTwentyTwoWaves }
     ],
     waves: levelOneWaves
   };

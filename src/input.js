@@ -1,7 +1,7 @@
 /* 输入层：将鼠标/触控事件转换为游戏动作。 */
 (function (Game) {
   "use strict";
-  var C = Game.config, S = Game.state, canvas = null, inputBound = false, inputCleanups = [];
+  var C = Game.config, S = Game.state, canvas = null, inputBound = false, inputCleanups = [], levelDrag = null;
 
   function addInputListener(target, type, handler, options) {
     if (!target || !target.addEventListener) return;
@@ -23,6 +23,62 @@
     if (!circle) return false;
     var dx = point.x - circle.x, dy = point.y - circle.y;
     return dx * dx + dy * dy <= circle.r * circle.r;
+  }
+
+  function releaseLevelPointer() {
+    if (!levelDrag) return;
+    if (levelDrag.target && levelDrag.target.releasePointerCapture && levelDrag.target.hasPointerCapture && levelDrag.target.hasPointerCapture(levelDrag.pointerId)) {
+      levelDrag.target.releasePointerCapture(levelDrag.pointerId);
+    }
+    levelDrag = null;
+  }
+
+  function handleLevelPointerDown(point, event) {
+    var geo = C.levelSelect;
+    if (S.levelPreview) {
+      var close = Game.getLevelBriefCloseRect(), box = Game.getLevelBriefPanel();
+      if (pointInRect(point, close) || !pointInRect(point, box)) Game.closeLevelPreview();
+      return;
+    }
+    if (point.y >= geo.backY - 8 && point.y <= geo.backY + geo.backHeight + 8) {
+      Game.backToMenu();
+      return;
+    }
+    if (!pointInRect(point, Game.getLevelListViewport())) return;
+    levelDrag = {
+      pointerId: event.pointerId,
+      target: event.currentTarget,
+      startY: point.y,
+      startScroll: S.levelScroll || 0,
+      moved: false
+    };
+    if (event.currentTarget && typeof event.currentTarget.setPointerCapture === "function" && event.pointerId !== undefined) event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleLevelPointerMove(event) {
+    if (!levelDrag || S.screen !== "levelSelect" || S.levelPreview) return;
+    var point = Game.pointerPosition(event), delta = point.y - levelDrag.startY;
+    if (!levelDrag.moved && Math.abs(delta) >= C.levelSelect.dragThreshold) levelDrag.moved = true;
+    if (!levelDrag.moved) return;
+    event.preventDefault();
+    S.levelScroll = Math.max(0, Math.min(Game.getLevelScrollMax(), levelDrag.startScroll - delta));
+  }
+
+  function handleLevelPointerUp(event, cancelled) {
+    if (!levelDrag || S.screen !== "levelSelect") {
+      releaseLevelPointer();
+      return;
+    }
+    var drag = levelDrag, point = Game.pointerPosition(event);
+    releaseLevelPointer();
+    if (cancelled || drag.moved || S.levelPreview) return;
+    for (var li = 0; li < C.levels.length; li++) {
+      var row = Game.getLevelRowRect(li);
+      if (!pointInRect(point, row) || !pointInRect(point, Game.getLevelListViewport())) continue;
+      if (pointInRect(point, Game.getLevelInfoRect(li))) Game.openLevelPreview(C.levels[li].id);
+      else Game.start(C.levels[li].id);
+      return;
+    }
   }
 
   function getSkillCodexGroup() {
@@ -539,22 +595,7 @@
     }
     if (S.screen === "zombieCodex" || S.screen === "skillCodex") { handleCodexPointer(point, S.screen); return; }
     if (S.screen === "levelSelect") {
-      var geo = C.levelSelect;
-      if (S.levelPreview) {
-        var close = Game.getLevelBriefCloseRect(), box = Game.getLevelBriefPanel();
-        if (point.x >= close.x && point.x <= close.x + close.w && point.y >= close.y && point.y <= close.y + close.h) Game.closeLevelPreview();
-        else if (point.x < box.x || point.x > box.x + box.w || point.y < box.y || point.y > box.y + box.h) Game.closeLevelPreview();
-        return;
-      }
-      for (var li = 0; li < C.levels.length; li++) {
-        var row = Game.getLevelRowRect(li);
-        if (point.x < row.x || point.x > row.x + row.w || point.y < row.y || point.y > row.y + row.h) continue;
-        var info = Game.getLevelInfoRect(li);
-        if (point.x >= info.x && point.x <= info.x + info.w && point.y >= info.y && point.y <= info.y + info.h) { Game.openLevelPreview(C.levels[li].id); return; }
-        Game.start(C.levels[li].id);
-        return;
-      }
-      if (point.y >= geo.backY - 8 && point.y <= geo.backY + geo.backHeight + 8) Game.backToMenu();
+      handleLevelPointerDown(point, event);
       return;
     }
     if (S.screen === "upgrade") {
@@ -592,9 +633,26 @@
   addInputListener(canvas, "pointerup", releaseSkillSlot);
   addInputListener(canvas, "pointercancel", releaseSkillSlot);
   addInputListener(canvas, "pointerleave", releaseSkillSlot);
+  addInputListener(window, "pointermove", handleLevelPointerMove, { passive: false });
+  addInputListener(window, "pointerup", function (event) { handleLevelPointerUp(event, false); });
+  addInputListener(window, "pointercancel", function (event) { handleLevelPointerUp(event, true); });
+  addInputListener(canvas, "wheel", function (event) {
+    if (S.screen !== "levelSelect" || S.levelPreview) return;
+    var point = Game.pointerPosition(event);
+    if (!pointInRect(point, Game.getLevelListViewport())) return;
+    var delta = event.deltaY || event.deltaX || 0;
+    if (event.deltaMode === 1) delta *= C.levelSelect.rowHeight;
+    else if (event.deltaMode === 2) delta *= Game.getLevelListViewport().h;
+    else delta *= C.levelSelect.scrollWheelStep / 100;
+    if (delta) {
+      event.preventDefault();
+      Game.scrollLevelList(delta);
+    }
+  }, { passive: false });
   addInputListener(window, "pointerup", releaseSkillSlot);
   addInputListener(window, "pointercancel", releaseSkillSlot);
   addInputListener(window, "blur", releaseSkillSlot);
+  addInputListener(window, "blur", releaseLevelPointer);
   addInputListener(window, "keydown", function (event) {
     if (S.screen !== "testArena") return;
     var key = event.key.toLowerCase();
@@ -626,6 +684,7 @@
     slotHoldTimer = null;
     slotHoldId = null;
     if (S.skillRangePreview) S.skillRangePreview = null;
+    levelDrag = null;
   };
 
   if (Game.view && Game.view.canvas) Game.initializeInput(Game.view.canvas);

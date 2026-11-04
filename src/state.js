@@ -6,7 +6,7 @@
     var node = typeof document !== "undefined" ? document.getElementById("start-hint") : null;
     if (node && node.style) node.style.display = display;
   }
-  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, skillCodexRequirementTraitId: null, rifleProgressMilestonePanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, levelScroll: 0, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, skillCodexRequirementTraitId: null, rifleProgressMilestonePanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
   Game.getWaveBossType = function (wave) {
     var type = wave && wave.bossType;
     return type && C.enemies[type] && C.enemies[type].codexCategory === "boss" ? type : "boss";
@@ -34,7 +34,7 @@
       s.player.rifleLevel = s.player.accountRifle.level;
       s.player.milestones = s.player.accountRifle.milestones;
     }
-    s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.iceFields = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null;
+    s.bullets = []; s.skillProjectiles = []; s.armoredCars = []; s.bombDrops = []; s.bombZones = []; s.electromagneticZones = []; s.tornadoes = []; s.drones = []; s.hailStorms = []; s.iceFields = []; s.fuelShells = []; s.fuelPools = []; s.enemyShots = []; s.explosions = []; s.enemies = []; s.pendingSpawns = []; s.particles = []; s.texts = []; s.upgradeCards = []; s.skillRangePreview = null; s.levelPreview = null; s.levelScroll = 0;
     s.characterPart = "arm"; s.characterTab = "gem"; s.characterGemPage = 0; s.characterGems = null;
     s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0; s.characterResourcePage = 0; s.skillProgressPage = 0;
     s.accountResourcePage = 0; s.skillCodexLevelPanel = false; s.skillCodexRequirementTraitId = null; s.rifleProgressMilestonePanel = false;
@@ -48,7 +48,13 @@
     if (s.wall) s.wall.y = C.height - 125;
     if (s.player) s.player.y = C.height - 58;
   };
-  Game.openLevelSelect = function () { Game.state.levelPreview = null; Game.state.screen = "levelSelect"; };
+  Game.openLevelSelect = function () {
+    var state = Game.state, target = Game.getContinueLevel(), index = C.levels.findIndex(function (item) { return item.id === target; });
+    state.levelPreview = null;
+    state.levelScroll = 0;
+    if (index >= 0) Game.scrollLevelIndexIntoView(index, true);
+    state.screen = "levelSelect";
+  };
   Game.openLevelPreview = function (levelId) {
     var level = C.levels.find(function (item) { return item.id === levelId; });
     if (!level) return false;
@@ -475,10 +481,36 @@
     if (level.unlocked) return true;
     return Game.isLevelCompleted(levelId - 1);
   };
+  Game.getLevelListViewport = function () {
+    var geo = C.levelSelect;
+    return { x: geo.listX, y: geo.listY, w: geo.listWidth, h: geo.listHeight };
+  };
+  Game.getLevelScrollMax = function () {
+    var viewport = Game.getLevelListViewport();
+    return Math.max(0, C.levels.length * C.levelSelect.rowHeight - viewport.h);
+  };
+  Game.scrollLevelList = function (delta) {
+    var state = Game.state;
+    state.levelScroll = Math.max(0, Math.min(Game.getLevelScrollMax(), (state.levelScroll || 0) + delta));
+    return state.levelScroll;
+  };
+  Game.scrollLevelIndexIntoView = function (index, center) {
+    var geo = C.levelSelect, viewport = Game.getLevelListViewport(), top = index * geo.rowHeight;
+    if (center) Game.state.levelScroll = top + geo.rowHeight / 2 - viewport.h / 2;
+    else if (top < Game.state.levelScroll) Game.state.levelScroll = top;
+    else if (top + geo.rowHeight > Game.state.levelScroll + viewport.h) Game.state.levelScroll = top + geo.rowHeight - viewport.h;
+    Game.state.levelScroll = Math.max(0, Math.min(Game.getLevelScrollMax(), Game.state.levelScroll));
+    return Game.state.levelScroll;
+  };
+  Game.getVisibleLevelRange = function () {
+    var geo = C.levelSelect, viewport = Game.getLevelListViewport(), scroll = Game.state.levelScroll || 0;
+    var start = Math.max(0, Math.floor(scroll / geo.rowHeight));
+    var end = Math.min(C.levels.length, Math.ceil((scroll + viewport.h) / geo.rowHeight));
+    return { start: start, end: end };
+  };
   Game.getLevelRowRect = function (index) {
-    var geo = C.levelSelect, count = Math.max(1, C.levels.length);
-    var height = Math.min(geo.rowHeight, (geo.backY - 12 - geo.listY) / count);
-    return { x: geo.listX, y: geo.listY + index * height, w: geo.listWidth, h: height };
+    var geo = C.levelSelect, width = geo.listWidth - geo.scrollbarWidth - geo.scrollbarGap * 2;
+    return { x: geo.listX, y: geo.listY + index * geo.rowHeight - (Game.state.levelScroll || 0), w: width, h: geo.rowHeight };
   };
   Game.getSkillCodexCardRect = function (index) {
     var geo = C.skillCodexUI, column = index % geo.cards.columns.length, row = Math.floor(index / geo.cards.columns.length);

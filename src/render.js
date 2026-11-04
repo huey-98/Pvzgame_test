@@ -3654,25 +3654,38 @@
     });
   };
   Game.drawLevelSelect = function () {
-    var geo = C.levelSelect, rowHeight = Game.getLevelRowRect(0).h;
+    var geo = C.levelSelect, viewport = Game.getLevelListViewport(), range = Game.getVisibleLevelRange();
+    var scrollMax = Game.getLevelScrollMax(), thumbHeight = scrollMax > 0 ? Math.max(34, viewport.h * viewport.h / (C.levels.length * geo.rowHeight)) : viewport.h;
+    var thumbY = scrollMax > 0 ? viewport.y + (Game.state.levelScroll || 0) / scrollMax * (viewport.h - thumbHeight) : viewport.y;
     Game.overlay();
     panel(geo.panelX, geo.panelY, geo.panelWidth, geo.panelHeight, "rgba(10, 35, 49, .94)", "rgba(153, 205, 218, .18)", 20);
     badge("MISSION SELECT", 105, 68, 150, C.colors.cyan);
     text("选择关卡", C.width / 2, 112, "bold 25px Segoe UI, Microsoft YaHei", C.colors.yellow, "center");
     text("所有关卡已开放 · 点击行开战，点 ? 看详情", C.width / 2, 135, "12px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
-    U.roundedRect(ctx, geo.listX, geo.listY, geo.listWidth, rowHeight * C.levels.length, 14, "rgba(13, 34, 46, .92)", "rgba(153, 205, 218, .16)");
-    C.levels.forEach(function (level, index) {
+    U.roundedRect(ctx, viewport.x, viewport.y, viewport.w, viewport.h, 14, "rgba(13, 34, 46, .92)", "rgba(153, 205, 218, .16)");
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(viewport.x, viewport.y, viewport.w, viewport.h);
+    ctx.clip();
+    for (var index = range.start; index < range.end; index++) {
+      var level = C.levels[index];
       var r = Game.getLevelRowRect(index), cy = r.y + r.h / 2;
       var unlocked = Game.isLevelUnlocked(level.id), completed = Game.isLevelCompleted(level.id);
-      if (completed) U.roundedRect(ctx, r.x + 2, r.y + 8, 4, r.h - 16, 2, C.colors.green);
-      text(level.id < 10 ? "0" + level.id : "" + level.id, r.x + 26, cy + 7, "bold 19px Segoe UI, Microsoft YaHei", unlocked ? (completed ? C.colors.green : C.colors.cyan) : "#667985", "center");
-      text(level.name, r.x + 54, cy + 5, "bold 15px Segoe UI, Microsoft YaHei", unlocked ? C.colors.text : "#71828b");
+      if (completed) U.roundedRect(ctx, r.x + 2, r.y + 10, 4, r.h - 20, 2, C.colors.green);
+      text(level.id < 10 ? "0" + level.id : "" + level.id, r.x + 26, cy + 6, "bold 18px Segoe UI, Microsoft YaHei", unlocked ? (completed ? C.colors.green : C.colors.cyan) : "#667985", "center");
+      text(level.name, r.x + 54, cy + 5, "bold 14px Segoe UI, Microsoft YaHei", unlocked ? C.colors.text : "#71828b");
       drawLevelInfoButton(index, unlocked);
-      if (!unlocked) text("未解锁", r.x + r.w - 16, cy + 4, "bold 11px Segoe UI, Microsoft YaHei", "#7e8d94", "right");
-      else if (completed) text("已通关", r.x + r.w - 16, cy + 4, "bold 11px Segoe UI, Microsoft YaHei", C.colors.green, "right");
-      else text("›", r.x + r.w - 18, cy + 7, "bold 20px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
+      if (!unlocked) text("未解锁", r.x + r.w - 16, cy + 4, "bold 10px Segoe UI, Microsoft YaHei", "#7e8d94", "right");
+      else if (completed) text("已通关", r.x + r.w - 16, cy + 4, "bold 10px Segoe UI, Microsoft YaHei", C.colors.green, "right");
+      else text("›", r.x + r.w - 18, cy + 6, "bold 18px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
       if (index < C.levels.length - 1) U.roundedRect(ctx, r.x + 16, r.y + r.h - .5, r.w - 32, 1, .5, "rgba(153, 205, 218, .14)");
-    });
+    }
+    ctx.restore();
+    if (scrollMax > 0) {
+      var trackX = viewport.x + viewport.w - geo.scrollbarWidth - geo.scrollbarGap;
+      U.roundedRect(ctx, trackX, viewport.y, geo.scrollbarWidth, viewport.h, 2, "rgba(153, 205, 218, .1)");
+      U.roundedRect(ctx, trackX, thumbY, geo.scrollbarWidth, thumbHeight, 2, "rgba(104, 216, 255, .5)");
+    }
     Game.button(C.width / 2 - 72, geo.backY, 144, geo.backHeight, "返回首页", "#4b7180");
     if (S.levelPreview) Game.drawLevelBrief();
   };
