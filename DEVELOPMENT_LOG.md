@@ -618,3 +618,11 @@ git diff --check
 - `config.skillCodexUI.traitCards` / `requirementPanel` 集中保存词条卡片、前置弹层、前置行和关闭按钮几何；`state.js` 提供共享矩形，`render.js` 与 `input.js` 复用。
 - React 兼容层把超级词条卡片改为可访问按钮，并同步前置详情弹层、序号卡片、关闭遮罩和键盘焦点样式。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`node tmp/check-skills.js` 全部通过；`node tmp/check-super-traits.js` 全部通过；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-super-card.png`、`tmp/skill-super-requirements.png`，核对卡片提示、3 条前置的完整显示和关闭按钮布局。
+
+## 2026-11-04 · 局内技能展示特效美化
+
+- `src/render.js` 新增通用能量拖尾、地面能量环和放射火花绘制函数；温压弹增加多层焰尾与脉冲外环，干冰弹增加晶片拖尾与冰晶光晕，压缩气刃增加双层月牙辉光。
+- 电磁穿刺加入落点焦痕、分叉电弧和顶部闪光；跃迁电子增加节点火花与沿链行进的能量脉冲；高能射线增加移动能量节点、侧向电弧、两端光斑与纵向侧闪。
+- 装甲车补充扬尘、前灯与撞击火花；空投轰炸增加动态扫描准星、落点预警线、下落尾焰和落点火花；旋风加农增加地面风环、旋涡光带与彩色风带。
+- 冰雹、燃油火场、冰原、无人机和追踪弹统一增加径向辉光、雾层、火星或扫描投影；所有爆炸增加二次冲击圈与放射火线。
+- 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`check-skills.js`、`check-super-traits.js`、`check-airblade.js`、`check-drone.js`、`check-hail.js`、`check-fuel.js`、`check-chain.js` 全部通过；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-fx-overview.png` 与 `tmp/skill-fx-super-battle.png`，核对 12 个技能综合场景及超级词条高密度混战。

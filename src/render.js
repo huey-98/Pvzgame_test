@@ -263,6 +263,54 @@
     ctx.restore();
   }
 
+  function drawEnergyTrail(x, y, vx, vy, length, width, color, alpha) {
+    var speed = Math.sqrt(vx * vx + vy * vy) || 1, tailX = x - vx / speed * length, tailY = y - vy / speed * length;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = width;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tailX, tailY); ctx.stroke();
+    ctx.shadowBlur = 5;
+    ctx.strokeStyle = "rgba(255, 255, 255, .92)";
+    ctx.lineWidth = Math.max(.7, width * .28);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tailX, tailY); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRadialSparks(x, y, radius, color, alpha, count, phase) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineCap = "round";
+    ctx.lineWidth = 1.2;
+    for (var index = 0; index < count; index++) {
+      var angle = phase + index * 2.399, inner = radius * (.34 + (index % 3) * .09), outer = radius * (.74 + (index % 2) * .24);
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner * .62);
+      ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer * .62);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGroundEnergy(x, y, radius, color, alpha, pulse) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.ellipse(x, y, radius * pulse, radius * .38 * pulse, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = alpha * .78;
+    ctx.strokeStyle = "rgba(255, 255, 255, .8)";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.ellipse(x, y, radius * .72 * pulse, radius * .25 * pulse, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
   Game.drawBullets = function () {
     S.bullets.forEach(function (bullet) {
       var length = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy) || 1;
@@ -282,6 +330,7 @@
       ctx.beginPath(); ctx.ellipse(0, 0, bullet.radius * 1.9, bullet.radius * .62, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     });
+    var skillTime = (S.session && S.session.elapsed) || 0;
     (S.skillProjectiles || []).forEach(function (projectile) {
       if (projectile.type === "thermobaricEcho" || projectile.type === "bombardmentEcho") return;
       if (projectile.type === "chainLightning") {
@@ -298,12 +347,20 @@
           var head = chainPoints[link];
           drawChainBolt(chainPoints[link - 1].x, chainPoints[link - 1].y, head.x, head.y, head.pending ? .5 : .95);
           if (head.pending) continue;
+          var pulseT = (chainTime * 1.9 + link * .27) % 1;
+          var pulseX = chainPoints[link - 1].x + (head.x - chainPoints[link - 1].x) * pulseT;
+          var pulseY = chainPoints[link - 1].y + (head.y - chainPoints[link - 1].y) * pulseT;
+          ctx.save();
+          ctx.globalAlpha = .72; ctx.fillStyle = "#f6efff"; ctx.shadowColor = "#b98cff"; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(pulseX, pulseY, 2.2, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
           ctx.save();
           ctx.globalAlpha = .7; ctx.strokeStyle = "#efe6ff"; ctx.shadowColor = "#b98cff"; ctx.shadowBlur = 12; ctx.lineWidth = 2;
           ctx.beginPath(); ctx.arc(head.x, head.y, 11, 0, Math.PI * 2); ctx.stroke();
           ctx.globalAlpha = .32; ctx.lineWidth = 3.5;
           ctx.beginPath(); ctx.arc(head.x, head.y, 17 + Math.sin(chainTime * 22 + link) * 2.5, 0, Math.PI * 2); ctx.stroke();
           ctx.restore();
+          drawRadialSparks(head.x, head.y, 22, "#c9a1ff", .38 + Math.sin(chainTime * 18 + link) * .12, 5, chainTime * 2 + link);
         }
         ctx.globalAlpha = 1;
         return;
@@ -316,11 +373,26 @@
         ctx.shadowColor = "#9bffff"; ctx.shadowBlur = 14; ctx.strokeStyle = "#d8ffff"; ctx.lineWidth = 3; ctx.lineJoin = "round";
         ctx.beginPath(); ctx.moveTo(strikeX, -18); ctx.lineTo(strikeX - 7, strikeY - 76); ctx.lineTo(strikeX + 5, strikeY - 48); ctx.lineTo(strikeX - 3, strikeY - 24); ctx.lineTo(strikeX, strikeY); ctx.stroke();
         ctx.strokeStyle = "#6dd8ff"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(strikeX + 9, -12); ctx.lineTo(strikeX + 2, strikeY - 54); ctx.lineTo(strikeX + 8, strikeY - 24); ctx.stroke();
+        if (projectile.delay <= 0) {
+          ctx.globalAlpha = .2;
+          ctx.fillStyle = "#57dfff";
+          ctx.fillRect(0, 0, C.width, 10);
+          ctx.globalAlpha = .78;
+          ctx.strokeStyle = "#e8ffff";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(strikeX - 2, strikeY * .48); ctx.lineTo(strikeX - 22, strikeY * .62); ctx.lineTo(strikeX - 10, strikeY * .67);
+          ctx.moveTo(strikeX + 4, strikeY * .4); ctx.lineTo(strikeX + 24, strikeY * .57); ctx.lineTo(strikeX + 13, strikeY * .62);
+          ctx.stroke();
+          drawGroundEnergy(strikeX, strikeY + 5, 34, "#5edfff", .32, 1 + Math.sin(skillTime * 22) * .04);
+          drawRadialSparks(strikeX, strikeY, 34, "#b9fbff", .58, 7, skillTime * 2.6);
+        }
         ctx.restore();
         return;
       }
       if (projectile.type === "swarmMissile") {
         var swarmTime = (S.session && S.session.elapsed) || 0, swarmPulse = .8 + Math.sin(swarmTime * 24) * .2;
+        drawEnergyTrail(projectile.x, projectile.y, projectile.vx || 0, projectile.vy || -1, 22 + swarmPulse * 8, 3.2, "#8fd8ff", .58);
         ctx.save();
         ctx.globalAlpha = .36; ctx.strokeStyle = "#8fd8ff"; ctx.lineWidth = 2;
         if (projectile.target) {
@@ -330,6 +402,14 @@
         ctx.globalAlpha = .9; ctx.shadowColor = "#a6c8ff"; ctx.shadowBlur = 14;
         ctx.fillStyle = "#dceaff"; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * (.9 + swarmPulse * .25), 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0; ctx.fillStyle = "#4f7dc0"; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.radius * .52, 0, Math.PI * 2); ctx.fill();
+        var swarmAngle = projectile.target ? Math.atan2(projectile.target.y - projectile.y, projectile.target.x - projectile.x) : 0;
+        ctx.globalAlpha = .8; ctx.strokeStyle = "#eef7ff"; ctx.lineWidth = 1.3;
+        for (var fin = -1; fin <= 1; fin += 2) {
+          ctx.beginPath();
+          ctx.moveTo(projectile.x + Math.cos(swarmAngle + fin * 2.5) * projectile.radius * .9, projectile.y + Math.sin(swarmAngle + fin * 2.5) * projectile.radius * .9);
+          ctx.lineTo(projectile.x - Math.cos(swarmAngle) * projectile.radius * .7, projectile.y - Math.sin(swarmAngle) * projectile.radius * .7);
+          ctx.stroke();
+        }
         ctx.restore();
         return;
       }
@@ -337,10 +417,22 @@
       ctx.save();
       ctx.translate(projectile.x, projectile.y); ctx.rotate(angle);
       if (projectile.type === "thermobaric") {
+        var thermoPulse = .9 + Math.sin(skillTime * 22 + projectile.x * .03) * .1;
         if (projectile.fromSacrifice) {
           ctx.globalAlpha = .62; ctx.strokeStyle = "#ffb84d"; ctx.lineWidth = 1.6;
           ctx.beginPath(); ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2); ctx.stroke();
         }
+        for (var plume = 0; plume < 5; plume++) {
+          var plumeBack = r * (1.25 + plume * .58) + Math.sin(skillTime * 19 + plume * 1.7) * r * .18;
+          var plumeSway = Math.sin(skillTime * 15 + plume * 2.3) * r * (.08 + plume * .035);
+          ctx.globalAlpha = .42 - plume * .06;
+          ctx.fillStyle = plume < 2 ? "rgba(255, 225, 132, .95)" : plume < 4 ? "rgba(255, 121, 48, .82)" : "rgba(116, 34, 27, .5)";
+          ctx.beginPath(); ctx.ellipse(-plumeBack, plumeSway, r * (.72 - plume * .075), r * (.29 - plume * .025) * thermoPulse, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = .24 + thermoPulse * .12;
+        ctx.strokeStyle = "#ff9b52"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, r * (1.45 + thermoPulse * .18), 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
         ctx.shadowColor = "#ff4c35"; ctx.shadowBlur = 14;
         ctx.fillStyle = projectile.fromSacrifice ? "#e0472f" : "#c92b28"; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0; ctx.strokeStyle = "#ffbd65"; ctx.lineWidth = 2;
@@ -356,6 +448,12 @@
           ctx.lineTo(-bladeReach * (1.62 + Math.abs(streak) * .34), streak * bladeReach * .64);
           ctx.stroke();
         }
+        ctx.globalAlpha = .38;
+        ctx.strokeStyle = "#baffd7";
+        ctx.lineWidth = 3.4;
+        ctx.shadowColor = "#4dffa0"; ctx.shadowBlur = 18;
+        ctx.beginPath(); ctx.moveTo(0, -bladeReach * .96); ctx.quadraticCurveTo(bladeReach * 1.28, 0, 0, bladeReach * .96); ctx.quadraticCurveTo(bladeReach * .68, 0, 0, -bladeReach * .96); ctx.stroke();
+        ctx.globalAlpha = 1;
         ctx.shadowColor = "#4dffa0"; ctx.shadowBlur = 16;
         ctx.fillStyle = "#2fdc81";
         ctx.beginPath(); ctx.moveTo(0, -bladeReach); ctx.quadraticCurveTo(bladeReach * 1.15, 0, 0, bladeReach); ctx.quadraticCurveTo(bladeReach * .5, 0, 0, -bladeReach); ctx.closePath(); ctx.fill();
@@ -363,10 +461,33 @@
         ctx.fillStyle = "rgba(214, 255, 232, .85)";
         ctx.beginPath(); ctx.moveTo(0, -bladeReach * .7); ctx.quadraticCurveTo(bladeReach * .95, 0, 0, bladeReach * .7); ctx.quadraticCurveTo(bladeReach * .6, 0, 0, -bladeReach * .7); ctx.closePath(); ctx.fill();
       } else {
+        var coldShot = projectile.type === "iceShard" || projectile.type === "electromagneticShard";
+        if (coldShot) {
+          var coldColor = projectile.type === "electromagneticShard" ? "#9fdcff" : "#9ff4ff";
+          for (var crystal = 0; crystal < 4; crystal++) {
+            var crystalBack = r * (1.1 + crystal * .55);
+            ctx.globalAlpha = .36 - crystal * .055;
+            ctx.fillStyle = coldColor;
+            ctx.beginPath();
+            ctx.moveTo(-crystalBack + r * .28, 0);
+            ctx.lineTo(-crystalBack, -r * (.24 + crystal * .03));
+            ctx.lineTo(-crystalBack - r * .32, 0);
+            ctx.lineTo(-crystalBack, r * (.24 + crystal * .03));
+            ctx.closePath(); ctx.fill();
+          }
+          ctx.globalAlpha = .55;
+          ctx.strokeStyle = "#e8fdff"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(0, 0, r * (1.45 + Math.sin(skillTime * 17 + projectile.x) * .12), 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
         ctx.shadowColor = "#65dfff"; ctx.shadowBlur = 12;
-        ctx.fillStyle = projectile.type === "iceShard" || projectile.type === "electromagneticShard" ? "#b8f5ff" : "#55bdf5";
+        ctx.fillStyle = coldShot ? "#b8f5ff" : "#55bdf5";
         ctx.beginPath(); ctx.moveTo(r * 2.2, 0); ctx.lineTo(-r * .9, -r * .9); ctx.lineTo(-r * .35, 0); ctx.lineTo(-r * .9, r * .9); ctx.closePath(); ctx.fill();
         ctx.fillStyle = "rgba(239, 255, 255, .85)"; ctx.beginPath(); ctx.moveTo(r * 1.3, 0); ctx.lineTo(-r * .45, -r * .32); ctx.lineTo(-r * .1, 0); ctx.closePath(); ctx.fill();
+        if (coldShot) {
+          ctx.strokeStyle = "rgba(255, 255, 255, .88)"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(r * .2, -r * 1.08); ctx.lineTo(r * .2, r * 1.08); ctx.moveTo(-r * .22, -r * .72); ctx.lineTo(-r * .22, r * .72); ctx.stroke();
+        }
       }
       ctx.restore();
     });
@@ -1902,12 +2023,20 @@
     });
   };
   Game.drawArmoredCars = function () {
+    var carTime = (S.session && S.session.elapsed) || 0;
     (S.armoredCars || []).forEach(function (car) {
       var w = car.width, l = car.length;
       ctx.save();
       ctx.translate(car.x, car.y);
       ctx.fillStyle = "rgba(0, 0, 0, .42)";
       ctx.beginPath(); ctx.ellipse(2, l * .12, w * .66, l * .43, 0, 0, Math.PI * 2); ctx.fill();
+      for (var dust = 0; dust < 6; dust++) {
+        var dustPhase = carTime * 5 + dust * 1.2, dustX = Math.sin(dustPhase) * w * (.18 + dust * .018);
+        ctx.globalAlpha = .16 - dust * .018;
+        ctx.fillStyle = dust % 2 ? "#c9d3b6" : "#738c79";
+        ctx.beginPath(); ctx.ellipse(dustX, l * (.46 + dust * .035), w * (.15 + dust * .018), l * (.06 + dust * .008), 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
       ctx.fillStyle = "#18252a";
       U.roundedRect(ctx, -w * .52, -l * .47, w * .22, l * .9, 4, "#18252a", "#78908c");
       U.roundedRect(ctx, w * .3, -l * .47, w * .22, l * .9, 4, "#18252a", "#78908c");
@@ -1928,6 +2057,11 @@
       ctx.fillStyle = "#52665c"; U.roundedRect(ctx, -w * .22, l * .02, w * .44, l * .34, 4, "#52665c", "#c1d2b7");
       ctx.fillStyle = "#d9e8be"; ctx.fillRect(-w * .1, -l * .44, w * .2, 3);
       ctx.fillStyle = "#ffcf72"; ctx.fillRect(-w * .27, -l * .45, w * .12, 3); ctx.fillRect(w * .15, -l * .45, w * .12, 3);
+      ctx.globalAlpha = .12 + .04 * Math.sin(carTime * 8);
+      ctx.fillStyle = "#fff2c2";
+      ctx.beginPath(); ctx.moveTo(-w * .34, -l * .48); ctx.lineTo(-w * .7, -l * .72); ctx.lineTo(-w * .34, -l * .58); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(w * .34, -l * .48); ctx.lineTo(w * .7, -l * .72); ctx.lineTo(w * .34, -l * .58); ctx.closePath(); ctx.fill();
+      if (car.impactFlash > 0) drawRadialSparks(0, -l * .28, w * .75, "#ffe08a", .62, 6, carTime * 3.2);
       ctx.restore();
     });
   };
@@ -1939,6 +2073,14 @@
       var alpha = Math.min(appear, vanish), tint = tornado.stationary ? "#ffeec4" : "#d8f4ff";
       var height = tornado.radius * 2.8, base = tornado.y + height * .42;
       ctx.save();
+      var windAura = ctx.createRadialGradient(tornado.x, base, 1, tornado.x, base, tornado.radius * 1.45);
+      windAura.addColorStop(0, tornado.stationary ? "rgba(255, 214, 120, .2)" : "rgba(143, 228, 255, .2)");
+      windAura.addColorStop(.55, tornado.stationary ? "rgba(255, 184, 77, .08)" : "rgba(104, 216, 255, .08)");
+      windAura.addColorStop(1, "rgba(104, 216, 255, 0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = windAura;
+      ctx.beginPath(); ctx.ellipse(tornado.x, base, tornado.radius * 1.45, tornado.radius * .56, 0, 0, Math.PI * 2); ctx.fill();
+      drawGroundEnergy(tornado.x, base, tornado.radius * 1.05, tornado.stationary ? "#ffd479" : "#8fe4ff", alpha * .26, 1 + Math.sin(time * 5) * .05);
       ctx.globalAlpha = alpha * .38;
       ctx.fillStyle = "rgba(3, 12, 18, .92)";
       ctx.beginPath(); ctx.ellipse(tornado.x, base + 3, tornado.radius * .34, tornado.radius * .11, 0, 0, Math.PI * 2); ctx.fill();
@@ -1962,6 +2104,17 @@
         ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.ellipse(tornado.x + Math.sin(phase) * tornado.radius * .22, ringY, ringRadius, ringRadius * .3, 0, phase, phase + Math.PI * 1.25);
+        ctx.stroke();
+      }
+      for (var ribbon = 0; ribbon < 4; ribbon++) {
+        var ribbonT = ribbon / 3, ribbonY = base - height * (.12 + ribbonT * .72);
+        var ribbonRadius = tornado.radius * (.35 + ribbonT * .66), ribbonPhase = time * 3.4 + ribbon * 1.5;
+        ctx.globalAlpha = alpha * (.24 + ribbonT * .18);
+        ctx.strokeStyle = ribbon % 2 ? "#f4fdff" : tornado.stationary ? "#ffdf9a" : "#a8edff";
+        ctx.lineWidth = 1.1 + ribbonT * .7;
+        ctx.beginPath();
+        ctx.moveTo(tornado.x + Math.cos(ribbonPhase) * ribbonRadius, ribbonY + Math.sin(ribbonPhase) * ribbonRadius * .25);
+        ctx.quadraticCurveTo(tornado.x + Math.cos(ribbonPhase + 1.2) * ribbonRadius * 1.02, ribbonY - ribbonRadius * .16, tornado.x + Math.cos(ribbonPhase + 2.4) * ribbonRadius, ribbonY + Math.sin(ribbonPhase + 2.4) * ribbonRadius * .25);
         ctx.stroke();
       }
       for (var debris = 0; debris < 6; debris++) {
@@ -1993,6 +2146,10 @@
       var r = drone.radius, appear = U.clamp((drone.duration - drone.life) / .25, 0, 1), vanish = U.clamp(drone.life / .3, 0, 1);
       var alpha = Math.min(appear, vanish), tilt = Math.sin(time * 2.4) * .12, spin = drone.spin || time * 9;
       ctx.save();
+      drawGroundEnergy(drone.x, drone.y + r * 1.18, r * 1.05, "#8fd8ff", alpha * .16, 1 + Math.sin(time * 3.8) * .06);
+      ctx.globalAlpha = alpha * .16;
+      ctx.strokeStyle = "#b8e5ff"; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(drone.x, drone.y + r * .55); ctx.lineTo(drone.x, drone.y + r * 1.25); ctx.stroke(); ctx.setLineDash([]);
       ctx.globalAlpha = alpha * .34;
       ctx.fillStyle = "rgba(3, 12, 18, .9)";
       ctx.beginPath(); ctx.ellipse(drone.x, drone.y + r * .72, r * .58, r * .2, 0, 0, Math.PI * 2); ctx.fill();
@@ -2049,6 +2206,10 @@
       ctx.fillStyle = Math.sin(time * 9) > 0 ? "#7dffb0" : "#3f6a52";
       ctx.beginPath(); ctx.arc(r * .38, -r * .34, Math.max(1, r * .08), 0, Math.PI * 2); ctx.fill();
       ctx.restore();
+      ctx.globalAlpha = alpha * .28;
+      ctx.strokeStyle = "#9edcff"; ctx.lineWidth = 1.2; ctx.shadowColor = "#7fd4ff"; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(drone.x, drone.y, r * (1.05 + Math.sin(time * 4.4) * .06), 0, Math.PI * 2); ctx.stroke();
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = alpha * .7;
       ctx.strokeStyle = "rgba(166, 200, 255, .75)";
       ctx.lineWidth = Math.max(1, r * .09);
@@ -2068,6 +2229,7 @@
     (S.iceFields || []).forEach(function (field) {
       var fade = U.clamp(field.life / field.duration, 0, 1), pulse = .97 + Math.sin(time * 4) * .03;
       ctx.save();
+      drawGroundEnergy(field.x, field.y, field.radius, "#8fe8ff", .12 + fade * .1, pulse);
       ctx.globalAlpha = .24 + fade * .16; ctx.fillStyle = "#8fe8ff";
       ctx.beginPath(); ctx.arc(field.x, field.y, field.radius * pulse, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = .32 + fade * .22; ctx.fillStyle = "rgba(226, 250, 255, .5)";
@@ -2081,6 +2243,7 @@
         ctx.strokeStyle = shard % 2 ? "#eafcff" : "#9fe4ff"; ctx.lineWidth = shard % 2 ? 1.4 : 2;
         ctx.beginPath(); ctx.moveTo(sx - 2.4, sy - 3); ctx.lineTo(sx + 2.4, sy + 3); ctx.moveTo(sx + 2.4, sy - 3); ctx.lineTo(sx - 2.4, sy + 3); ctx.stroke();
       }
+      drawRadialSparks(field.x, field.y, field.radius * .88, "#e3fbff", .18 + fade * .16, 6, time * 1.3);
       ctx.restore();
     });
   };
@@ -2090,6 +2253,14 @@
       var appear = U.clamp((storm.duration - storm.life) / .18, 0, 1), vanish = U.clamp(storm.life / .3, 0, 1);
       var alpha = Math.min(appear, vanish), pulse = .96 + Math.sin(time * 6) * .04;
       ctx.save();
+      drawGroundEnergy(storm.x, storm.y, storm.radius * 1.06, "#8fe8ff", alpha * .23, pulse);
+      var hailAura = ctx.createRadialGradient(storm.x, storm.y, 2, storm.x, storm.y, storm.radius * 1.2);
+      hailAura.addColorStop(0, "rgba(236, 253, 255, .34)");
+      hailAura.addColorStop(.5, "rgba(143, 232, 255, .16)");
+      hailAura.addColorStop(1, "rgba(83, 180, 220, 0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = hailAura;
+      ctx.beginPath(); ctx.arc(storm.x, storm.y, storm.radius * 1.2, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = alpha * .24;
       ctx.fillStyle = "#7fd8ff";
       ctx.beginPath(); ctx.arc(storm.x, storm.y, storm.radius * pulse, 0, Math.PI * 2); ctx.fill();
@@ -2111,6 +2282,7 @@
         ctx.lineWidth = shard % 2 ? 1.5 : 2.3;
         ctx.beginPath(); ctx.moveTo(shardX, shardY); ctx.lineTo(shardX - 2.4, shardY + 9); ctx.stroke();
       }
+      drawRadialSparks(storm.x, storm.y, storm.radius * .92, "#dffbff", alpha * .28, 7, time * 1.7);
       ctx.restore();
     });
   };
@@ -2121,6 +2293,14 @@
       var appear = U.clamp((pool.duration - pool.life) / .15, 0, 1), vanish = U.clamp(pool.life / .25, 0, 1);
       var alpha = Math.min(appear, vanish), pulse = .97 + Math.sin(time * 9) * .03;
       ctx.save();
+      drawGroundEnergy(pool.x, pool.y, pool.radius * 1.04, pool.napalm ? "#ffd166" : "#ff7a3d", alpha * .24, pulse);
+      var fireAura = ctx.createRadialGradient(pool.x, pool.y, 2, pool.x, pool.y, pool.radius * 1.18);
+      fireAura.addColorStop(0, pool.napalm ? "rgba(255, 240, 177, .35)" : "rgba(255, 190, 96, .3)");
+      fireAura.addColorStop(.5, pool.napalm ? "rgba(255, 183, 76, .18)" : "rgba(255, 90, 40, .18)");
+      fireAura.addColorStop(1, "rgba(255, 75, 30, 0)");
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = fireAura;
+      ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * 1.18, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = alpha * .28;
       ctx.fillStyle = pool.napalm ? "#ffd166" : "#ff6a2a";
       ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * pulse, 0, Math.PI * 2); ctx.fill();
@@ -2133,6 +2313,12 @@
       ctx.setLineDash([7, 5]);
       ctx.beginPath(); ctx.arc(pool.x, pool.y, pool.radius * pulse, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
+      for (var smoke = 0; smoke < 5; smoke++) {
+        var smokePhase = time * 1.8 + smoke * 1.1;
+        ctx.globalAlpha = alpha * (.1 + smoke * .012);
+        ctx.fillStyle = "#2f2522";
+        ctx.beginPath(); ctx.ellipse(pool.x + Math.sin(smokePhase) * pool.radius * .5, pool.y - pool.radius * (.22 + smoke * .08), 7 + smoke * 2, 12 + smoke * 2, Math.sin(smokePhase) * .35, 0, Math.PI * 2); ctx.fill();
+      }
       ctx.globalAlpha = alpha * .88;
       for (var flame = 0; flame < 14; flame++) {
         var angle = flame * 2.399, distance = pool.radius * (.12 + .78 * ((flame * .41) % 1));
@@ -2146,6 +2332,7 @@
         ctx.closePath();
         ctx.fill();
       }
+      drawRadialSparks(pool.x, pool.y, pool.radius * .82, pool.napalm ? "#ffe7a3" : "#ffb36a", alpha * .34, 8, time * 2.1);
       ctx.restore();
     });
   };
@@ -2158,6 +2345,15 @@
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(angle + Math.PI / 2);
+      var shellTime = (S.session && S.session.elapsed) || 0;
+      ctx.globalAlpha = .22 + progress * .16;
+      ctx.strokeStyle = "#ffbd69"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(0, 22 + progress * 10); ctx.stroke();
+      for (var shellSmoke = 0; shellSmoke < 3; shellSmoke++) {
+        ctx.globalAlpha = (.24 - shellSmoke * .045) * (.7 + progress * .3);
+        ctx.fillStyle = shellSmoke ? "#9a4f2e" : "#ffcf72";
+        ctx.beginPath(); ctx.arc(Math.sin(shellTime * 10 + shellSmoke) * 2.4, 11 + shellSmoke * 7, 3.4 - shellSmoke * .55, 0, Math.PI * 2); ctx.fill();
+      }
       ctx.globalAlpha = .45 + progress * .3;
       ctx.fillStyle = "#ff9b52";
       ctx.beginPath(); ctx.arc(0, 8, 3 + progress * 2, 0, Math.PI * 2); ctx.fill();
@@ -2312,12 +2508,33 @@
       var beams = beamSkill.activeBeams || [{ x: beamSkill.activeX, y: beamSkill.activeY, x2: beamSkill.activeX2, y2: beamSkill.activeY2, width: beamSkill.beamWidth }];
       ctx.save(); ctx.lineCap = "round";
       beams.forEach(function (beam) {
+        var beamDx = beam.x2 - beam.x, beamDy = beam.y2 - beam.y, beamLength = Math.sqrt(beamDx * beamDx + beamDy * beamDy) || 1;
         ctx.globalAlpha = .2 * beamPulse; ctx.strokeStyle = "#38aaff"; ctx.shadowColor = "#3dbdff"; ctx.shadowBlur = 20; ctx.lineWidth = beam.width + 12;
         ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
         ctx.globalAlpha = .72 * beamPulse; ctx.strokeStyle = "#278fff"; ctx.shadowBlur = 12; ctx.lineWidth = beam.width;
         ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
         ctx.globalAlpha = .96; ctx.strokeStyle = "#b9f5ff"; ctx.shadowColor = "#91efff"; ctx.shadowBlur = 8; ctx.lineWidth = Math.max(2, beam.width * .28);
         ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.x2, beam.y2); ctx.stroke();
+        ctx.globalAlpha = .72; ctx.fillStyle = "#effdff"; ctx.shadowColor = "#7fe8ff"; ctx.shadowBlur = 12;
+        for (var node = 0; node < 4; node++) {
+          var nodeT = (S.session.elapsed * .8 + node * .24) % 1;
+          ctx.beginPath(); ctx.arc(beam.x + beamDx * nodeT, beam.y + beamDy * nodeT, Math.max(1.4, beam.width * .1), 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = .58;
+        ctx.strokeStyle = "#d5f8ff"; ctx.lineWidth = 1.2;
+        for (var arc = 0; arc < 3; arc++) {
+          var arcT = .22 + arc * .27 + Math.sin(S.session.elapsed * 2 + arc) * .03;
+          var arcX = beam.x + beamDx * arcT, arcY = beam.y + beamDy * arcT;
+          var normalX = -beamDy / beamLength, normalY = beamDx / beamLength;
+          ctx.beginPath();
+          ctx.moveTo(arcX - normalX * beam.width * .9, arcY - normalY * beam.width * .9);
+          ctx.lineTo(arcX + normalX * beam.width * .9, arcY + normalY * beam.width * .9);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = .6;
+        ctx.strokeStyle = "#e2fbff"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(beam.x, beam.y, beam.width * (.75 + beamPulse * .18), 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(beam.x2, beam.y2, beam.width * (.55 + beamPulse * .16), 0, Math.PI * 2); ctx.stroke();
       });
       ctx.restore();
     }
@@ -2360,10 +2577,15 @@
         return;
       }
       var progress = 1 - U.clamp(explosion.life / explosion.duration, 0, 1), radius = explosion.radius * (.45 + progress * .55);
+      var sparkColor = explosion.type === "bombardment" ? "#fff0a0" : explosion.type === "bombardmentCluster" ? "#ffc27a" : explosion.type === "electromagnetic" ? "#d2ffff" : explosion.type === "hailFrost" ? "#eafcff" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "#ffe6b0" : explosion.type === "sacrificeBurst" ? "#ffd88a" : explosion.type === "swarmBurst" ? "#dceaff" : "#ffbf6b";
       ctx.save(); ctx.globalAlpha = (1 - progress) * .62;
       ctx.fillStyle = explosion.type === "bombardment" ? "rgba(255, 174, 54, .48)" : explosion.type === "bombardmentCluster" ? "rgba(255, 140, 70, .44)" : explosion.type === "electromagnetic" ? "rgba(77, 213, 255, .48)" : explosion.type === "hailFrost" ? "rgba(143, 233, 255, .46)" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "rgba(255, 132, 44, .5)" : explosion.type === "sacrificeBurst" ? "rgba(255, 184, 77, .5)" : explosion.type === "swarmBurst" ? "rgba(166, 200, 255, .48)" : "rgba(255, 75, 42, .42)"; ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1 - progress; ctx.strokeStyle = explosion.type === "bombardment" ? "#fff0a0" : explosion.type === "bombardmentCluster" ? "#ffc27a" : explosion.type === "electromagnetic" ? "#d2ffff" : explosion.type === "hailFrost" ? "#eafcff" : explosion.type === "fuelBlast" || explosion.type === "bomberBlast" ? "#ffe6b0" : explosion.type === "sacrificeBurst" ? "#ffd88a" : explosion.type === "swarmBurst" ? "#dceaff" : "#ffbf6b"; ctx.lineWidth = Math.max(2, 8 * (1 - progress));
       ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius * .84, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = (1 - progress) * .42;
+      ctx.strokeStyle = sparkColor; ctx.lineWidth = Math.max(1, 2.4 * (1 - progress));
+      ctx.beginPath(); ctx.arc(explosion.x, explosion.y, radius * (1.04 + progress * .12), 0, Math.PI * 2); ctx.stroke();
+      drawRadialSparks(explosion.x, explosion.y, radius * 1.05, sparkColor, (1 - progress) * .62, 7, progress * 8);
       ctx.restore();
     });
     S.particles.forEach(function (particle) { ctx.globalAlpha = U.clamp(particle.life / particle.maxLife, 0, 1); ctx.fillStyle = particle.color; ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); ctx.fill(); });
@@ -2373,13 +2595,27 @@
   };
 
   Game.drawBombardment = function () {
+    var bombTime = (S.session && S.session.elapsed) || 0;
     (S.bombDrops || []).forEach(function (bomb) {
       var pulse = .97 + Math.sin(S.session.elapsed * 8) * .03;
-      ctx.save(); ctx.globalAlpha = .38; ctx.strokeStyle = "#ffbd58"; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.arc(bomb.targetX, bomb.targetY, bomb.radius * pulse, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+      ctx.save();
+      drawGroundEnergy(bomb.targetX, bomb.targetY, bomb.radius, "#ffbd58", .18, pulse);
+      ctx.globalAlpha = .38; ctx.strokeStyle = "#ffbd58"; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.arc(bomb.targetX, bomb.targetY, bomb.radius * pulse, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.globalAlpha = .5; ctx.strokeStyle = "#fff0a0"; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(bomb.targetX, bomb.targetY, bomb.radius * .48, bombTime * 2.2, bombTime * 2.2 + Math.PI * 1.3); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(bomb.targetX - bomb.radius * .18, bomb.targetY); ctx.lineTo(bomb.targetX + bomb.radius * .18, bomb.targetY);
+      ctx.moveTo(bomb.targetX, bomb.targetY - bomb.radius * .12); ctx.lineTo(bomb.targetX, bomb.targetY + bomb.radius * .12); ctx.stroke();
+      ctx.globalAlpha = bomb.delay > 0 ? .16 : .05;
+      ctx.strokeStyle = "#ffbe66"; ctx.lineWidth = 1; ctx.setLineDash([3, 10]); ctx.lineDashOffset = -bombTime * 28;
+      ctx.beginPath(); ctx.moveTo(bomb.targetX, 0); ctx.lineTo(bomb.targetX, bomb.targetY); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+      ctx.restore();
       if (bomb.delay > 0) return;
+      drawEnergyTrail(bomb.x, bomb.y, 0, Math.max(1, bomb.speed || 1), 40, 4.5, "#ff9b52", .62);
       ctx.save(); ctx.strokeStyle = "rgba(255, 118, 49, .72)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bomb.x, bomb.y - 18); ctx.lineTo(bomb.x, bomb.y - 7); ctx.stroke();
       ctx.shadowColor = "#ffb74f"; ctx.shadowBlur = 12; U.roundedRect(ctx, bomb.x - 6, bomb.y - 8, 12, 20, 4, "#39434a", "#ffd26a");
       ctx.shadowBlur = 0; ctx.fillStyle = "#ff7737"; ctx.beginPath(); ctx.moveTo(bomb.x - 4, bomb.y + 11); ctx.lineTo(bomb.x + 4, bomb.y + 11); ctx.lineTo(bomb.x, bomb.y + 20); ctx.closePath(); ctx.fill(); ctx.restore();
+      drawRadialSparks(bomb.x, bomb.y, 20, "#ffd166", .4, 5, bombTime * 4);
     });
   };
 
