@@ -634,3 +634,13 @@ git diff --check
 - 装甲车补充扬尘、前灯与撞击火花；空投轰炸增加动态扫描准星、落点预警线、下落尾焰和落点火花；旋风加农增加地面风环、旋涡光带与彩色风带。
 - 冰雹、燃油火场、冰原、无人机和追踪弹统一增加径向辉光、雾层、火星或扫描投影；所有爆炸增加二次冲击圈与放射火线。
 - 验证：`npm --prefix frontend run build` 通过；`node tmp/check-react-ssr.mjs` 19 项通过；`check-skills.js`、`check-super-traits.js`、`check-airblade.js`、`check-drone.js`、`check-hail.js`、`check-fuel.js`、`check-chain.js` 全部通过；`src/*.js` 语法检查与 `git diff --check` 通过；Canvas 回放出图 `tmp/skill-fx-overview.png` 与 `tmp/skill-fx-super-battle.png`，核对 12 个技能综合场景及超级词条高密度混战。
+
+## 2026-11-04 · 第 21 关与逐级词条
+
+- 新增第 21 关「焦土盛宴」：普通、快跑与火焰僵尸混编，共 20 波、常规小怪总投放 2988 只；前 15 波沿用第 20 关的投放量、间隔、精英/首领波位置与逐波血量阶梯，第 16～20 波继续提高投放量、血量倍率并收紧生成间隔。
+- 第 4 波固定火焰僵尸精英，第 7 波由暴食者与小怪同场。新增波次可选字段 `bossType`，由 `Game.getWaveBossType` 统一解析；`update.js` 按实际首领生成与提示，`Game.getLevelRoster` 也据此在关卡简介中显示暴食者，旧波次缺省仍使用尸潮领主。
+- 第 21 关关卡 `hpScale` 为 3.15、`xpScale` 为 0.12，等效血量预算约为第 20 关的 1.38 倍。
+- 局内等级上限确认为 LV.20；`Game.openNextUpgrade` 改为逐级结算，每次升级生成一组三选一词条，选完后继续消耗盈余经验，升到 LV.20 的最后一次也发放词条。清场后仍未满级时通过 `session.pendingWin` 逐级弹出剩余词条，全部选完才进入胜利结算。
+- 固化后续关卡规格：新增关卡统一 20 波投放量、LV.20 局内上限，LV.2～LV.20 的每次升级都必须提供三选一词条。
+- 新增 `tmp/check-level21.js`，覆盖 20 波结构、阵容、火焰精英、暴食者实际生成、20 波经验节奏、LV.2～LV.20 共 19 次词条，以及 21 行关卡列表和简介绘制。
+- 验证：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过；`check-level21.js`、`check-level.js 21`、`check-xp.js`、`check-hp-budget.js`、`check-bomber.js` 与 `src/*.js` 语法检查通过，21 个关卡均获得 19 次升级词条；`git diff --check` 通过。`trace-level-select.js 21` 回放生成 `tmp/level-brief-21.png`，无预览场景生成 `tmp/level-select-21.png`，21 行列表末行与返回按钮无重叠。

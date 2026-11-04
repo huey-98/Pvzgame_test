@@ -1835,12 +1835,10 @@
   Game.nextXpAfter = function (current) {
     return Math.floor(current * C.xpMultiplier + C.xpBonus);
   };
-  Game.gainXp = function (amount) {
+  Game.openNextUpgrade = function () {
     var p = S.player;
-    if (S.session && S.session.testArena) return;
-    if (p.level >= C.maxLevel) return;
-    p.xp += amount * (S.session.xpScale || 1);
-    while (p.xp >= p.nextXp && p.level < C.maxLevel) {
+    if (!p) return false;
+    while (p.level < C.maxLevel && p.xp >= p.nextXp) {
       p.xp -= p.nextXp;
       p.level++;
       p.nextXp = Game.nextXpAfter(p.nextXp);
@@ -1848,14 +1846,22 @@
         p.xp = p.nextXp;
         S.session.message = "LV.MAX · 清空剩余尸潮";
         S.session.messageTimer = 2.6;
-        break;
       }
       var cards = Game.rollTraits();
-      if (!cards.length) continue;
-      S.screen = "upgrade";
-      S.upgradeCards = cards;
-      break;
+      if (cards.length) {
+        S.screen = "upgrade";
+        S.upgradeCards = cards;
+        return true;
+      }
     }
+    return false;
+  };
+  Game.gainXp = function (amount) {
+    var p = S.player;
+    if (S.session && S.session.testArena) return;
+    if (p.level >= C.maxLevel) return;
+    p.xp += amount * (S.session.xpScale || 1);
+    Game.openNextUpgrade();
   };
   Game.grantMaxLevel = function () {
     var p = S.player;
@@ -1919,7 +1925,17 @@
       S.session.message = "技能槽已满 · " + C.maxSkillSlots + " / " + C.maxSkillSlots;
       S.session.messageTimer = 2.4;
     }
+    S.upgradeCards = [];
     S.screen = "playing";
+    if (Game.openNextUpgrade()) return;
+    if (S.session && S.session.pendingWin) {
+      if (p.level < C.maxLevel) {
+        p.xp = p.nextXp;
+        if (Game.openNextUpgrade()) return;
+      }
+      S.session.pendingWin = false;
+      Game.winLevel();
+    }
   };
   Game.getCodexEnemyIds = function (category) {
     return Object.keys(C.enemies).filter(function (id) {

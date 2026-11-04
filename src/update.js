@@ -23,9 +23,10 @@
       session.spawnTimer -= dt;
       if (session.spawnTimer <= 0) Game.spawnWaveEnemy();
       if (plan.boss && !session.bossSpawned && session.spawnCount >= Math.floor(plan.total / 2)) {
-        Game.spawnEnemy("boss");
+        var bossType = Game.getWaveBossType(plan);
+        Game.spawnEnemy(bossType);
         session.bossSpawned = true;
-        session.message = "尸潮领主出现！";
+        session.message = C.enemies[bossType].name + "出现！";
         session.messageTimer = 2.6;
       }
     }
@@ -178,7 +179,11 @@
       return;
     }
     if (S.enemies.length > 0 || S.pendingSpawns.length > 0) return;
-    if (p.level < C.maxLevel) Game.grantMaxLevel();
+    if (p.level < C.maxLevel) {
+      session.pendingWin = true;
+      p.xp = p.nextXp;
+      if (Game.openNextUpgrade()) return;
+    }
     Game.winLevel();
   };
   Game.updateArmoredCars = function (dt) {

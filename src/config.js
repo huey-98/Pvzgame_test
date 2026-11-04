@@ -269,6 +269,25 @@
     { total: 198, interval: .26, mix: ["puppet", "wasp", "basketball", "puppet", "wasp"], hpScale: 2.85 },
     { total: 226, interval: .24, mix: ["wasp", "basketball", "puppet", "wasp", "basketball"], hpScale: 3.05 }
   ];
+  var levelTwentyOneMixMap = { basketball: "normal", puppet: "runner", wasp: "flame" };
+  var levelTwentyOneWaves = levelTwentyWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentyOneMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "flameElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "devourer"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  levelTwentyOneWaves = levelTwentyOneWaves.concat([
+    { total: 256, interval: .22, mix: ["flame", "runner", "normal", "flame", "runner"], hpScale: 3.25 },
+    { total: 290, interval: .2, mix: ["runner", "flame", "normal", "runner", "flame"], hpScale: 3.45 },
+    { total: 326, interval: .18, mix: ["normal", "flame", "runner", "normal", "flame"], hpScale: 3.65 },
+    { total: 364, interval: .17, mix: ["flame", "normal", "runner", "flame", "normal"], hpScale: 3.85 },
+    { total: 404, interval: .16, mix: ["runner", "flame", "normal", "runner", "normal"], hpScale: 4.05 }
+  ]);
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16,
     sprites: {
@@ -914,7 +933,8 @@
       { id: 17, name: "寒蜂裂谷", subtitle: "毒蜂穿梭霜兽与蜥蜴之间", brief: "蜥蜴弱冰抗电，毒蜂远程飞行且弱风抗能量，寒霜兽免疫六种状态但承受三倍火伤；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.2, xpScale: .1, waves: levelSeventeenWaves },
       { id: 18, name: "霜影裂谷", subtitle: "寒霜兽精英领队推进", brief: "阵容沿用第 17 关的蜥蜴、毒蜂与寒霜兽；第 4 波由寒霜兽精英领队，第 7 波尸潮领主与小怪同场。", unlocked: true, hpScale: 3.2, xpScale: .1, waves: levelEighteenWaves },
       { id: 19, name: "傀儡雪原", subtitle: "冰雪掩护下的傀儡攻势", brief: "雪人、蜥蜴与傀儡依次登场，第 4 波傀儡精英领队。", unlocked: true, hpScale: 3.3, xpScale: .09, waves: levelNineteenWaves },
-      { id: 20, name: "蜂球傀儡馆", subtitle: "篮球、傀儡与毒蜂混编", brief: "篮球僵尸远程投掷，傀儡会分批召唤木偶，毒蜂从空中针刺；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.4, xpScale: .08, waves: levelTwentyWaves }
+      { id: 20, name: "蜂球傀儡馆", subtitle: "篮球、傀儡与毒蜂混编", brief: "篮球僵尸远程投掷，傀儡会分批召唤木偶，毒蜂从空中针刺；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.4, xpScale: .08, waves: levelTwentyWaves },
+      { id: 21, name: "焦土盛宴", subtitle: "烈焰尸潮与暴食者压境", brief: "20 波烈焰尸潮持续冲线，第 4 波火焰精英登场，第 7 波暴食者现身。", unlocked: true, hpScale: 3.15, xpScale: .12, waves: levelTwentyOneWaves }
     ],
     waves: levelOneWaves
   };

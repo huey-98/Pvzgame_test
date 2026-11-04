@@ -7,6 +7,10 @@
     if (node && node.style) node.style.display = display;
   }
   Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, skillCodexRequirementTraitId: null, rifleProgressMilestonePanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.getWaveBossType = function (wave) {
+    var type = wave && wave.bossType;
+    return type && C.enemies[type] && C.enemies[type].codexCategory === "boss" ? type : "boss";
+  };
   Game.reset = function () {
     var s = Game.state;
     var level = C.levels.find(function (item) { return item.id === s.selectedLevel; });
@@ -37,7 +41,7 @@
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
     s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
-    s.session = { level: s.selectedLevel, waves: waves, xpScale: (level && level.xpScale) || 1, hpScale: (level && level.hpScale) || 1, elapsed: 0, wave: 1, spawnCount: 0, spawnTimer: .25, eliteSpawned: false, bossSpawned: false, kills: 0, message: "", messageTimer: 0, reward: null };
+    s.session = { level: s.selectedLevel, waves: waves, xpScale: (level && level.xpScale) || 1, hpScale: (level && level.hpScale) || 1, elapsed: 0, wave: 1, spawnCount: 0, spawnTimer: .25, eliteSpawned: false, bossSpawned: false, pendingWin: false, kills: 0, message: "", messageTimer: 0, reward: null };
   };
   Game.layoutWorld = function () {
     var s = Game.state;
@@ -704,10 +708,9 @@
         unique.forEach(function (id) { collect(minions, minionSeen, id, number); });
         if (wave.elite) collect(elites, eliteSeen, wave.elite, number);
         (wave.elitePool || []).forEach(function (id) { collect(elites, eliteSeen, id, number); });
-        if (wave.boss) bossWave = number;
+        if (wave.boss) { bossWave = number; bossId = Game.getWaveBossType(wave); }
       });
     }
-    Object.keys(C.enemies).forEach(function (id) { if (!bossId && (C.enemies[id].codexCategory || "minion") === "boss") bossId = id; });
     if (bossId && bossWave) boss = { id: bossId, name: C.enemies[bossId].name, color: C.enemies[bossId].color, accent: C.enemies[bossId].accent, wave: bossWave, waves: [bossWave] };
     return { minions: minions, elites: elites, boss: boss };
   };

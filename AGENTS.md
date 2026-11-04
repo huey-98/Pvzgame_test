@@ -114,6 +114,7 @@ node tmp\trace-boss.js
 
 ### 瞄准、技能与词条
 
+- 局内等级上限固定为 **LV.20**；从 LV.1 升至 LV.20 的 19 次升级每次都必须进入三选一词条，包含升到 LV.20 的最后一次与清场补级，不得静默跳级。
 - 自动索敌必须考虑预判、真实武器挂点和敌人停步位置；齐射锁一条真实弹道，使用 `Game.getAimAngleForShot`。
 - 每个基础攻击周期只扣 1 发；齐射与连发额外弹丸不额外扣弹，最后一发连发完成后才换弹。
 - 技能释放前必须通过 `Game.isSkillRangeEngaged(id)`；冷却就绪但未进入射程时保持在 0，不得空转进入冷却。索敌函数也必须过滤未进入距离的敌人。
@@ -133,10 +134,11 @@ node tmp\trace-boss.js
 ### 敌人与关卡
 
 - 新敌人优先用 `config.enemies` 的可选字段表达机制，避免在 `spawnEnemy` / `update` 中堆 `type` 判断。
+- 后续新增关卡统一使用 **20 波投放量**；波次、间隔、精英波与首领波位置必须写入 `config.levels[].waves`，由关卡简介自动推导。
 - 近战、远程、飞行的停步位置统一由 `Game.getEnemyHoldY(info)` 给出；远程字段是 `ranged`，飞行字段是 `flying`。
 - 贴地技能在 `skillDefaults[].groundOnly` 标记，命中判断统一走 `Game.canHitEnemy`；当前贴地技能只有装甲车和燃油弹。
 - 每种小怪都应有对应精英；精英固定在第 4 波，每局 1 只，可通过 `elitePool` 随机选择。
-- 首领判断统一使用 `Game.isBossEnemy(enemy)`，不要写死 `enemy.type === "boss"`。正式波次的首领目前是尸潮领主，其他首领只进图鉴与测试场。
+- 首领判断统一使用 `Game.isBossEnemy(enemy)`，不要写死 `enemy.type === "boss"`。波次用可选字段 `bossType` 指定首领，缺省仍为尸潮领主；第 21 关正式使用暴食者。
 - 分裂与阈值召唤一律写入 `S.pendingSpawns`，由 `Game.flushPendingSpawns` 在更新末尾统一生成，不能在遍历中直接改 `S.enemies`。
 - 寒霜兽类单位的 `blocksProjectiles` 会让弹道命中即止；狂暴冲锋、冻结回血、撞线爆炸等机制分别使用既有配置字段和入口，不要复制实现。
 - 炸弹僵尸的低血加速、撞线爆炸和 `wallExplosionTriggered` 规则详见 `config.enemies` 与 README；任何移动或落点预判都必须使用统一速度接口。
