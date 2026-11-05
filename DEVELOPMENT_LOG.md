@@ -660,3 +660,11 @@ git diff --check
 - 电锯僵尸保留 20% / 50% 两档狂暴阈值与冲锋免疫；盾牌僵尸保留四类弹道 10% 减伤；护甲僵尸保留 6 层装甲。看守者通过 `bossType: "warden"` 接入正式波次，第 7 波实际生命为 `round(4200 × 1.52 × 1.45)`，并保留冰系 ×1.5、四类弹道 ×0.01 与击退/眩晕/麻痹免疫。
 - 新增 `tmp/check-level23.js`，覆盖 20 波结构、三种小怪登场顺序、电锯精英、看守者实际生成与机制、1.13 倍血量预算、LV.2～LV.20 共 19 次词条，以及 23 行滚动列表和简介绘制。
 - 验证：`check-level23.js`、`check-level22.js`、`check-level21.js`、`check-level-scroll.js`、`check-level.js 23`、`check-xp.js`、`check-hp-budget.js` 与 `src/*.js` 语法检查通过；第 23 关在第 20/20 波满级，等效血量预算 1116546，较第 22 关 1.13 倍。`npm --prefix frontend run build` 与 `check-react-ssr.mjs` 在沙箱外执行，回放生成第 23 关滚动列表和简介截图。
+
+## 2026-11-05 · 第 24 关雷暴空港
+
+- 新增第 24 关「雷暴空港」：小怪为飞鸟僵尸、毒蜂与雷电僵尸，按第 1～3 波依次登场；雷电僵尸精英固定在第 4 波，第 7 波由尸潮领主与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 波次投放量、间隔与逐波血量倍率沿用第 23 关；关卡 `hpScale` 为 4.02、`xpScale` 为 0.085，等效血量预算 1265702，约为第 23 关的 1.13 倍。
+- 飞鸟与毒蜂保留飞行、远程和贴地技能免疫语义；雷电僵尸保留电系减伤与麻痹减半，其精英完全免疫电系与麻痹。第 7 波通过 `bossType: "boss"` 显式生成尸潮领主，首领生命为 `round(3000 × 4.02 × 1.45)`。
+- 新增 `tmp/check-level24.js`，覆盖 20 波结构、三种小怪登场顺序、雷电精英、尸潮领主实际生成与机制、1.13 倍血量预算、LV.2～LV.20 共 19 次词条，以及 24 行滚动列表和简介绘制。
+- 验证：`check-level24.js`、`check-level23.js`、`check-level22.js`、`check-level21.js`、`check-level-scroll.js`、`check-level.js 24`、`check-xp.js`、`check-hp-budget.js` 与 `src/*.js` 语法检查通过；第 24 关在第 20/20 波满级，等效血量预算 1265702，较第 23 关 1.13 倍。`npm --prefix frontend run build` 与 `check-react-ssr.mjs` 在沙箱外执行，回放生成第 24 关滚动列表和简介截图。

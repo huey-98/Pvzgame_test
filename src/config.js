@@ -312,6 +312,18 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelTwentyFourMixMap = { chainsaw: "bird", shield: "wasp", armored: "thunder" };
+  var levelTwentyFourWaves = levelTwentyThreeWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentyFourMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "thunderElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "boss"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16,
     sprites: {
@@ -960,7 +972,8 @@
       { id: 20, name: "蜂球傀儡馆", subtitle: "篮球、傀儡与毒蜂混编", brief: "篮球僵尸远程投掷，傀儡会分批召唤木偶，毒蜂从空中针刺；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.4, xpScale: .08, waves: levelTwentyWaves },
       { id: 21, name: "焦土盛宴", subtitle: "烈焰尸潮与暴食者压境", brief: "20 波烈焰尸潮持续冲线，第 4 波火焰精英登场，第 7 波暴食者现身。", unlocked: true, hpScale: 3.15, xpScale: .12, waves: levelTwentyOneWaves },
       { id: 22, name: "沉没码头", subtitle: "盾牌、炸弹与蜥蜴混编", brief: "盾牌、炸弹与蜥蜴僵尸混编，第 4 波盾牌精英领队，第 7 波深海巨兽破水而出。", unlocked: true, hpScale: 1.3, xpScale: .06, waves: levelTwentyTwoWaves },
-      { id: 23, name: "断罪工坊", subtitle: "重甲尸群与看守者堵截", brief: "电锯、盾牌与护甲僵尸依次压上，第 4 波电锯精英领队，第 7 波看守者镇守。", unlocked: true, hpScale: 1.52, xpScale: .06, waves: levelTwentyThreeWaves }
+      { id: 23, name: "断罪工坊", subtitle: "重甲尸群与看守者堵截", brief: "电锯、盾牌与护甲僵尸依次压上，第 4 波电锯精英领队，第 7 波看守者镇守。", unlocked: true, hpScale: 1.52, xpScale: .06, waves: levelTwentyThreeWaves },
+      { id: 24, name: "雷暴空港", subtitle: "飞鸟、毒蜂与雷电混编", brief: "飞鸟与毒蜂从空中压上，雷电僵尸抗电；第 4 波雷电精英领队，第 7 波尸潮领主现身。", unlocked: true, hpScale: 4.02, xpScale: .085, waves: levelTwentyFourWaves }
     ],
     waves: levelOneWaves
   };
