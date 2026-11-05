@@ -665,6 +665,44 @@ git diff --check
 
 - 新增第 24 关「雷暴空港」：小怪为飞鸟僵尸、毒蜂与雷电僵尸，按第 1～3 波依次登场；雷电僵尸精英固定在第 4 波，第 7 波由尸潮领主与小怪同场；共 20 波、常规小怪总投放 2988 只。
 - 波次投放量、间隔与逐波血量倍率沿用第 23 关；关卡 `hpScale` 为 4.02、`xpScale` 为 0.085，等效血量预算 1265702，约为第 23 关的 1.13 倍。
-- 飞鸟与毒蜂保留飞行、远程和贴地技能免疫语义；雷电僵尸保留电系减伤与麻痹减半，其精英完全免疫电系与麻痹。第 7 波通过 `bossType: "boss"` 显式生成尸潮领主，首领生命为 `round(3000 × 4.02 × 1.45)`。
+- 飞鸟与毒蜂保留飞行、远程和贴地技能免疫语义；雷电僵尸保留电系减伤与麻痹减半，其精英完全免疫电系与麻痹。第 7 波通过 `bossType: "boss"` 显式生成尸潮领主，首领生命为 `round(3000 × 4.02 × 1.45) × 5`。
 - 新增 `tmp/check-level24.js`，覆盖 20 波结构、三种小怪登场顺序、雷电精英、尸潮领主实际生成与机制、1.13 倍血量预算、LV.2～LV.20 共 19 次词条，以及 24 行滚动列表和简介绘制。
 - 验证：`check-level24.js`、`check-level23.js`、`check-level22.js`、`check-level21.js`、`check-level-scroll.js`、`check-level.js 24`、`check-xp.js`、`check-hp-budget.js` 与 `src/*.js` 语法检查通过；第 24 关在第 20/20 波满级，等效血量预算 1265702，较第 23 关 1.13 倍。`npm --prefix frontend run build` 与 `check-react-ssr.mjs` 在沙箱外执行，回放生成第 24 关滚动列表和简介截图。
+
+## 2026-11-05 · 首领烈焰掌控者
+
+- 新增首领 `flameMaster`「烈焰掌控者」：生命 4800、移速 9、半径 36、城墙伤害 30、经验 155；`damageTakenByElement` 配置冰系与火系均为 `0`，`statusImmune` 同时免疫燃烧、冻结与冻伤。物理、能量、电系、风系以及减速、眩晕、麻痹、击退和重伤仍正常生效。
+- `src/render.js` 新增独立 Canvas 造型 `drawFlameMasterBody`：焦黑重甲、熔火胸口核心、火焰冠冕、冰晶肩饰与灼热外环；战场和僵尸图鉴共用同一绘制链，图鉴上下外扩单独设为 1.82 / 1.34，防止冠冕和披风被裁切。
+- 测试场与首领图鉴均由 `codexCategory: "boss"` 自动收录，首领在测试场居中生成并使用通用首领血条；未写入任何 `config.levels[].waves`，既有正式关卡阵容、经验与血量预算不变。
+- 新增 `tmp/check-flame-master.js` 共 37 项断言，覆盖配置、首领判定、测试场与图鉴收录、冰火直伤归零、其它四系正常受伤、燃烧 / 冻伤 / 冻结拒绝写入、其它控制仍生效、居中生成、独立配色与血条绘制。`tmp/check-resist.js` 扩展到 17 组 30 种抗性形态并实测冰火免疫；`tmp/check-status.js` 同步当前暴食者的牵引速度缩放声明。
+- 验证：`check-flame-master.js`、`check-resist.js`、`check-status.js`、`check-test-panel.js`、`check-bomber.js`、`check-level24.js` 与 `trace-boss.js` 全部通过；`src/*.js` 语法检查与 `git diff --check` 通过。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-draw.js flameMaster` 与 `codex boss flameMaster` 串行录制，再由 `tmp/replay-draw.py` 回放为 `tmp/flame-master.png` 与 `tmp/flame-master-codex.png`；核对战场减速 / 眩晕状态、首领血条、独立造型，以及图鉴中的冰火免疫和三项状态免疫标签均无重叠或裁切。
+
+## 2026-11-05 · 首领 5 条血与第 25 关腐殖温室
+
+- 全局首领血条由 3 条显示分段改为 5 条真实生命：`config.bossHealth.bars` 为 5，`Game.spawnEnemy` 对首领的缩放后生命再乘 5，`Game.getEnemyHealthBars` 统一返回首领 5 条、精英 1 条、小怪 0 条。
+- 新增 `Game.drawEnemyHealthBar` 作为首领与精英共用的宽血条绘制入口；精英使用与首领相同的 108×9 深红底、亮红前景与 `×1` 计数，总生命不额外放大。`Game.drawBossHealthBar` 保留为首领兼容入口。
+- 新增第 25 关「腐殖温室」：小怪为火焰僵尸、雪人僵尸与傀儡僵尸，按第 1～3 波依次登场；傀儡僵尸精英固定在第 4 波，第 7 波由暴食者与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 波次投放量、间隔与逐波血量倍率沿用第 24 关；关卡 `hpScale` 为 2.12、`xpScale` 为 0.07，等效血量预算 1438614，约为第 24 关的 1.14 倍。
+- 新增 `tmp/check-level25.js` 与 `tmp/check-health-bars.js`，覆盖 20 波阵容、傀儡精英、暴食者生成、首领真实 5 倍生命、精英同款 ×1 血条、25 行滚动列表、LV.2～LV.20 共 19 次词条与通关。
+- 验证：`check-level25.js`、`check-health-bars.js`、第 21～24 关专项回归、`check-level.js 25`、`check-xp.js`、`check-hp-budget.js` 与 `src/*.js` 语法检查通过；`trace-boss.js` 已更新为 5 条血和精英同款样式，并回放生成 `tmp/boss-health.png`。全量 `smoke-whirlwind.js` 的旧关卡列表、技能词条数量和早期等级上限断言仍存在历史失败，与本轮第 25 关及血条逻辑无关。
+
+## 2026-11-05 · 风暴先锋、首领放大与深海巨兽水柱
+
+- 新增首领 `stormVanguard`「风暴先锋」：生命 5000、移速 11、半径 35、城墙伤害 32、经验 160；`damageTakenByElement` 配置电系与能量系均为 `0`，`statusImmune` 同时免疫麻痹、眩晕与击退。冻结、减速、牵引、燃烧与重伤仍正常生效。测试场与首领图鉴自动收录，未写入正式关卡波次。
+- `src/render.js` 新增 `drawStormVanguardBody`：风暴动力甲、旋转风核、雷电长矛、双层风环与电弧细节；图鉴上下外扩单独设为 2.02 / 1.34。
+- 全局首领局内视觉模型统一乘 `config.bossModelScale = 1.5`，由 `Game.getEnemyModelScale` 和 `drawEnemies` 上下文缩放实现；状态环与头顶血条同步使用放大后的视觉半径。`drawCodexEnemyModel` 传入 `noBossScale`，僵尸图鉴保持原尺寸；碰撞半径、停步位置与伤害判定不变。
+- 深海巨兽从近战改为远程：在距攻击线 170 像素处停下，每 2.8 秒喷射 3 道水柱，三枚弹体横向间隔 24 像素、以 0.18 秒依次发射，每道对城墙造成 28 点伤害。`Game.throwEnemyShot` 支持通用 `ranged.salvo` / `salvoInterval` / `spread`，`updateEnemyShots` 支持首发延迟，水柱使用独立高压水体绘制。
+- 新增 `tmp/check-boss-update.js` 共 41 项断言，覆盖风暴先锋免疫边界、图鉴与测试场、6 个首领的 1.5 倍局内缩放、图鉴不缩放、深海巨兽停步距离、三发延迟、三次独立扣血与伤害数字、水柱配色；`tmp/check-resist.js` 扩展到 18 组 31 种抗性形态。
+- 验证：`check-boss-update.js`、`check-level22.js`、`check-flame-master.js`、`check-resist.js`、`check-status.js`、`check-test-panel.js`、`check-bomber.js`、`trace-boss.js` 与 `src/*.js` 语法检查通过；`git diff --check` 通过。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-draw.js stormVanguard`、`bosses`、`deepSeaVolley` 与 `codex boss stormVanguard` 串行录制并回放为 `tmp/storm-vanguard.png`、`tmp/bosses-scaled.png`、`tmp/deep-sea-volley.png`、`tmp/storm-vanguard-codex.png`；另回放 `tmp/deep-sea-beast-codex.png` 核对三连水柱说明。
+- 额外补跑的 `check-wasp.js` 与 `check-flying.js` 通过。`check-level13.js` 仍因固定「关卡总数 13」「首领 3 条血」等旧断言失败，与本次风暴先锋、首领放大和深海巨兽攻击方式无关。
+
+## 2026-11-05 · 第 26 关风暴禁区
+
+- 新增第 26 关「风暴禁区」：小怪为雷电僵尸、毒蜂与炸弹僵尸，按第 1～3 波依次登场；雷电僵尸精英固定在第 4 波，第 7 波由风暴先锋与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 波次投放量、间隔与逐波血量倍率沿用第 25 关；关卡 `hpScale` 为 2.7、`xpScale` 为 0.07，等效血量预算 1592033，约为第 25 关的 1.11 倍。
+- 雷电僵尸保留电系减半与麻痹减半，毒蜂保留飞行、远程、弱风与抗能量，炸弹僵尸保留眩晕免疫、半血加速与撞线爆炸；风暴先锋免疫电系、能量系以及眩晕、麻痹与击退，实际总生命为 `round(5000 × 2.7 × 1.45) × 5`。
+- 新增 `tmp/check-level26.js`，覆盖 20 波阵容、雷电精英、风暴先锋实际生成与免疫、等效血量预算、26 行滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 验证：`check-level26.js`、`check-level.js 26`、`check-xp.js`、`check-hp-budget.js`、第 21～25 关专项、`check-level-scroll.js`、`check-boss-update.js`、基础语法检查与 `git diff --check` 通过；`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。第 26 关在第 20/20 波满级，升级词条 19 次，等效血量预算 1592033。
+- 画面用 `tmp/trace-level-select.js 26` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-26.png`，核对 26 行滚动列表、简介面板、雷电 / 毒蜂 / 炸弹 / 雷电精英 / 风暴先锋五行阵容与面板边界均无重叠或越界。

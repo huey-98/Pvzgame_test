@@ -42,13 +42,14 @@ node tmp\check-rewards.js
 node tmp\check-skills.js
 
 # 敌人机制
+node tmp\check-boss-update.js
 node tmp\check-bomber.js
 node tmp\trace-boss.js
 ```
 
 - 逻辑回归优先写成一次性 `node -e`；Canvas 可用 `Proxy` 桩模拟 `getContext("2d")`。
 - 本机不能用无头浏览器做画面验证。用 `tmp/trace-draw.js` 记录绘制指令到 `tmp/draw-ops.json`，再用 `tmp/replay-draw.py` 回放 PNG。
-- `trace-draw.js` 支持 `enemies`、`status`、`wasp`、`wheelchair`、`frostBeast`、`lizard`、`bomber`、`codex ...`、`account ...` 等场景。
+- `trace-draw.js` 支持 `enemies`、`status`、`wasp`、`wheelchair`、`frostBeast`、`lizard`、`bomber`、`flameMaster`、`stormVanguard`、`bosses`、`deepSeaVolley`、`codex ...`、`account ...` 等场景。
 - 调试脚本、日志、截图和导出数据一律放在 `tmp/`；需要长期复用的内容才移入 `src/` 或文档。
 - 不引入测试框架、Redux、TypeScript 或新的运行时依赖，除非用户明确要求；React/Vite 依赖只由 `frontend/package.json` 管理。
 
@@ -143,6 +144,8 @@ node tmp\trace-boss.js
 - 寒霜兽类单位的 `blocksProjectiles` 会让弹道命中即止；狂暴冲锋、冻结回血、撞线爆炸等机制分别使用既有配置字段和入口，不要复制实现。
 - 炸弹僵尸的低血加速、撞线爆炸和 `wallExplosionTriggered` 规则详见 `config.enemies` 与 README；任何移动或落点预判都必须使用统一速度接口。
 - 新增特殊外观时同步更新 `render.js` 的类型判断；完整自定义身体绘制完成后尽早 `return`，不要继续叠加通用僵尸部件。
+- 远程齐射使用 `ranged.salvo` / `salvoInterval` / `spread`：每枚弹体独立结算伤害，首发延迟由 `delay` 推进；不要为单一首领复制多段发射逻辑。
+- 所有首领的局内模型统一乘 `config.bossModelScale`（当前 1.5）；僵尸图鉴通过 `Game.drawEnemies(..., { noBossScale: true })` 保持原尺寸，模型缩放不改变碰撞半径。
 - 关卡与波次只配置在 `config.levels` / `waves` 中；`Game.reset` 后逻辑与 HUD 只读 `S.session.waves`。
 
 ## 常见扩展流程

@@ -42,6 +42,12 @@
     var info = enemy && C.enemies[enemy.type];
     return !!(info && info.codexCategory === "boss");
   };
+  Game.getEnemyHealthBars = function (enemy) {
+    var info = enemy && C.enemies[enemy.type], cfg = C.bossHealth || {};
+    if (Game.isBossEnemy(enemy)) return Math.max(1, cfg.bars || 1);
+    if (info && info.codexCategory === "elite") return Math.max(1, cfg.eliteBars || 1);
+    return 0;
+  };
   Game.isRaging = function (enemy) { return !!enemy && (enemy.rageTimer || 0) > 0; };
   Game.getEnemyMoveSpeed = function (enemy, info) {
     info = info || (enemy && C.enemies[enemy.type]);
@@ -93,6 +99,7 @@
     var x = opts.x === undefined ? U.rand(edge, C.width - edge) : U.clamp(opts.x, radius, C.width - radius);
     var y = opts.y === undefined ? -radius - 8 : U.clamp(opts.y, -radius, S.wall ? S.wall.y - S.wall.height / 2 - radius - 3 : C.height);
     var maxHp = Math.round(info.hp * ((S.session && S.session.hpScale) || 1) * Game.getWaveHpScale());
+    if (Game.isBossEnemy({ type: type })) maxHp *= Game.getEnemyHealthBars({ type: type });
     var enemy = { type: type, x: x, y: y, hp: maxHp, maxHp: maxHp, slow: 0, slowFactor: .58, damageTakenTimer: 0, damageTakenMultiplier: 1, burn: 0, burnDps: 0, frostbiteStacks: {}, frostbiteDps: {}, control: 0, controlType: "", wound: 0, woundFactor: 0, woundExtra: 0, woundExtraFactor: 0, hitFlash: 0, attackTimer: 0, summons: 0, regenPerSecond: info.regenPerSecond || 0, armorCharges: info.armorCharges || 0, armorStamp: -1e9, armorFlash: 0, wallExplosionTriggered: false, rageTriggered: false, rageTimer: 0, rageRecoveryTimer: 0, scorchStacks: 0, scorchTimer: 0, napalmMark: 0 };
     if (Game.isBossEnemy({ type: type })) enemy.x = C.width / 2;
     S.enemies.push(enemy);
@@ -1988,14 +1995,18 @@
     return true;
   };
   Game.throwEnemyShot = function (enemy) {
-    var info = C.enemies[enemy.type], ranged = info.ranged;
+    var info = C.enemies[enemy.type], ranged = info.ranged, count = Math.max(1, Math.floor(ranged && ranged.salvo || 1)), i, offset;
     if (!ranged) return false;
-    S.enemyShots.push({ type: ranged.shot || "basketball", accent: info.accent, x: enemy.x, y: enemy.y + info.radius * .3, targetY: S.wall.y - S.wall.height / 2, startY: enemy.y + info.radius * .3, damage: ranged.damage, speed: ranged.projectileSpeed, radius: ranged.projectileRadius, spin: 0, travel: 0 });
+    for (i = 0; i < count; i++) {
+      offset = count === 1 ? 0 : (i - (count - 1) / 2) * (ranged.spread || 0);
+      S.enemyShots.push({ type: ranged.shot || "basketball", accent: info.accent, x: U.clamp(enemy.x + offset, 12, C.width - 12), y: enemy.y + info.radius * .3, targetY: S.wall.y - S.wall.height / 2, startY: enemy.y + info.radius * .3, damage: ranged.damage, speed: ranged.projectileSpeed, radius: ranged.projectileRadius, spin: 0, travel: 0, delay: i * (ranged.salvoInterval || 0) });
+    }
     return true;
   };
   Game.updateEnemyShots = function (dt) {
     for (var i = S.enemyShots.length - 1; i >= 0; i--) {
       var shot = S.enemyShots[i];
+      if (shot.delay > 0) { shot.delay = Math.max(0, shot.delay - dt); continue; }
       shot.y += shot.speed * dt;
       shot.spin += dt * 7;
       shot.travel += shot.speed * dt;
