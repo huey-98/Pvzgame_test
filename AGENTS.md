@@ -69,7 +69,7 @@ node tmp\check-super-traits.js
 
 - 逻辑回归优先写成一次性 `node -e`；Canvas 可用 `Proxy` 桩模拟 `getContext("2d")`。
 - 本机不能用无头浏览器做画面验证。用 `tmp/trace-draw.js` 记录绘制指令到 `tmp/draw-ops.json`，再用 `tmp/replay-draw.py` 回放 PNG。
-- `trace-draw.js` 支持 `enemies`、`status`、`wasp`、`wheelchair`、`frostBeast`、`lizard`、`bomber`、`flameMaster`、`stormVanguard`、`bosses`、`deepSeaVolley`、`codex ...`、`account ...` 等场景。
+- `trace-draw.js` 支持 `enemies`、`status`、`wasp`、`wheelchair`、`frostBeast`、`lizard`、`bomber`、`flameMaster`、`stormVanguard`、`mechanicalPioneer`、`bosses`、`deepSeaVolley`、`codex ...`、`account ...` 等场景。
 - 调试脚本、日志、截图和导出数据一律放在 `tmp/`；需要长期复用的内容才移入 `src/` 或文档。
 - 不引入测试框架、Redux、TypeScript 或新的运行时依赖，除非用户明确要求；React/Vite 依赖只由 `frontend/package.json` 管理。
 

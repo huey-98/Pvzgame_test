@@ -348,6 +348,30 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelTwentySevenMixMap = { thunder: "flame", wasp: "chainsaw", bomber: "shield" };
+  var levelTwentySevenWaves = levelTwentySixWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentySevenMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "flameElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "flameMaster"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelTwentyEightMixMap = { flame: "frostBeast", chainsaw: "snowman", shield: "wheelchair" };
+  var levelTwentyEightWaves = levelTwentySevenWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentyEightMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "frostBeastElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "warden"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16, bossModelScale: 1.5,
     sprites: {
@@ -838,7 +862,8 @@
       warden: { name: "看守者", codexCategory: "boss", description: "披着重甲、举着巨型盾牌的装甲武士首领，盾牌几乎能挡住所有弹道。", tactics: "步枪、干冰弹、温压弹与压缩气刃的弹道伤害只剩 1%，但冰系伤害提高 50%；它无法被击退，也不会受到眩晕与麻痹。", hp: 4200, speed: 8, radius: 36, damage: 30, xp: 135, color: "#53606e", accent: "#c7e8ff", damageTakenByElement: { ice: 1.5 }, damageTakenBySource: { rifle: .01, dryIce: .01, thermobaric: .01, airBlade: .01 }, statusImmune: { knockback: true, stun: true, paralysis: true } },
       deepSeaBeast: { name: "深海巨兽", codexCategory: "boss", description: "披着深蓝色皮肤的巨大章鱼首领，在远处连续喷出三道高压水柱，冻结时反而会吸收寒气恢复生命。", tactics: "燃烧无效，冰系减半、电系 +50%。它会在中距离连续喷射三道水柱，每道单独伤害城墙；冻结时每秒回血 45 点，优先用电系压制。", hp: 4500, speed: 8, radius: 35, damage: 28, xp: 145, color: "#245d91", accent: "#76d7ff", damageTakenByElement: { ice: .5, electric: 1.5 }, statusImmune: { burn: true }, ranged: { standoff: 170, interval: 2.8, projectileSpeed: 220, projectileRadius: 12, damage: 28, shot: "waterColumn", action: "喷射", salvo: 3, salvoInterval: .18, spread: 24 }, freezeHealPerSecond: 45 },
       flameMaster: { name: "烈焰掌控者", codexCategory: "boss", description: "披着焦黑重甲的烈焰首领，熔火核心会将冰霜与火焰一并吞没：冰系、火系伤害完全无效，燃烧、冻结与冻伤也无法附着。", tactics: "不要投入冰系或火系输出；改用物理、能量、电系与风系技能，并利用减速、眩晕、麻痹、击退和重伤压制。", hp: 4800, speed: 9, radius: 36, damage: 30, xp: 155, color: "#7d261a", accent: "#ffb347", damageTakenByElement: { ice: 0, fire: 0 }, statusImmune: { burn: true, freeze: true, frostbite: true } },
-      stormVanguard: { name: "风暴先锋", codexCategory: "boss", description: "身披风暴动力甲的先锋首领，磁场护盾会吞没电系与能量伤害，并让麻痹、眩晕和击退完全失效。", tactics: "电系与能量系输出完全无效，控制和击退也打不动它；改用物理、冰系、火系与风系伤害，并用减速、冻结和重伤限制推进。", hp: 5000, speed: 11, radius: 35, damage: 32, xp: 160, color: "#28536f", accent: "#8ff4ff", damageTakenByElement: { electric: 0, energy: 0 }, statusImmune: { paralysis: true, stun: true, knockback: true } }
+      stormVanguard: { name: "风暴先锋", codexCategory: "boss", description: "身披风暴动力甲的先锋首领，磁场护盾会吞没电系与能量伤害，并让麻痹、眩晕和击退完全失效。", tactics: "电系与能量系输出完全无效，控制和击退也打不动它；改用物理、冰系、火系与风系伤害，并用减速、冻结和重伤限制推进。", hp: 5000, speed: 11, radius: 35, damage: 32, xp: 160, color: "#28536f", accent: "#8ff4ff", damageTakenByElement: { electric: 0, energy: 0 }, statusImmune: { paralysis: true, stun: true, knockback: true } },
+      mechanicalPioneer: { name: "机械垦荒者", codexCategory: "boss", description: "一名小僵尸驾驶着重型金属机甲，钻头发射器会在远处朝防线齐射两枚白色金属钻头。机体免疫物理伤害，并完全免疫燃烧、麻痹、眩晕与击退。", tactics: "物理攻击无效，能量伤害减半，风系可打出 1.5 倍伤害；减速、冻结、牵引与重伤仍有效。它停在 170 像素外连续发射两枚钻头，优先在出手前压低血量。", hp: 4800, speed: 10, radius: 36, damage: 30, xp: 150, color: "#59656f", accent: "#f4f7fa", damageTakenByElement: { physical: 0, energy: .5, wind: 1.5 }, statusImmune: { burn: true, paralysis: true, stun: true, knockback: true }, ranged: { standoff: 170, interval: 2.6, projectileSpeed: 250, projectileRadius: 11, damage: 28, shot: "metalDrill", action: "钻头齐射", salvo: 2, salvoInterval: .16, spread: 22 } }
     },
     skillDefaults: {
       thermobaric: { unlocked: false, level: 0, fireInterval: 5, projectileSpeed: 250, projectileRadius: 8, impactDamage: 32, impactKnockback: 24, explosionDamage: 58, explosionRadius: 68, explosionKnockback: 42, burnDps: 10, burnDuration: 2.5, pierce: 0, burst: 0, sacrificeEnabled: false },
@@ -1002,7 +1027,9 @@
       { id: 23, name: "断罪工坊", subtitle: "重甲尸群与看守者堵截", brief: "电锯、盾牌与护甲僵尸依次压上，第 4 波电锯精英领队，第 7 波看守者镇守。", unlocked: true, hpScale: 1.52, xpScale: .06, waves: levelTwentyThreeWaves },
       { id: 24, name: "雷暴空港", subtitle: "飞鸟、毒蜂与雷电混编", brief: "飞鸟与毒蜂从空中压上，雷电僵尸抗电；第 4 波雷电精英领队，第 7 波尸潮领主现身。", unlocked: true, hpScale: 4.02, xpScale: .085, waves: levelTwentyFourWaves },
       { id: 25, name: "腐殖温室", subtitle: "火焰、雪人与傀儡混编", brief: "火焰与雪人僵尸元素互克，傀儡在半血与四分之一血召唤木偶；第 4 波傀儡精英领队，第 7 波暴食者现身。", unlocked: true, hpScale: 2.12, xpScale: .07, waves: levelTwentyFiveWaves },
-      { id: 26, name: "风暴禁区", subtitle: "雷电、毒蜂与炸弹混编", brief: "雷电与毒蜂从空中压上，炸弹僵尸撞线引爆；第 4 波雷电精英领队，第 7 波风暴先锋现身。", unlocked: true, hpScale: 2.7, xpScale: .07, waves: levelTwentySixWaves }
+      { id: 26, name: "风暴禁区", subtitle: "雷电、毒蜂与炸弹混编", brief: "雷电与毒蜂从空中压上，炸弹僵尸撞线引爆；第 4 波雷电精英领队，第 7 波风暴先锋现身。", unlocked: true, hpScale: 2.7, xpScale: .07, waves: levelTwentySixWaves },
+      { id: 27, name: "熔火王座", subtitle: "烈焰、电锯与盾牌混编", brief: "火焰、电锯与盾牌僵尸依次压上，烈焰掌控者封锁冰火直伤；第 4 波火焰精英，第 7 波烈焰掌控者现身。", unlocked: true, hpScale: 2.7, xpScale: .065, waves: levelTwentySevenWaves },
+      { id: 28, name: "霜狱回廊", subtitle: "寒霜兽、雪人与轮椅混编", brief: "寒霜兽阻挡弹道，雪人抗冰、轮椅半血回血；第 4 波寒霜兽精英，第 7 波看守者镇守。", unlocked: true, hpScale: 2.2, xpScale: .059, waves: levelTwentyEightWaves }
     ],
     waves: levelOneWaves
   };

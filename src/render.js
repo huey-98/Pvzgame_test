@@ -1549,6 +1549,121 @@
     ctx.quadraticCurveTo(r * .48, r * .5, r * .28, r * .8);
     ctx.stroke();
   }
+  function drawMechanicalPioneerBody(r, info, phase) {
+    var metal = "#7d8b92", metalLight = "#e7edf0", metalDark = "#26343a", armor = "#4f6068", steel = "#aebbc0";
+    var joint = "#182328", glass = "rgba(132, 224, 226, .17)", eye = "#effcff", rust = "#9a603d";
+    var sway = Math.sin(phase) * r * .025, step = Math.sin(phase * 2.2) * r * .055, side, tread;
+    var chassis = ctx.createLinearGradient(-r * .72, -r * .5, r * .7, r * 1.02);
+    chassis.addColorStop(0, "#9ba8ad");
+    chassis.addColorStop(.38, armor);
+    chassis.addColorStop(1, "#202d33");
+    ctx.fillStyle = "rgba(0, 0, 0, .42)";
+    ctx.beginPath(); ctx.ellipse(r * .04, r * 1.2, r * 1.2, r * .3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = metalDark; ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(3, r * .18);
+    ctx.beginPath();
+    ctx.moveTo(-r * .42, r * .43); ctx.lineTo(-r * .5, r * .94 + step);
+    ctx.moveTo(r * .42, r * .43); ctx.lineTo(r * .5, r * .94 - step);
+    ctx.stroke();
+    ctx.strokeStyle = metal; ctx.lineWidth = Math.max(2, r * .105);
+    ctx.beginPath();
+    ctx.moveTo(-r * .5, r * .94 + step); ctx.lineTo(-r * .68, r * 1.05 + step);
+    ctx.moveTo(r * .5, r * .94 - step); ctx.lineTo(r * .68, r * 1.05 - step);
+    ctx.stroke();
+    for (tread = -1; tread <= 1; tread += 2) {
+      ctx.fillStyle = joint;
+      ctx.beginPath(); ctx.arc(tread * r * .76, r * .93, r * .28, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = metalDark;
+      ctx.beginPath(); ctx.arc(tread * r * .76, r * .93, r * .2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = steel; ctx.lineWidth = Math.max(1, r * .035);
+      ctx.beginPath(); ctx.arc(tread * r * .76, r * .93, r * .13, 0, Math.PI * 2); ctx.stroke();
+      for (var spoke = 0; spoke < 4; spoke++) {
+        var spokeAngle = tread * .7 + spoke * Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(tread * r * .76, r * .93);
+        ctx.lineTo(tread * r * .76 + Math.cos(spokeAngle) * r * .18, r * .93 + Math.sin(spokeAngle) * r * .18);
+        ctx.stroke();
+      }
+    }
+    ctx.save();
+    ctx.translate(sway, 0);
+    ctx.fillStyle = "#1a272c"; ctx.strokeStyle = metalDark; ctx.lineWidth = Math.max(2, r * .065);
+    ctx.beginPath();
+    ctx.moveTo(-r * .66, r * .58);
+    ctx.lineTo(-r * .9, r * .35);
+    ctx.lineTo(-r * 1.02, r * .55);
+    ctx.lineTo(-r * .78, r * .76);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(r * .66, r * .58);
+    ctx.lineTo(r * .9, r * .35);
+    ctx.lineTo(r * 1.02, r * .55);
+    ctx.lineTo(r * .78, r * .76);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    U.roundedRect(ctx, -r * .73, -r * .34, r * 1.46, r * 1.1, r * .14, chassis, metalDark);
+    ctx.fillStyle = "#18272d";
+    U.roundedRect(ctx, -r * .52, r * .32, r * 1.04, r * .28, r * .06, "#18272d", "rgba(231, 237, 240, .22)");
+    ctx.fillStyle = rust;
+    for (var stripe = -2; stripe <= 2; stripe++) {
+      ctx.save();
+      ctx.translate(stripe * r * .2, r * .46);
+      ctx.rotate(-.38);
+      ctx.fillRect(-r * .035, -r * .13, r * .07, r * .26);
+      ctx.restore();
+    }
+    ctx.fillStyle = metalLight; ctx.strokeStyle = metalDark; ctx.lineWidth = Math.max(1, r * .04);
+    ctx.beginPath(); ctx.arc(-r * .47, r * .78, r * .055, 0, Math.PI * 2); ctx.arc(r * .47, r * .78, r * .055, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#101b20";
+    U.roundedRect(ctx, -r * .42, -r * .94, r * .84, r * .72, r * .12, "#101b20", metal);
+    ctx.fillStyle = glass;
+    U.roundedRect(ctx, -r * .34, -r * .88, r * .68, r * .6, r * .09, glass, "rgba(231, 237, 240, .34)");
+    drawZombieHead(r * .38, info, 0, -r * .58, 1);
+    ctx.strokeStyle = "rgba(231, 237, 240, .62)"; ctx.lineWidth = Math.max(1, r * .035);
+    ctx.beginPath();
+    ctx.moveTo(-r * .32, -r * .86); ctx.lineTo(-r * .26, -r * .3);
+    ctx.moveTo(r * .32, -r * .86); ctx.lineTo(r * .26, -r * .3);
+    ctx.stroke();
+    ctx.fillStyle = "#314148"; ctx.strokeStyle = metalLight; ctx.lineWidth = Math.max(1, r * .035);
+    ctx.beginPath(); ctx.moveTo(-r * .44, -r * .31); ctx.lineTo(r * .44, -r * .31); ctx.lineTo(r * .35, r * .02); ctx.lineTo(-r * .35, r * .02); ctx.closePath(); ctx.fill(); ctx.stroke();
+    for (side = -1; side <= 1; side += 2) {
+      ctx.strokeStyle = metalDark; ctx.lineWidth = Math.max(3, r * .16);
+      ctx.beginPath(); ctx.moveTo(side * r * .6, -r * .22); ctx.lineTo(side * r * .83, -r * .5); ctx.stroke();
+      ctx.fillStyle = armor; ctx.strokeStyle = metalLight; ctx.lineWidth = Math.max(1, r * .045);
+      U.roundedRect(ctx, side < 0 ? -r * .98 : r * .58, -r * .78, r * .4, r * .61, r * .08, armor, metalLight);
+      ctx.fillStyle = metalDark;
+      ctx.beginPath(); ctx.arc(side * r * .78, -r * .59, r * .13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = metalLight;
+      ctx.fillRect(side * r * .71, -r * 1.2, r * .14, r * .46);
+      ctx.strokeStyle = "#f8fbfc"; ctx.lineWidth = Math.max(1, r * .04);
+      ctx.beginPath();
+      for (var thread = 0; thread < 4; thread++) {
+        var threadY = -r * (1.17 - thread * .09);
+        ctx.moveTo(side * r * .71, threadY);
+        ctx.lineTo(side * r * .85, threadY - r * .035);
+      }
+      ctx.stroke();
+      ctx.fillStyle = "#f8fbfc"; ctx.strokeStyle = "#526169"; ctx.lineWidth = Math.max(1, r * .035);
+      ctx.beginPath();
+      ctx.moveTo(side * r * .78 - r * .13, -r * 1.19);
+      ctx.lineTo(side * r * .78, -r * 1.55);
+      ctx.lineTo(side * r * .78 + r * .13, -r * 1.19);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = "rgba(82, 97, 105, .72)"; ctx.lineWidth = Math.max(.8, r * .025);
+      ctx.beginPath(); ctx.moveTo(side * r * .78 - r * .09, -r * 1.22); ctx.lineTo(side * r * .78 + r * .08, -r * 1.3);
+      ctx.moveTo(side * r * .78 - r * .06, -r * 1.32); ctx.lineTo(side * r * .78 + r * .05, -r * 1.38); ctx.stroke();
+    }
+    ctx.save();
+    ctx.shadowColor = "rgba(239, 252, 255, .88)"; ctx.shadowBlur = Math.max(5, r * .34);
+    ctx.fillStyle = eye;
+    ctx.beginPath(); ctx.arc(0, r * .12, r * .07 + Math.sin(phase * 3) * r * .008, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = "rgba(231, 237, 240, .36)"; ctx.lineWidth = Math.max(1, r * .035);
+    ctx.beginPath();
+    ctx.moveTo(-r * .55, -r * .12); ctx.lineTo(-r * .38, -r * .02); ctx.lineTo(-r * .52, r * .12);
+    ctx.moveTo(r * .55, -r * .12); ctx.lineTo(r * .38, -r * .02); ctx.lineTo(r * .52, r * .12);
+    ctx.stroke();
+    ctx.restore();
+  }
   function drawLizardBody(r, info, elite, phase) {
     var scale = elite ? "#41633a" : "#5b7f45", dark = elite ? "#1c2e1c" : "#2b4023", pale = elite ? "#86a26a" : "#a6c17f";
     var head = elite ? "#4f7444" : "#6d9252", spike = elite ? "#d9b45a" : "#cfe08c", claw = elite ? "#f0e4c0" : "#e4ddba";
@@ -1928,7 +2043,7 @@
       var isShield = enemy.type === "shield" || enemy.type === "shieldElite";
       var isChainsaw = enemy.type === "chainsaw" || enemy.type === "chainsawElite";
       var isBomber = enemy.type === "bomber" || enemy.type === "bomberElite";
-      var isBoss = Game.isBossEnemy(enemy), isDevourer = enemy.type === "devourer", isWarden = enemy.type === "warden", isDeepSeaBeast = enemy.type === "deepSeaBeast", isFlameMaster = enemy.type === "flameMaster", isStormVanguard = enemy.type === "stormVanguard";
+      var isBoss = Game.isBossEnemy(enemy), isDevourer = enemy.type === "devourer", isWarden = enemy.type === "warden", isDeepSeaBeast = enemy.type === "deepSeaBeast", isFlameMaster = enemy.type === "flameMaster", isStormVanguard = enemy.type === "stormVanguard", isMechanicalPioneer = enemy.type === "mechanicalPioneer";
       var modelScale = Game.getEnemyModelScale(enemy, options), visualRadius = r * modelScale;
       if (!singleEnemy) {
         var cullMargin = (C.performance && C.performance.cullMargin) || 32;
@@ -2062,6 +2177,19 @@
         return;
       }
 
+      if (isMechanicalPioneer) {
+        ctx.save();
+        ctx.shadowColor = "rgba(231, 237, 240, .68)"; ctx.shadowBlur = Math.max(10, r * .42);
+        ctx.strokeStyle = "#f4f7fa"; ctx.lineWidth = Math.max(2, r * .07);
+        ctx.beginPath(); ctx.arc(0, r * .1, r * 1.24 + Math.sin(S.session.elapsed * 3.4) * r * .02, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        drawMechanicalPioneerBody(r, info, S.session.elapsed * 1.9 + enemy.x * .04 + enemy.y * .03);
+        if (Game.isHardControlled(enemy) && enemy.controlType === "freeze") drawFreezeShell(enemy, r, info);
+        ctx.restore();
+        drawEnemyVitals(enemy, visualRadius);
+        return;
+      }
+
       if (isPuppetDoll) {
         drawPuppetDollBody(r, info, S.session.elapsed * 1.8 + enemy.x * .08 + enemy.y * .04);
         if (Game.isHardControlled(enemy) && enemy.controlType === "freeze") drawFreezeShell(enemy, r, info);
@@ -2180,11 +2308,47 @@
   Game.drawEnemyShots = function () {
     (S.enemyShots || []).forEach(function (shot) {
       if (shot.delay > 0) return;
-      var r = shot.radius, stinger = shot.type === "stinger", doll = shot.type === "doll", waterColumn = shot.type === "waterColumn";
+      var r = shot.radius, stinger = shot.type === "stinger", doll = shot.type === "doll", waterColumn = shot.type === "waterColumn", metalDrill = shot.type === "metalDrill";
       ctx.save();
       ctx.translate(shot.x, shot.y);
       ctx.fillStyle = "rgba(0, 0, 0, .3)";
       ctx.beginPath(); ctx.ellipse(2, S.wall.y - S.wall.height / 2 - shot.y + 2, r * .8, r * .26, 0, 0, Math.PI * 2); ctx.fill();
+      if (metalDrill) {
+        ctx.rotate(Math.sin(shot.travel * .16) * .08);
+        ctx.fillStyle = "rgba(244, 247, 250, .22)";
+        ctx.beginPath(); ctx.ellipse(0, -r * .35, r * .72, r * 1.3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#aebcc2";
+        ctx.beginPath();
+        ctx.moveTo(-r * .72, -r * 1.54);
+        ctx.lineTo(r * .72, -r * 1.54);
+        ctx.lineTo(r * .48, -r * .7);
+        ctx.lineTo(-r * .48, -r * .7);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = "#53646c"; ctx.lineWidth = Math.max(1, r * .1); ctx.stroke();
+        ctx.fillStyle = "#f4f7fa"; ctx.strokeStyle = "#6b7d85"; ctx.lineWidth = Math.max(1, r * .09);
+        ctx.beginPath();
+        ctx.moveTo(-r * .58, -r * .88);
+        ctx.lineTo(r * .58, -r * .88);
+        ctx.lineTo(r * .38, r * 1.55);
+        ctx.lineTo(0, r * 2.18);
+        ctx.lineTo(-r * .38, r * 1.55);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = Math.max(.8, r * .055);
+        ctx.beginPath();
+        ctx.moveTo(-r * .42, -r * .61);
+        ctx.lineTo(r * .34, -r * .35);
+        ctx.moveTo(r * .4, -r * .1);
+        ctx.lineTo(-r * .32, r * .12);
+        ctx.moveTo(-r * .28, r * .42);
+        ctx.lineTo(r * .22, r * .65);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(71, 86, 94, .8)"; ctx.lineWidth = Math.max(.8, r * .045);
+        ctx.beginPath(); ctx.moveTo(-r * .54, -r * .75); ctx.lineTo(r * .54, -r * .75); ctx.stroke();
+        ctx.fillStyle = "rgba(255, 255, 255, .8)";
+        ctx.beginPath(); ctx.arc(-r * .18, -r * .68, Math.max(.7, r * .05), 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        return;
+      }
       if (waterColumn) {
         var waterWave = Math.sin(shot.travel * .12) * r * .16;
         ctx.fillStyle = "rgba(74, 193, 229, .3)";
@@ -2586,9 +2750,9 @@
   };
 
   function drawCodexEnemyModel(id, enemy, x, y, width, height, detail) {
-    var isBoss = enemy.codexCategory === "boss" || id === "boss", flying = !!enemy.flying, wheelchair = id === "wheelchair" || id === "wheelchairElite", devourer = id === "devourer", warden = id === "warden", deepSeaBeast = id === "deepSeaBeast", flameMaster = id === "flameMaster", stormVanguard = id === "stormVanguard", puppet = id === "puppet" || id === "puppetElite", puppetDoll = id === "puppetDoll";
-    var topExtent = stormVanguard ? 2.02 : flameMaster ? 1.82 : devourer ? 1.72 : warden ? 1.7 : deepSeaBeast ? 1.62 : puppetDoll ? 2.24 : puppet ? 1.96 : isBoss ? 1.78 : enemy.vitalReach ? enemy.vitalReach : flying ? 1.56 : 1.43;
-    var bottomExtent = stormVanguard ? 1.34 : flameMaster ? 1.34 : devourer ? 1.82 : warden ? 1.55 : deepSeaBeast ? 1.55 : puppetDoll ? 1.16 : flying ? 1.46 : wheelchair ? 1.22 : 1.05;
+    var isBoss = enemy.codexCategory === "boss" || id === "boss", flying = !!enemy.flying, wheelchair = id === "wheelchair" || id === "wheelchairElite", devourer = id === "devourer", warden = id === "warden", deepSeaBeast = id === "deepSeaBeast", flameMaster = id === "flameMaster", stormVanguard = id === "stormVanguard", mechanicalPioneer = id === "mechanicalPioneer", puppet = id === "puppet" || id === "puppetElite", puppetDoll = id === "puppetDoll";
+    var topExtent = stormVanguard ? 2.02 : mechanicalPioneer ? 1.72 : flameMaster ? 1.82 : devourer ? 1.72 : warden ? 1.7 : deepSeaBeast ? 1.62 : puppetDoll ? 2.24 : puppet ? 1.96 : isBoss ? 1.78 : enemy.vitalReach ? enemy.vitalReach : flying ? 1.56 : 1.43;
+    var bottomExtent = stormVanguard ? 1.34 : mechanicalPioneer ? 1.3 : flameMaster ? 1.34 : devourer ? 1.82 : warden ? 1.55 : deepSeaBeast ? 1.55 : puppetDoll ? 1.16 : flying ? 1.46 : wheelchair ? 1.22 : 1.05;
     var totalExtent = topExtent + bottomExtent, scale = Math.min(detail ? 3.2 : 2.7, (height - 8) / (enemy.radius * totalExtent));
     var centerX = x + width / 2, centerY = y + height / 2;
     var modelY = centerY + (topExtent - bottomExtent) * enemy.radius * scale / 2;

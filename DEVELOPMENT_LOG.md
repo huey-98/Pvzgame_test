@@ -715,3 +715,22 @@ git diff --check
 - 复测：隐藏标签页同步基准下 DPR 2 相对 1.5 约 +23%，半屏敌人移到画布上方时开启视口裁剪的绘制时间约 23.7 ms、关闭约 39.9 ms；粒子 / 文字分别封顶 240 / 100。
 - 验证：`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、`src/*.js` 语法检查、`git diff --check` 通过；`check-bomber.js`、`check-boss-update.js`、`check-level26.js`、`check-skills.js`、`check-level-scroll.js`、`check-xp.js`、`check-hp-budget.js`、`check-status.js`、`check-resist.js` 全部通过。
 - 遗留：300 只全部可见时敌人路径光栅化仍占主要成本，需要敌人身体离屏精灵缓存或 LOD 才能根本解决。
+
+## 2026-11-06 · 第 27、28 关
+
+- 新增第 27 关「熔火王座」：小怪为火焰僵尸、电锯僵尸与盾牌僵尸，按第 1～3 波依次登场；火焰僵尸精英固定在第 4 波，第 7 波由烈焰掌控者与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 第 27 关波次投放量、间隔与逐波血量倍率沿用第 26 关；关卡 `hpScale` 为 2.7、`xpScale` 为 0.065，等效血量预算 1907134，约为第 26 关的 1.20 倍。
+- 新增第 28 关「霜狱回廊」：小怪为寒霜兽、雪人僵尸与轮椅僵尸，按第 1～3 波依次登场；寒霜兽精英固定在第 4 波，第 7 波由看守者与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 第 28 关波次投放量、间隔与逐波血量倍率沿用第 27 关；关卡 `hpScale` 为 2.2、`xpScale` 为 0.059，等效血量预算 2319938，约为第 27 关的 1.22 倍。
+- 烈焰掌控者正式接入第 27 关第 7 波，实际总生命为 `round(4800 × 2.7 × 1.45) × 5`；看守者再次作为第 28 关首领，实际总生命为 `round(4200 × 2.2 × 1.45) × 5`。
+- 新增 `tmp/check-level27.js` 与 `tmp/check-level28.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、28 行滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 验证：两关专项、第 21～26 关专项、`check-level.js 27/28`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-flame-master.js`、`check-boss-update.js`、`check-health-bars.js`、源码语法检查与 `git diff --check` 通过；两关均在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-level-select.js 27/28` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-27.png` 与 `tmp/level-brief-28.png`，核对 28 行滚动列表、简介面板、五行阵容与面板边界均无重叠或越界。
+
+## 2026-11-06 · 首领机械垦荒者
+
+- 新增首领 `mechanicalPioneer`「机械垦荒者」：生命 4800、移速 10、半径 36、城墙伤害 30、经验 150；`damageTakenByElement` 配置 `physical: 0`、`energy: .5`、`wind: 1.5`，`statusImmune` 同时免疫燃烧、麻痹、眩晕与击退。冻结、减速、牵引与重伤仍正常生效。
+- `src/render.js` 新增独立 Canvas 造型 `drawMechanicalPioneerBody`：小僵尸驾驶重型金属机甲、双肩钻头发射器、履带轮组、警示条纹与座舱框架；`drawEnemyShots` 新增 `metalDrill` 白色金属钻头弹体，图鉴上下外扩单独使用 1.72 / 1.30。
+- 远程配置复用现有 `ranged.salvo`：距防线 170 像素处停下，每 2.6 秒发射 2 枚钻头，弹体间隔 0.16 秒、横向间隔 22 像素，每枚独立造成 28 点城墙伤害；测试场与首领图鉴由 `codexCategory: "boss"` 自动收录，未写入正式关卡波次。
+- 新增/扩展 `tmp/check-boss-update.js` 的机械垦荒者断言，并通过 `tmp/check-resist.js` 的 19 组 32 种抗性形态；`check-test-panel.js` 实测首领 7 种、总计 44 种敌人。语法检查、`git diff --check`、现有首领与关卡回归均通过。
+- 画面用 `tmp/trace-draw.js mechanicalPioneer` 与 `codex boss mechanicalPioneer` 回放生成 `tmp/mechanical-pioneer.png` 与 `tmp/mechanical-pioneer-codex.png`，核对机甲轮廓、双钻头弹体、1.5 倍局内建模、图鉴模型与抗性文本无裁切或重叠。
