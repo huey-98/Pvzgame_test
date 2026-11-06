@@ -752,6 +752,7 @@
       ]
     },
     bossHealth: { bars: 5, eliteBars: 1, width: 108, barHeight: 9, offsetY: 12, headExtent: 1.78, track: "rgba(255, 107, 107, .42)" },
+    performance: { maxPixelRatio: 2, maxParticles: 240, maxTexts: 100, cullMargin: 32 },
     ranges: { far: 480, mid: 320, near: 125 },
     rifleRange: "far",
     rifleFreezeDuration: .35,

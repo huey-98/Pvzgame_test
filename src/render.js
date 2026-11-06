@@ -7,7 +7,7 @@
 
   function resizeCanvas() {
     if (!canvas || !ctx) return;
-    pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
+    pixelRatio = Math.min(window.devicePixelRatio || 1, (C.performance && C.performance.maxPixelRatio) || 2);
     var rect = canvas.getBoundingClientRect(), displayWidth = rect.width || C.width, displayHeight = rect.height || C.height;
     C.height = U.clamp(Math.round(C.width * displayHeight / displayWidth), 640, 960);
     canvas.width = Math.round(C.width * pixelRatio);
@@ -1930,6 +1930,10 @@
       var isBomber = enemy.type === "bomber" || enemy.type === "bomberElite";
       var isBoss = Game.isBossEnemy(enemy), isDevourer = enemy.type === "devourer", isWarden = enemy.type === "warden", isDeepSeaBeast = enemy.type === "deepSeaBeast", isFlameMaster = enemy.type === "flameMaster", isStormVanguard = enemy.type === "stormVanguard";
       var modelScale = Game.getEnemyModelScale(enemy, options), visualRadius = r * modelScale;
+      if (!singleEnemy) {
+        var cullMargin = (C.performance && C.performance.cullMargin) || 32;
+        if (enemy.y < -visualRadius - cullMargin || enemy.y > C.height + visualRadius + cullMargin) return;
+      }
       var auraReach = info.flying ? r * 1.7 : r;
       var shirtColor = isSplitter ? (isElite ? "#584a84" : "#463c6b")
         : isPuppet ? (isElite ? "#3a2d4d" : "#4a3d5c")
@@ -2801,9 +2805,9 @@
       drawRadialSparks(explosion.x, explosion.y, radius * 1.05, sparkColor, (1 - progress) * .62, 7, progress * 8);
       ctx.restore();
     });
-    S.particles.forEach(function (particle) { ctx.globalAlpha = U.clamp(particle.life / particle.maxLife, 0, 1); ctx.fillStyle = particle.color; ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); ctx.fill(); });
+    S.particles.forEach(function (particle) { if (particle.x < -12 || particle.x > C.width + 12 || particle.y < -12 || particle.y > C.height + 12) return; ctx.globalAlpha = U.clamp(particle.life / particle.maxLife, 0, 1); ctx.fillStyle = particle.color; ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); ctx.fill(); });
     ctx.globalAlpha = 1;
-    S.texts.forEach(function (item) { ctx.globalAlpha = U.clamp(item.life, 0, 1); text(item.text, item.x, item.y, "bold 11px Segoe UI, Microsoft YaHei", item.color, "center"); });
+    S.texts.forEach(function (item) { if (item.x < -24 || item.x > C.width + 24 || item.y < -24 || item.y > C.height + 24) return; ctx.globalAlpha = U.clamp(item.life, 0, 1); text(item.text, item.x, item.y, "bold 11px Segoe UI, Microsoft YaHei", item.color, "center"); });
     ctx.globalAlpha = 1;
   };
 

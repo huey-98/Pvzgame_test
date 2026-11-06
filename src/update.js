@@ -46,7 +46,8 @@
       var removed = bullet.y < -20 || bullet.x < -20 || bullet.x > C.width + 20;
       for (var j = S.enemies.length - 1; j >= 0 && !removed; j--) {
         var enemy = S.enemies[j], radius = C.enemies[enemy.type].radius + bullet.radius;
-        if (bullet.hitEnemies.indexOf(enemy) >= 0 || Math.pow(bullet.x - enemy.x, 2) + Math.pow(bullet.y - enemy.y, 2) >= radius * radius) continue;
+        var bulletDx = bullet.x - enemy.x, bulletDy = bullet.y - enemy.y;
+        if (bullet.hitEnemies.indexOf(enemy) >= 0 || bulletDx * bulletDx + bulletDy * bulletDy >= radius * radius) continue;
         bullet.hitEnemies.push(enemy);
         Game.damageEnemy(enemy, bullet.damage, bullet);
         Game.spawnRifleSubBullets(bullet);
@@ -225,7 +226,27 @@
       if (car.y + car.length / 2 < 0) S.armoredCars.splice(i, 1);
     }
   };
-  Game.burst = function (x, y, count, color) { for (var i = 0; i < count; i++) { var angle = U.rand(0, Math.PI * 2), speed = U.rand(25, 105); S.particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: U.rand(.25, .65), maxLife: .65, color: color, size: U.rand(1.5, 4) }); } };
-  Game.addText = function (x, y, text, color) { S.texts.push({ x: x, y: y, text: text, color: color, life: 1 }); };
-  Game.updateEffects = function (dt) { S.particles.forEach(function (p) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 35 * dt; p.life -= dt; }); S.particles = S.particles.filter(function (p) { return p.life > 0; }); S.texts.forEach(function (t) { t.y -= 24 * dt; t.life -= dt; }); S.texts = S.texts.filter(function (t) { return t.life > 0; }); S.explosions.forEach(function (explosion) { explosion.life -= dt; }); S.explosions = S.explosions.filter(function (explosion) { return explosion.life > 0; }); };
+  Game.burst = function (x, y, count, color) {
+    var cap = (C.performance && C.performance.maxParticles) || 240, room = cap - S.particles.length;
+    if (room <= 0) return;
+    count = Math.min(count, room);
+    for (var i = 0; i < count; i++) { var angle = U.rand(0, Math.PI * 2), speed = U.rand(25, 105); S.particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: U.rand(.25, .65), maxLife: .65, color: color, size: U.rand(1.5, 4) }); }
+  };
+  Game.addText = function (x, y, text, color) {
+    var cap = (C.performance && C.performance.maxTexts) || 100;
+    if (S.texts.length >= cap) S.texts.shift();
+    S.texts.push({ x: x, y: y, text: text, color: color, life: 1 });
+  };
+  Game.updateEffects = function (dt) {
+    var i, n, list, item;
+    list = S.particles; n = 0;
+    for (i = 0; i < list.length; i++) { item = list[i]; item.x += item.vx * dt; item.y += item.vy * dt; item.vy += 35 * dt; item.life -= dt; if (item.life > 0) list[n++] = item; }
+    list.length = n;
+    list = S.texts; n = 0;
+    for (i = 0; i < list.length; i++) { item = list[i]; item.y -= 24 * dt; item.life -= dt; if (item.life > 0) list[n++] = item; }
+    list.length = n;
+    list = S.explosions; n = 0;
+    for (i = 0; i < list.length; i++) { item = list[i]; item.life -= dt; if (item.life > 0) list[n++] = item; }
+    list.length = n;
+  };
 })(window.Game = window.Game || {});

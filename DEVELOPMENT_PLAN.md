@@ -1410,3 +1410,31 @@ frontend/
 - 技能图鉴的步枪详情显示成长等级、六节点状态、价格与强化按钮；React 兼容层同步 `rifle` 快照和 `upgradeRifle` 命令。
 - `tmp/check-rifle.js` 校验：Lv.1 不开放节点词条、Lv.4/44 只开放词条、未抽到词条不生效、弹射未获得时不会反射、获得后才反射一次。
 - 已完成 `check-rifle.js`、`check-skills.js`、`check-accounts.js`、前端构建、React SSR、`compileall server`、`src/*.js` 语法检查和 `git diff --check`。
+
+## 22. 渲染性能与轻量优化（2026-11-06）
+
+### 22.1 测试方法与结论
+
+- 使用生产构建 + Browser pane，在测试场生成 300 只不死混合小怪（普通 / 快跑 / 护甲 / 飞行 / 火焰 / 雪人 / 雷电 / 毒蜂 / 轮椅 / 寒霜兽 / 蜥蜴 / 盾牌 / 电锯 / 炸弹），并解锁 4 个核心技能（旋风加农 / 冰雹发生器 / 燃油弹 / 跃迁电子，冷却压到 2 秒）。
+- 300 只全部可见时，实际帧间隔约 238 ms（约 4.2 FPS），但 `Game.draw` 的 JS 执行仅约 14 ms，`Game.update` 约 0.5 ms；跳过 `drawEnemies` 后回到 60 FPS。
+- 把每只敌人的身体替换成 1 个圆或 1 个方块后同样回到 60 FPS；关闭 `shadowBlur` 约 -10%，渐变退化为纯色约 -7.5%，关闭粒子 / 文字约 -1.7%，DPR 3 相对 1.5 约 +17%。
+- 结论：瓶颈是每只僵尸身体几十条 Canvas 路径的光栅化，不是战斗逻辑、粒子、文字或 DPR。轻量优化只能缓解，根本方案是敌人身体离屏精灵化。
+
+### 22.2 已实施
+
+- `config.performance`：`maxPixelRatio: 2`、`maxParticles: 240`、`maxTexts: 100`、`cullMargin: 32`。
+- `render.js`：设备像素比上限改为 2；`drawEnemies` 跳过画布上方 / 下方的敌人；粒子与伤害文字绘制前做视口裁剪。
+- `update.js`：`burst` 与 `addText` 增加数量上限；`updateEffects` 改为原地压缩数组；子弹碰撞改用平方距离。
+- `combat.js`：温压弹爆炸、技能弹体与电磁爆炸的碰撞距离改用平方距离。
+
+### 22.3 复测与验证
+
+- 隐藏标签页下用同步基准（`Game.update` + `Game.draw` + `getImageData` 强制刷新）复测：300 只混合小怪 + 4 技能时，DPR 2 相对 DPR 1.5 约 +23%；半屏敌人移到画布上方时，开启视口裁剪的绘制时间约 23.7 ms，关闭时约 39.9 ms。
+- 粒子 / 文字上限实测分别停在 240 / 100。
+- `npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、`src/*.js` 语法检查、`git diff --check` 通过；`check-bomber.js`、`check-boss-update.js`、`check-level26.js`、`check-skills.js`、`check-level-scroll.js`、`check-xp.js`、`check-hp-budget.js`、`check-status.js`、`check-resist.js` 全部通过。
+
+### 22.4 后续
+
+- 敌人身体离屏精灵 / sprite atlas：每种敌人预渲染，每帧只 `drawImage`，动态部件（血条、状态环、冻结冰壳、角标、武器）保留轻量绘制。
+- 可选 LOD：同屏敌人超过阈值时使用简化外观。
+- 可选性能模式：进一步降低 `shadowBlur`、关闭部分渐变。

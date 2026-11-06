@@ -820,8 +820,8 @@
   Game.explodeThermobaric = function (projectile) {
     S.explosions.push({ x: projectile.x, y: projectile.y, radius: projectile.explosionRadius, life: .42, duration: .42 });
     for (var i = S.enemies.length - 1; i >= 0; i--) {
-      var enemy = S.enemies[i], dx = enemy.x - projectile.x, dy = enemy.y - projectile.y;
-      if (dx * dx + dy * dy > Math.pow(projectile.explosionRadius + C.enemies[enemy.type].radius, 2)) continue;
+      var enemy = S.enemies[i], dx = enemy.x - projectile.x, dy = enemy.y - projectile.y, reach = projectile.explosionRadius + C.enemies[enemy.type].radius;
+      if (dx * dx + dy * dy > reach * reach) continue;
       Game.damageEnemy(enemy, projectile.explosionDamage, projectile);
       Game.applyBurn(enemy, projectile.burnDps, projectile.burnDuration, "thermobaric", { ignoreImmunity: !!projectile.ignoreBurnImmunity });
       Game.applyKnockback(enemy, projectile.x, projectile.y, projectile.explosionKnockback);
@@ -926,7 +926,8 @@
       }
       for (var j = S.enemies.length - 1; j >= 0 && !removed; j--) {
         var enemy = S.enemies[j], radius = C.enemies[enemy.type].radius + projectile.radius;
-        if (projectile.hitEnemies.indexOf(enemy) >= 0 || Math.pow(projectile.x - enemy.x, 2) + Math.pow(projectile.y - enemy.y, 2) >= radius * radius) continue;
+        var hitDx = projectile.x - enemy.x, hitDy = projectile.y - enemy.y;
+        if (projectile.hitEnemies.indexOf(enemy) >= 0 || hitDx * hitDx + hitDy * hitDy >= radius * radius) continue;
         projectile.hitEnemies.push(enemy);
         if (projectile.type === "thermobaric" && projectile.sacrificeEnabled && !projectile.fromSacrifice && projectile.hitEnemies.length === 1) Game.spawnSacrificeProjectile(projectile, enemy);
         if (projectile.type === "thermobaric") {
@@ -984,7 +985,8 @@
       S.explosions.push({ type: "electromagnetic", x: centerX, y: centerY, radius: strike.explosionRadius, life: .48, duration: .48 });
       for (var i = S.enemies.length - 1; i >= 0; i--) {
         enemy = S.enemies[i];
-        if ((enemy.x - centerX) * (enemy.x - centerX) + (enemy.y - centerY) * (enemy.y - centerY) > Math.pow(strike.explosionRadius + C.enemies[enemy.type].radius, 2)) continue;
+        var strikeDx = enemy.x - centerX, strikeDy = enemy.y - centerY, strikeReach = strike.explosionRadius + C.enemies[enemy.type].radius;
+        if (strikeDx * strikeDx + strikeDy * strikeDy > strikeReach * strikeReach) continue;
         Game.damageEnemy(enemy, strike.explosionDamage, { critical: false, noWeaponEffects: true, element: strike.element, damageSource: "electromagnetic", progressSkillId: "electromagnetic" });
         if (enemy.hp <= 0) Game.killEnemy(i);
       }

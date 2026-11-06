@@ -706,3 +706,12 @@ git diff --check
 - 新增 `tmp/check-level26.js`，覆盖 20 波阵容、雷电精英、风暴先锋实际生成与免疫、等效血量预算、26 行滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
 - 验证：`check-level26.js`、`check-level.js 26`、`check-xp.js`、`check-hp-budget.js`、第 21～25 关专项、`check-level-scroll.js`、`check-boss-update.js`、基础语法检查与 `git diff --check` 通过；`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。第 26 关在第 20/20 波满级，升级词条 19 次，等效血量预算 1592033。
 - 画面用 `tmp/trace-level-select.js 26` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-26.png`，核对 26 行滚动列表、简介面板、雷电 / 毒蜂 / 炸弹 / 雷电精英 / 风暴先锋五行阵容与面板边界均无重叠或越界。
+
+## 2026-11-06 · 后期性能测试与轻量优化
+
+- 新增 `tmp/perf-harness.js` 与 `tmp/perf-report.md`，在 Browser pane 用 300 只混合小怪 + 4 技能复现后期压力场景。
+- 测试结论：300 只全部可见时约 238 ms/帧（4.2 FPS），`Game.draw` 的 JS 执行仅约 14 ms；跳过敌人绘制或每只只画一个圆 / 方块后回到 60 FPS，说明瓶颈是敌人身体的 Canvas 路径光栅化。关闭 `shadowBlur` 约 -10%，渐变退化为纯色约 -7.5%，关闭粒子 / 文字约 -1.7%，DPR 3 相对 1.5 约 +17%。
+- 实施轻量优化：`config.performance`（DPR 上限 2、粒子 240、文字 100、裁剪边距 32）；`render.js` 增加敌人 / 粒子 / 文字视口裁剪；`update.js` 增加粒子与文字上限、效果数组原地压缩、子弹碰撞平方距离；`combat.js` 三处爆炸 / 弹体碰撞改用平方距离。
+- 复测：隐藏标签页同步基准下 DPR 2 相对 1.5 约 +23%，半屏敌人移到画布上方时开启视口裁剪的绘制时间约 23.7 ms、关闭约 39.9 ms；粒子 / 文字分别封顶 240 / 100。
+- 验证：`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、`src/*.js` 语法检查、`git diff --check` 通过；`check-bomber.js`、`check-boss-update.js`、`check-level26.js`、`check-skills.js`、`check-level-scroll.js`、`check-xp.js`、`check-hp-budget.js`、`check-status.js`、`check-resist.js` 全部通过。
+- 遗留：300 只全部可见时敌人路径光栅化仍占主要成本，需要敌人身体离屏精灵缓存或 LOD 才能根本解决。
