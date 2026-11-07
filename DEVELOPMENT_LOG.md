@@ -732,5 +732,5 @@ git diff --check
 - 新增首领 `mechanicalPioneer`「机械垦荒者」：生命 4800、移速 10、半径 36、城墙伤害 30、经验 150；`damageTakenByElement` 配置 `physical: 0`、`energy: .5`、`wind: 1.5`，`statusImmune` 同时免疫燃烧、麻痹、眩晕与击退。冻结、减速、牵引与重伤仍正常生效。
 - `src/render.js` 新增独立 Canvas 造型 `drawMechanicalPioneerBody`：小僵尸驾驶重型金属机甲、双肩钻头发射器、履带轮组、警示条纹与座舱框架；`drawEnemyShots` 新增 `metalDrill` 白色金属钻头弹体，图鉴上下外扩单独使用 1.72 / 1.30。
 - 远程配置复用现有 `ranged.salvo`：距防线 170 像素处停下，每 2.6 秒发射 2 枚钻头，弹体间隔 0.16 秒、横向间隔 22 像素，每枚独立造成 28 点城墙伤害；测试场与首领图鉴由 `codexCategory: "boss"` 自动收录，未写入正式关卡波次。
-- 新增/扩展 `tmp/check-boss-update.js` 的机械垦荒者断言，并通过 `tmp/check-resist.js` 的 19 组 32 种抗性形态；`check-test-panel.js` 实测首领 7 种、总计 44 种敌人。语法检查、`git diff --check`、现有首领与关卡回归均通过。
+- 新增/扩展 `tmp/check-boss-update.js` 的机械垦荒者断言，并通过 `tmp/check-resist.js` 的 18 组 32 种抗性形态；`check-test-panel.js` 实测首领 7 种、总计 44 种敌人。语法检查、`git diff --check`、现有首领与关卡回归均通过。
 - 画面用 `tmp/trace-draw.js mechanicalPioneer` 与 `codex boss mechanicalPioneer` 回放生成 `tmp/mechanical-pioneer.png` 与 `tmp/mechanical-pioneer-codex.png`，核对机甲轮廓、双钻头弹体、1.5 倍局内建模、图鉴模型与抗性文本无裁切或重叠。

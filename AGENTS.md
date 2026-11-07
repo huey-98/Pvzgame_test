@@ -60,6 +60,8 @@ node tmp\check-level23.js
 node tmp\check-level24.js
 node tmp\check-level25.js
 node tmp\check-level26.js
+node tmp\check-level27.js
+node tmp\check-level28.js
 
 # 数值校验
 node tmp\check-hp-budget.js
@@ -83,7 +85,7 @@ node tmp\check-super-traits.js
 | `src/attributes.js` | 角色属性与外部修正的唯一计算层 |
 | `src/equipment.js` / `wall.js` / `gems.js` | 装备、城墙、宝石的只读数据层 |
 | `src/skills.js` | 账户技能等级与 72 个高级节点的只读数据层（`Game.skillProgress`） |
-| `src/rifle.js` | 步枪账户等级（Lv.1–31）与 6 个等级节点的只读数据层（`Game.rifleProgress`） |
+| `src/rifle.js` | 步枪账户等级（Lv.1 起，不设上限）与 6 个等级节点的只读数据层（`Game.rifleProgress`） |
 | `src/accounts.js` | 账户缓存、异步请求与持久化入口 |
 | `src/utils.js` / `state.js` | 工具函数、单局状态与界面切换 |
 | `src/combat.js` | 生成、瞄准、射击、碰撞、伤害、词条、技能效果 |
@@ -156,7 +158,7 @@ node tmp\check-super-traits.js
 ### 敌人与关卡
 
 - 新敌人优先用 `config.enemies` 的可选字段表达机制，避免在 `spawnEnemy` / `update` 中堆 `type` 判断。
-- 第 21 关起新增关卡统一使用 **20 波投放量**；早期关卡（1-13关）使用 10-13 波，中期关卡（14-20关）使用 14-15 波。波次、间隔、精英波与首领波位置必须写入 `config.levels[].waves`，由关卡简介自动推导。
+- 第 21 关起新增关卡统一使用 **20 波投放量**；早期关卡（1-13关）使用 5-13 波，中期关卡（14-20关）使用 14-15 波。波次、间隔、精英波与首领波位置必须写入 `config.levels[].waves`，由关卡简介自动推导。
 - 近战、远程、飞行的停步位置统一由 `Game.getEnemyHoldY(info)` 给出；远程字段是 `ranged`，飞行字段是 `flying`。
 - 贴地技能在 `skillDefaults[].groundOnly` 标记，命中判断统一走 `Game.canHitEnemy`；当前贴地技能只有装甲车和燃油弹。
 - 每种小怪都应有对应精英；精英固定在第 4 波，每局 1 只，可通过 `elitePool` 随机选择。
