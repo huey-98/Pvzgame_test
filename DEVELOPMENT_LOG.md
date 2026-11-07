@@ -734,3 +734,16 @@ git diff --check
 - 远程配置复用现有 `ranged.salvo`：距防线 170 像素处停下，每 2.6 秒发射 2 枚钻头，弹体间隔 0.16 秒、横向间隔 22 像素，每枚独立造成 28 点城墙伤害；测试场与首领图鉴由 `codexCategory: "boss"` 自动收录，未写入正式关卡波次。
 - 新增/扩展 `tmp/check-boss-update.js` 的机械垦荒者断言，并通过 `tmp/check-resist.js` 的 18 组 32 种抗性形态；`check-test-panel.js` 实测首领 7 种、总计 44 种敌人。语法检查、`git diff --check`、现有首领与关卡回归均通过。
 - 画面用 `tmp/trace-draw.js mechanicalPioneer` 与 `codex boss mechanicalPioneer` 回放生成 `tmp/mechanical-pioneer.png` 与 `tmp/mechanical-pioneer-codex.png`，核对机甲轮廓、双钻头弹体、1.5 倍局内建模、图鉴模型与抗性文本无裁切或重叠。
+
+## 2026-11-07 · 第 29、30 关
+
+- 新增第 29 关「废墟工坊」：小怪为傀儡僵尸、篮球僵尸与分裂僵尸，按第 1～3 波依次登场；傀儡僵尸精英固定在第 4 波，第 7 波由暴食者与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 第 29 关波次投放量、间隔与逐波血量倍率沿用第 28 关；关卡 `hpScale` 为 3.4、`xpScale` 为 0.059，等效血量预算 2699496，约为第 28 关的 1.16 倍。主题是「数量与召唤」：傀儡僵尸停在中距离抛掷木偶并在半血与四分之一血各召唤一只傀儡（能量 ×0.5、物理 ×1.5），篮球僵尸在 85 像素外砸墙且怕电，分裂僵尸死亡后一分为二；暴食者能量 ×1.5、风系 ×0.5，负面状态时长减半并免疫击退。
+- 新增第 30 关「钢铁荒原」：小怪为护甲僵尸、电锯僵尸与炸弹僵尸，按第 1～3 波依次登场；护甲僵尸精英固定在第 4 波，第 7 波由机械垦荒者与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 第 30 关波次投放量、间隔与逐波血量倍率沿用第 29 关；关卡 `hpScale` 为 4.2、`xpScale` 为 0.059，等效血量预算 3464140，约为第 29 关的 1.28 倍。主题是「硬吃伤害与冲线」：护甲僵尸用 6 层装甲吃掉伤害与负面状态并减免 50% 物理伤害，电锯僵尸低血狂暴冲锋，炸弹僵尸半血加速并在撞线时引爆。
+- 机械垦荒者首次正式接入第 30 关第 7 波，实际总生命为 `round(4800 × 4.2 × 1.45) × 5`；该首领完全免疫物理伤害、能量 ×0.5、风系 ×1.5，免疫燃烧、眩晕、麻痹与击退，冻结 / 减速 / 牵引仍生效。
+- 新增 `tmp/check-level29.js` 与 `tmp/check-level30.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、30 行滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 修复 `tmp/check-level21.js` 与 `tmp/check-level22.js`：原断言依赖「该关是最后一关」才成立，关卡数增加到 30 后第 21、22 关滚出视口导致误报，改为先滚动到该关所在行再断言关卡名被绘制。
+- 验证：两关专项、第 21～28 关专项、`check-level.js 30`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、源码语法检查与 `git diff --check` 通过；两关均在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-level-select.js 29/30` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-29.png` 与 `tmp/level-brief-30.png`，并回放 30 行滚动列表到底部，核对第 29、30 关行、简介面板、五行阵容与面板边界均无重叠或越界。
+- 遗留：`tmp/check-level-preview.js` 自 13 关时代起就有 12 项断言过期（硬编码关卡总数与固定行数），本轮未改动；第 16 关简介因字数排到 3 行的问题同样保留为历史遗留。

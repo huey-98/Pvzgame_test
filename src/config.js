@@ -372,6 +372,30 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelTwentyNineMixMap = { frostBeast: "puppet", snowman: "basketball", wheelchair: "splitter" };
+  var levelTwentyNineWaves = levelTwentyEightWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelTwentyNineMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "puppetElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "devourer"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelThirtyMixMap = { puppet: "armored", basketball: "chainsaw", splitter: "bomber" };
+  var levelThirtyWaves = levelTwentyNineWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "armoredElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "mechanicalPioneer"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16, bossModelScale: 1.5,
     sprites: {
@@ -1029,7 +1053,9 @@
       { id: 25, name: "腐殖温室", subtitle: "火焰、雪人与傀儡混编", brief: "火焰与雪人僵尸元素互克，傀儡在半血与四分之一血召唤木偶；第 4 波傀儡精英领队，第 7 波暴食者现身。", unlocked: true, hpScale: 2.12, xpScale: .07, waves: levelTwentyFiveWaves },
       { id: 26, name: "风暴禁区", subtitle: "雷电、毒蜂与炸弹混编", brief: "雷电与毒蜂从空中压上，炸弹僵尸撞线引爆；第 4 波雷电精英领队，第 7 波风暴先锋现身。", unlocked: true, hpScale: 2.7, xpScale: .07, waves: levelTwentySixWaves },
       { id: 27, name: "熔火王座", subtitle: "烈焰、电锯与盾牌混编", brief: "火焰、电锯与盾牌僵尸依次压上，烈焰掌控者封锁冰火直伤；第 4 波火焰精英，第 7 波烈焰掌控者现身。", unlocked: true, hpScale: 2.7, xpScale: .065, waves: levelTwentySevenWaves },
-      { id: 28, name: "霜狱回廊", subtitle: "寒霜兽、雪人与轮椅混编", brief: "寒霜兽阻挡弹道，雪人抗冰、轮椅半血回血；第 4 波寒霜兽精英，第 7 波看守者镇守。", unlocked: true, hpScale: 2.2, xpScale: .059, waves: levelTwentyEightWaves }
+      { id: 28, name: "霜狱回廊", subtitle: "寒霜兽、雪人与轮椅混编", brief: "寒霜兽阻挡弹道，雪人抗冰、轮椅半血回血；第 4 波寒霜兽精英，第 7 波看守者镇守。", unlocked: true, hpScale: 2.2, xpScale: .059, waves: levelTwentyEightWaves },
+      { id: 29, name: "废墟工坊", subtitle: "傀儡、篮球与分裂混编", brief: "傀儡远程抛掷并召唤分身，篮球僵尸砸墙，分裂僵尸一分为二；第 4 波傀儡精英，第 7 波暴食者现身。", unlocked: true, hpScale: 3.4, xpScale: .059, waves: levelTwentyNineWaves },
+      { id: 30, name: "钢铁荒原", subtitle: "护甲、电锯与炸弹混编", brief: "护甲先硬吃伤害，电锯低血狂暴冲锋，炸弹撞线引爆；第 4 波护甲精英，第 7 波机械垦荒者现身。", unlocked: true, hpScale: 4.2, xpScale: .059, waves: levelThirtyWaves }
     ],
     waves: levelOneWaves
   };
