@@ -747,3 +747,15 @@ git diff --check
 - 验证：两关专项、第 21～28 关专项、`check-level.js 30`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、源码语法检查与 `git diff --check` 通过；两关均在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
 - 画面用 `tmp/trace-level-select.js 29/30` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-29.png` 与 `tmp/level-brief-30.png`，并回放 30 行滚动列表到底部，核对第 29、30 关行、简介面板、五行阵容与面板边界均无重叠或越界。
 - 遗留：`tmp/check-level-preview.js` 自 13 关时代起就有 12 项断言过期（硬编码关卡总数与固定行数），本轮未改动；第 16 关简介因字数排到 3 行的问题同样保留为历史遗留。
+
+## 2026-11-07 · 第 31 关
+
+- 新增第 31 关「极夜霜原」：小怪为飞鸟僵尸、快跑僵尸与蜥蜴僵尸，按第 1～3 波依次登场；飞鸟僵尸精英固定在第 4 波，第 7 波由深海巨兽与小怪同场；共 20 波、常规小怪总投放 2988 只。
+- 第 31 关波次投放量、间隔与逐波血量倍率沿用第 30 关；关卡 `hpScale` 为 12.8、`xpScale` 为 0.059，等效血量预算 4017699，约为第 30 关的 1.16 倍。
+- 本关阵容全部是廉价单位（基础生命 24 / 16 / 60），压力来自数量、节奏与空地夹击而非单只血量，因此关卡倍率明显高于第 29、30 关：飞鸟僵尸全程悬空使装甲车与燃油弹等贴地技能完全失效，快跑僵尸以 42 像素/秒高速冲线，蜥蜴僵尸冰系 ×1.5、电系 ×0.5。
+- 深海巨兽再次作为第 31 关首领，实际总生命为 `round(4500 × 12.8 × 1.45) × 5`；该首领冰系 ×0.5、电系 ×1.5、免疫燃烧，被冻结时每秒回血 45 点，并在 170 像素外每 2.8 秒横向展开三道水柱，与本关「极夜霜原」的冰属性主题呼应。
+- 新增 `tmp/check-level31.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、31 行滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 修复 `tmp/check-level23.js`：原断言同样依赖「该关是最后一关」才成立，关卡数增加到 31 后第 23 关滚出视口导致误报，改为先滚动到该关所在行再断言关卡名被绘制。
+- 验证：第 21～31 关专项、`check-level.js 31`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、源码语法检查与 `git diff --check` 通过；第 31 关在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-level-select.js 31` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-31.png`，并回放 31 行滚动列表到底部，核对第 31 关行、简介面板、五行阵容与面板边界均无重叠或越界。
+- 遗留：`tmp/check-level8.js`～`check-level13.js` 属早期关卡时代的过期脚本，本轮改动前后失败项完全一致，未做处理；`tmp/check-level-preview.js` 的 12 项过期断言与第 16 关简介 3 行问题同样保留为历史遗留。
