@@ -19,6 +19,7 @@
 npm --prefix frontend run build
 node tmp\check-react-ssr.mjs
 Get-ChildItem src -Filter *.js | ForEach-Object { node --check $_.FullName }
+node tmp\check-docs.js
 git diff --check
 ```
 
@@ -240,7 +241,18 @@ node tmp\check-super-traits.js
 
 ## 文档同步
 
-- 可玩内容或规则有变化：更新 `README.md`。
-- 系统设计、数据层或验收方式有变化：更新 `DEVELOPMENT_PLAN.md`。
-- 完成一轮开发：在 `DEVELOPMENT_LOG.md` 记录日期、改动和验证结果。
-- `config`、README、开发计划与测试脚本之间存在重复数值时，必须一起核对。
+文档按「单一事实来源」组织，索引见 [`docs/README.md`](docs/README.md)：
+
+| 事实 | 归属文档 |
+| --- | --- |
+| 数值（血量、波次、倍率、抗性、等级上限） | `src/config.js` |
+| 必须遵守的规则与验证命令 | `AGENTS.md` |
+| 项目结构、运行方式、功能概览 | `README.md` |
+| 系统设计、关卡设计、验收标准 | `DEVELOPMENT_PLAN.md` |
+| 每轮改动的事实记录 | `DEVELOPMENT_LOG.md` |
+
+- 改功能或规则时只更新对应的那一份文档，再在 `DEVELOPMENT_LOG.md` 追加一条；不要在多份文档里各写一遍。
+- 数值只在 `src/config.js` 修改，文档描述机制、不复述具体数字。
+- `DEVELOPMENT_LOG.md` 是历史记录，被后续改动覆盖的数字不回填。
+- 已完成的实现说明移入 `docs/archive/` 并在 `docs/README.md` 登记。
+- 完成后运行 `node tmp\check-docs.js` 核对文档与 `config` 是否一致。

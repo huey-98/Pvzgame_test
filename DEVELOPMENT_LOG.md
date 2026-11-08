@@ -781,3 +781,15 @@ git diff --check
 - 第 16 关简介由 56 字缩短为 41 字，修复简介在面板内排到 3 行、与「小怪」标题重叠的问题；其余关卡最长简介为 51 字，均保持在两行内。
 - 验证：第 8～13 关与第 21～35 关专项全部通过，`check-level-preview.js`、`check-level-scroll.js`、`check-hp-budget.js`、`check-xp.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-level.js 8/13/20/35`、源码语法检查与 `git diff --check` 通过；`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
 - 画面回放 `tmp/level-brief-16-check.png` 确认第 16 关简介为两行、与「小怪」分组无重叠。
+
+## 2026-11-08 · 文档系统重组
+
+- 新增 `docs/README.md` 文档索引，确立「单一事实来源」：数值归 `src/config.js`，规则归 `AGENTS.md`，用法与功能概览归 `README.md`，系统设计归 `DEVELOPMENT_PLAN.md`，历史归 `DEVELOPMENT_LOG.md`。
+- 新增 `tmp/check-docs.js`：比对文档中的关卡总数、等级上限、图鉴数量、抗性组数与 `src/config.js`，并检查文档引用的 `tmp/*.js` 是否存在、每个关卡是否都有对应小节。
+- `DEVELOPMENT_PLAN.md` 第 11 节「本次迭代验收记录」（174 行）迁至 `docs/archive/iteration-acceptance-records.md`，原位置保留指针；计划文档由 1465 行降到 1293 行。
+- 三份已完成的功能说明移入 `docs/archive/`：`skill-progress-implementation.md`、`skill-super-traits-plan.md`、`rifle-development.plan.md`。
+- 修正 `DEVELOPMENT_PLAN.md` 中残留的 4 处「15 级」（系统设计与验收小节），按当前 `config.maxLevel = 20` 更正。
+- `README.md` 删除早期的「本次对话变更摘要」；验证命令只保留必跑项并指向 `AGENTS.md`，不再与 AGENTS 各维护一份。
+- `AGENTS.md` 的「文档同步」改为归属矩阵；必跑验证加入 `node tmp\check-docs.js`。
+- 遗留：`DEVELOPMENT_PLAN.md` 缺少第 31～35 关小节，`README.md` 缺少第 1、14～20 关的功能条目，由 `check-docs.js` 持续提示。
+- 验证：`node tmp/check-docs.js` 0 failed（2 warnings），`npm --prefix frontend run build`、`check-react-ssr.mjs`、`src/*.js` 语法检查与 `git diff --check` 通过。

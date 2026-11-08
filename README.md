@@ -263,15 +263,6 @@ npm run dev
 | 跃迁电子 | 永动电子 | 多重越导、跃迁燃烧、复合电子 | 额外释放 2 条电链，每轮共 3 条并优先把目标分摊给不同电链；弹射次数 +3，其余结算与既有电链词条一致。 |
 
 
-## 本次对话变更摘要
-
-1. 将人物从 Canvas 程序化绘制改为分层 PNG 精灵：身体来自 `man.png` 透明裁切图，步枪为独立精灵。
-2. 新增 `src/sprites.js`，支持多路径回退加载；`main.js` 等待精灵后再开局，并设置超时保护。
-3. 步枪握把对齐人物左手，枪身先于身体绘制，手和头压住枪身，形成持枪姿态；枪口随瞄准旋转并与弹道对齐。
-4. 新增 35 发弹匣和自动换弹，HUD 右上角显示弹药数及换弹进度。
-5. 幻形右移、上移，避免与人物背包重叠。
-6. 人物、步枪和幻形的尺寸、锚点、挂载点集中在 `src/config.js`。
-
 ## 当前限制与后续方向
 
 - **后期同屏敌人极多时仍可能掉帧**：已加入 DPR 上限 2、敌人 / 粒子 / 文字视口裁剪、粒子与伤害文字上限、效果数组原地清理等轻量优化；这些只能缓解，根本方案仍是敌人身体精灵缓存（尚未实施）。性能测试方法与数据见 `tmp/perf-report.md`。
@@ -294,80 +285,16 @@ npm run dev
 - 针对玩家本人的投掷攻击以及更复杂的地图互动仍属于后续内容。
 - React 生产入口依赖 Vite 构建；旧版 `index.html` 仍可免构建回退运行。人物和步枪使用 `assets/` 下的 PNG 精灵，敌人、装甲车、城墙和幻形仍由 Canvas 程序化绘制。
 
-## 本次修改后的检查方式
+## 检查方式
 
-在项目根目录执行：
+完整的最新验证命令清单维护在 [`AGENTS.md`](AGENTS.md) 的「运行与验证」一节，这里只列每次改动都必须执行的几条：
 
 ```powershell
 npm --prefix frontend run build
-node tmp\check-react-ssr.mjs                                   # React 页面 SSR + 挂载 / 卸载冒烟
+node tmp\check-react-ssr.mjs
 Get-ChildItem src -Filter *.js | ForEach-Object { node --check $_.FullName }
+node tmp\check-docs.js
 git diff --check
-node tmp\check-bomber.js                                       # 炸弹僵尸 / 撞线爆炸 / 低血加速
-node tmp\check-flame-master.js                                 # 烈焰掌控者 / 冰火免疫 / 测试场与图鉴
-node tmp\check-boss-update.js                                  # 首领缩放 / 深海巨兽水柱 / 机械垦荒者双钻头
-node tmp\check-level26.js                                      # 第 26 关阵容 / 首领 / 20 波 / 滚动列表
-node tmp\check-level27.js                                      # 第 27 关阵容 / 烈焰掌控者 / 20 波 / 滚动列表
-node tmp\check-level28.js                                      # 第 28 关阵容 / 看守者 / 20 波 / 滚动列表
-node tmp\check-level29.js                                      # 第 29 关阵容 / 暴食者 / 20 波 / 滚动列表
-node tmp\check-level30.js                                      # 第 30 关阵容 / 机械垦荒者 / 20 波 / 滚动列表
-node tmp\check-level31.js                                      # 第 31 关阵容 / 深海巨兽 / 20 波 / 滚动列表
-node tmp\check-level32.js                                      # 第 32 关阵容 / 风暴先锋 / 20 波 / 滚动列表
-node tmp\check-level33.js                                      # 第 33 关阵容 / 暴食者 / 20 波 / 滚动列表
-node tmp\check-level34.js                                      # 第 34 关阵容 / 烈焰掌控者 / 20 波 / 滚动列表
-node tmp\check-level35.js                                      # 第 35 关阵容 / 看守者 / 20 波 / 滚动列表
-node tmp\check-attributes.js                                   # 属性系统冒烟
-node tmp\check-character.js                                    # 角色界面 / 宝石浮层 / 背包页签冒烟
-node tmp\check-equipment.js                                    # 装备 / 装备背包冒烟
-node tmp\check-wall.js                                         # 城墙材料冒烟
-node tmp\check-gems.js                                         # 装备宝石冒烟
-node tmp\check-rewards.js                                      # 关卡资源奖励冒烟
-node tmp\check-skills.js                                       # 技能图纸 / 等级 / 节点 / 冷却与伤害冒烟
-node tmp\check-rifle.js                                        # 步枪图纸 / 等级 / 节点冒烟
-node tmp\check-super-traits.js                                 # 超级词条前置与效果冒烟
-
-# 关卡验证（按需选择）
-node tmp\check-level8.js                                       # 第 8 关 / 飞鸟与远程混编
-node tmp\check-level9.js                                       # 第 9 关 / 火焰抗性
-node tmp\check-level10.js                                      # 第 10 关 / 冰火互克
-node tmp\check-level11.js                                      # 第 11 关 / 电系受制
-node tmp\check-level12.js                                      # 第 12 关 / 轮椅回血
-node tmp\check-level13.js                                      # 第 13 关 / 蜂巢与飞行单位
-node tmp\check-level21.js                                      # 第 21 关 / 暴食者
-node tmp\check-level22.js                                      # 第 22 关 / 深海巨兽
-node tmp\check-level23.js                                      # 第 23 关 / 看守者
-node tmp\check-level24.js                                      # 第 24 关 / 雷暴空港
-node tmp\check-level25.js                                      # 第 25 关 / 腐殖温室
-node tmp\check-level26.js                                      # 第 26 关 / 风暴禁区
-node tmp\check-level27.js                                      # 第 27 关 / 熔火王座
-node tmp\check-level28.js                                      # 第 28 关 / 霜狱回廊
-node tmp\check-level29.js                                      # 第 29 关 / 废墟工坊
-node tmp\check-level30.js                                      # 第 30 关 / 钢铁荒原
-node tmp\check-level31.js                                      # 第 31 关 / 极夜霜原
-node tmp\check-level32.js                                      # 第 32 关 / 锈蚀码头
-node tmp\check-level33.js                                      # 第 33 关 / 霜噬地窟
-node tmp\check-level34.js                                      # 第 34 关 / 熔渣熔炉
-node tmp\check-level35.js                                      # 第 35 关 / 终焉工事
-
-# 数值校验
-node tmp\check-hp-budget.js                                    # 等效血量预算
-node tmp\check-xp.js                                           # 经验与满级落点
 ```
 
-Windows Git 显示的 `LF will be replaced by CRLF` 是换行符转换提示，不代表代码错误。
-
-后端改动另需执行：
-
-```powershell
-.venv\Scripts\python -m compileall server
-.venv\Scripts\python tmp\check_db.py                           # 数据层冒烟
-.venv\Scripts\python tmp\check_api.py http://127.0.0.1:8787    # 接口冒烟（需先启动服务）
-node tmp\check-accounts.js                                     # 前端账户层冒烟
-node tmp\check-equipment.js                                    # 装备 / 属性 / 换装冒烟
-node tmp\check-wall.js                                         # 城墙 / 稀土突破冒烟
-node tmp\check-gems.js                                         # 宝石 / 锁定 / 一键合成冒烟
-node tmp\check-rewards.js                                      # 结算 / 撤离 / 奖励冒烟
-node tmp\check-skills.js                                       # 技能账户层与战斗接入冒烟
-```
-
-性能回归：在 Browser pane 中注入 `tmp/perf-harness.js`，调用 `window.__perfHarness.run([...])` 采集 `draw` / `flush` 耗时；当前测试数据与结论见 `tmp/perf-report.md`。
+后端改动另需 `.venv\Scripts\python -m compileall server`。账户、装备、城墙、宝石、奖励、关卡与数值的专项脚本见 `AGENTS.md`；性能回归方法见 `tmp/perf-report.md`。
