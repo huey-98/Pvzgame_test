@@ -793,3 +793,10 @@ git diff --check
 - `AGENTS.md` 的「文档同步」改为归属矩阵；必跑验证加入 `node tmp\check-docs.js`。
 - 遗留：`DEVELOPMENT_PLAN.md` 缺少第 31～35 关小节，`README.md` 缺少第 1、14～20 关的功能条目，由 `check-docs.js` 持续提示。
 - 验证：`node tmp/check-docs.js` 0 failed（2 warnings），`npm --prefix frontend run build`、`check-react-ssr.mjs`、`src/*.js` 语法检查与 `git diff --check` 通过。
+
+## 2026-11-08 · 补齐关卡文档缺口
+
+- `DEVELOPMENT_PLAN.md` 补写第 31～35 关（极夜霜原、锈蚀码头、霜噬地窟、熔渣熔炉、终焉工事）的实现小节：均为 20 波、常规小怪 2988 只，精英固定第 4 波、首领固定第 7 波；hpScale 依次 12.8 / 7 / 6.3 / 7.9 / 8.8，xpScale 均为 0.059，等效血量预算依次 4017699 / 4647906 / 5417738 / 6297409 / 7317943。
+- `README.md` 补写第 1 关与第 14～20 关的功能条目，覆盖波次、投放量、阵容顺序、精英与首领位置、`hpScale` / `xpScale` 与等效血量预算。
+- `node tmp/check-docs.js` 从 2 条 warning 变为 0 failed / 0 warnings。
+- 验证：`check-docs.js`、`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、`src/*.js` 语法检查与 `git diff --check` 通过。
