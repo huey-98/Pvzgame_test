@@ -408,6 +408,54 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelThirtyTwoMixMap = { bird: "shield", runner: "wheelchair", lizard: "thunder" };
+  var levelThirtyTwoWaves = levelThirtyOneWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyTwoMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "shieldElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "stormVanguard"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelThirtyThreeMixMap = { shield: "frostBeast", wheelchair: "snowman", thunder: "wasp" };
+  var levelThirtyThreeWaves = levelThirtyTwoWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyThreeMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "frostBeastElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "devourer"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelThirtyFourMixMap = { frostBeast: "flame", snowman: "chainsaw", wasp: "bomber" };
+  var levelThirtyFourWaves = levelThirtyThreeWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyFourMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "flameElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "flameMaster"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelThirtyFiveMixMap = { flame: "armored", chainsaw: "splitter", bomber: "puppet" };
+  var levelThirtyFiveWaves = levelThirtyFourWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyFiveMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "armoredElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "warden"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16, bossModelScale: 1.5,
     sprites: {
@@ -1053,7 +1101,7 @@
       { id: 13, name: "蜂巢天台", subtitle: "飞鸟毒蜂压境，贴地技能失效", brief: "飞鸟与毒蜂全程悬空，装甲车与燃油弹失效，龙卷风仍能卷住它们；先剥甲再输出。", unlocked: true, hpScale: 2.75, xpScale: .16, waves: levelThirteenWaves },
       { id: 14, name: "冻土前线", subtitle: "寒霜兽重甲推进，火系破局", brief: "寒霜兽免疫六种状态、推拉不动，但会承受三倍火系伤害；第 4 波寒霜兽精英压阵。", unlocked: true, hpScale: 2.9, xpScale: .14, waves: levelFourteenWaves },
       { id: 15, name: "熔毒荒原", subtitle: "毒蜂、火焰与蜥蜴混编", brief: "毒蜂远程飞行、火焰僵尸免疫燃烧与冻结、蜥蜴弱冰抗电；第 4 波蜥蜴精英登场。", unlocked: true, hpScale: 3, xpScale: .12, waves: levelFifteenWaves },
-      { id: 16, name: "断线鸟巢", subtitle: "飞鸟掩护下的傀儡推进", brief: "蜥蜴僵尸弱冰抗电，飞鸟僵尸会从空中突袭，傀儡僵尸远程投掷并在半血与四分之一血时召唤傀儡；第 4 波傀儡精英登场。", unlocked: true, hpScale: 3.1, xpScale: .1, waves: levelSixteenWaves },
+      { id: 16, name: "断线鸟巢", subtitle: "飞鸟掩护下的傀儡推进", brief: "蜥蜴弱冰抗电、飞鸟空中突袭，傀儡半血与四分之一血召唤木偶；第 4 波傀儡精英登场。", unlocked: true, hpScale: 3.1, xpScale: .1, waves: levelSixteenWaves },
       { id: 17, name: "寒蜂裂谷", subtitle: "毒蜂穿梭霜兽与蜥蜴之间", brief: "蜥蜴弱冰抗电，毒蜂远程飞行且弱风抗能量，寒霜兽免疫六种状态但承受三倍火伤；第 4 波毒蜂精英登场。", unlocked: true, hpScale: 3.2, xpScale: .1, waves: levelSeventeenWaves },
       { id: 18, name: "霜影裂谷", subtitle: "寒霜兽精英领队推进", brief: "阵容沿用第 17 关的蜥蜴、毒蜂与寒霜兽；第 4 波由寒霜兽精英领队，第 7 波尸潮领主与小怪同场。", unlocked: true, hpScale: 3.2, xpScale: .1, waves: levelEighteenWaves },
       { id: 19, name: "傀儡雪原", subtitle: "冰雪掩护下的傀儡攻势", brief: "雪人、蜥蜴与傀儡依次登场，第 4 波傀儡精英领队。", unlocked: true, hpScale: 3.3, xpScale: .09, waves: levelNineteenWaves },
@@ -1068,7 +1116,11 @@
       { id: 28, name: "霜狱回廊", subtitle: "寒霜兽、雪人与轮椅混编", brief: "寒霜兽阻挡弹道，雪人抗冰、轮椅半血回血；第 4 波寒霜兽精英，第 7 波看守者镇守。", unlocked: true, hpScale: 2.2, xpScale: .059, waves: levelTwentyEightWaves },
       { id: 29, name: "废墟工坊", subtitle: "傀儡、篮球与分裂混编", brief: "傀儡远程抛掷并召唤分身，篮球僵尸砸墙，分裂僵尸一分为二；第 4 波傀儡精英，第 7 波暴食者现身。", unlocked: true, hpScale: 3.4, xpScale: .059, waves: levelTwentyNineWaves },
       { id: 30, name: "钢铁荒原", subtitle: "护甲、电锯与炸弹混编", brief: "护甲先硬吃伤害，电锯低血狂暴冲锋，炸弹撞线引爆；第 4 波护甲精英，第 7 波机械垦荒者现身。", unlocked: true, hpScale: 4.2, xpScale: .059, waves: levelThirtyWaves },
-      { id: 31, name: "极夜霜原", subtitle: "飞鸟、快跑与蜥蜴混编", brief: "飞鸟全程悬空、快跑高速冲线、蜥蜴爬行夹击；第 4 波飞鸟精英，第 7 波深海巨兽现身。", unlocked: true, hpScale: 12.8, xpScale: .059, waves: levelThirtyOneWaves }
+      { id: 31, name: "极夜霜原", subtitle: "飞鸟、快跑与蜥蜴混编", brief: "飞鸟全程悬空、快跑高速冲线、蜥蜴爬行夹击；第 4 波飞鸟精英，第 7 波深海巨兽现身。", unlocked: true, hpScale: 12.8, xpScale: .059, waves: levelThirtyOneWaves },
+      { id: 32, name: "锈蚀码头", subtitle: "盾牌、轮椅与雷电混编", brief: "盾牌削减弹道、轮椅半血回血、雷电抗电；第 4 波盾牌精英，第 7 波风暴先锋现身。", unlocked: true, hpScale: 7, xpScale: .059, waves: levelThirtyTwoWaves },
+      { id: 33, name: "霜噬地窟", subtitle: "寒霜兽、雪人与毒蜂混编", brief: "寒霜兽阻挡弹道、雪人抗冰、毒蜂远程飞行；第 4 波寒霜兽精英，第 7 波暴食者现身。", unlocked: true, hpScale: 6.3, xpScale: .059, waves: levelThirtyThreeWaves },
+      { id: 34, name: "熔渣熔炉", subtitle: "火焰、电锯与炸弹混编", brief: "火焰免疫燃烧冻结、电锯低血狂暴、炸弹撞线引爆；第 4 波火焰精英，第 7 波烈焰掌控者现身。", unlocked: true, hpScale: 7.9, xpScale: .059, waves: levelThirtyFourWaves },
+      { id: 35, name: "终焉工事", subtitle: "护甲、分裂与傀儡混编", brief: "护甲硬吃伤害、分裂一分为二、傀儡召唤木偶；第 4 波护甲精英，第 7 波看守者现身。", unlocked: true, hpScale: 8.8, xpScale: .059, waves: levelThirtyFiveWaves }
     ],
     waves: levelOneWaves
   };

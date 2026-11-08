@@ -65,6 +65,10 @@ node tmp\check-level28.js
 node tmp\check-level29.js
 node tmp\check-level30.js
 node tmp\check-level31.js
+node tmp\check-level32.js
+node tmp\check-level33.js
+node tmp\check-level34.js
+node tmp\check-level35.js
 
 # 数值校验
 node tmp\check-hp-budget.js

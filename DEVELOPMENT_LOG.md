@@ -759,3 +759,25 @@ git diff --check
 - 验证：第 21～31 关专项、`check-level.js 31`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、源码语法检查与 `git diff --check` 通过；第 31 关在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
 - 画面用 `tmp/trace-level-select.js 31` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-31.png`，并回放 31 行滚动列表到底部，核对第 31 关行、简介面板、五行阵容与面板边界均无重叠或越界。
 - 遗留：`tmp/check-level8.js`～`check-level13.js` 属早期关卡时代的过期脚本，本轮改动前后失败项完全一致，未做处理；`tmp/check-level-preview.js` 的 12 项过期断言与第 16 关简介 3 行问题同样保留为历史遗留。
+
+## 2026-11-08 · 第 32～35 关
+
+- 新增第 32 关「锈蚀码头」：小怪为盾牌僵尸、轮椅僵尸与雷电僵尸，按第 1～3 波依次登场；盾牌僵尸精英固定在第 4 波，第 7 波由风暴先锋与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 31 关；关卡 `hpScale` 为 7、`xpScale` 为 0.059，等效血量预算 4647906，约为第 31 关的 1.16 倍。
+- 新增第 33 关「霜噬地窟」：小怪为寒霜兽、雪人僵尸与毒蜂，按第 1～3 波依次登场；寒霜兽精英固定在第 4 波，第 7 波由暴食者与小怪同场；共 20 波。波次节奏沿用第 32 关；关卡 `hpScale` 为 6.3、`xpScale` 为 0.059，等效血量预算 5417738，约为第 32 关的 1.17 倍。
+- 新增第 34 关「熔渣熔炉」：小怪为火焰僵尸、电锯僵尸与炸弹僵尸，按第 1～3 波依次登场；火焰僵尸精英固定在第 4 波，第 7 波由烈焰掌控者与小怪同场；共 20 波。波次节奏沿用第 33 关；关卡 `hpScale` 为 7.9、`xpScale` 为 0.059，等效血量预算 6297409，约为第 33 关的 1.16 倍。
+- 新增第 35 关「终焉工事」：小怪为护甲僵尸、分裂僵尸与傀儡僵尸，按第 1～3 波依次登场；护甲僵尸精英固定在第 4 波，第 7 波由看守者与小怪同场；共 20 波。波次节奏沿用第 34 关；关卡 `hpScale` 为 8.8、`xpScale` 为 0.059，等效血量预算 7317943，约为第 34 关的 1.16 倍。
+- 四关均复用既有小怪、精英与首领配置，未新增敌人类型；风暴先锋、暴食者、烈焰掌控者与看守者分别再次坐镇第 32～35 关第 7 波，实际总生命分别为 `round(5000 × 7 × 1.45) × 5`、`round(3600 × 6.3 × 1.45) × 5`、`round(4800 × 7.9 × 1.45) × 5`、`round(4200 × 8.8 × 1.45) × 5`。
+- 新增 `tmp/check-level32.js`～`tmp/check-level35.js`（由 `tmp/gen-check-levels-32-35.js` 统一生成），覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 修复 `tmp/check-level24.js`～`tmp/check-level28.js` 的滚动断言：这五个脚本原先依赖「该关是最后一关」才成立，关卡增加到 35 后目标关卡滚出视口导致误报，统一改为先滚动到该关所在行再断言。
+- 验证：第 21～35 关专项、`check-level.js 32/33/34/35`、`check-xp.js`、`check-hp-budget.js`、`check-level-scroll.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、源码语法检查与 `git diff --check` 通过；四关均在第 20/20 波满级。`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面用 `tmp/trace-level-select.js 32/33/34/35` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-32.png`～`tmp/level-brief-35.png`，并回放 35 行滚动列表到底部，核对第 32～35 关行、简介面板、五行阵容与面板边界均无重叠或越界。
+- 遗留：`tmp/check-level8.js`～`check-level13.js` 属早期关卡时代的过期脚本，本轮改动前后失败项完全一致，未做处理；`tmp/check-level-preview.js` 的过期断言与第 16 关简介 3 行问题同样保留为历史遗留。
+
+## 2026-11-08 · 测试脚本修复与简介排版
+
+- 重写 `tmp/check-level8.js`～`tmp/check-level13.js`（由 `tmp/gen-check-levels-8-13.js` 生成）。原脚本停留在 13 关时代，断言依赖旧版「行高自动压缩」的列表布局与固定的关卡总数、关卡位次，随关卡增加到 35 后大面积误报。新脚本按 `config` 实际数据生成：校验配置与投放总量、阵容覆盖与首次登场顺序、精英与首领波位、等效血量预算、首领实际生命、LV.20 与 19 次词条、滚动到本关所在行后的列表与简介绘制。
+- 修复 `tmp/check-level-preview.js`：关卡总数改为按编号连续性校验；列表断言改为只统计 `getVisibleLevelRange()` 覆盖的可见行；点击路由测试改为同时派发 canvas `pointerdown` 与 window `pointerup`（关卡点击实际在 window 的 pointerup 上结算，且 window 上注册了多个 pointerup 监听，原桩只保留了最后一个）。
+- 统一关卡列表滚动断言：`check-level24`～`check-level31` 等脚本不再依赖「该关是最后一关」，一律先滚动到目标关卡所在行再断言，避免每批新增关卡后复发。
+- 第 16 关简介由 56 字缩短为 41 字，修复简介在面板内排到 3 行、与「小怪」标题重叠的问题；其余关卡最长简介为 51 字，均保持在两行内。
+- 验证：第 8～13 关与第 21～35 关专项全部通过，`check-level-preview.js`、`check-level-scroll.js`、`check-hp-budget.js`、`check-xp.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-level.js 8/13/20/35`、源码语法检查与 `git diff --check` 通过；`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+- 画面回放 `tmp/level-brief-16-check.png` 确认第 16 关简介为两行、与「小怪」分组无重叠。
