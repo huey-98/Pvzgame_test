@@ -25,7 +25,8 @@ __pycache__/
 *.log
 *.tmp
 temp/
-tmp/
+tmp/*
+!tmp/check-docs.js
 
 # Operating-system files
 .DS_Store
