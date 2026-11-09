@@ -819,3 +819,13 @@ git diff --check
 - 新增 `docs/features/_template.md` 临时开发计划模板；`docs/README.md` 增加 `docs/features/` 职责与归档流程。
 - `tmp/check-docs.js` 改为校验手册 §10.3 关卡表、README 关卡条目、AGENTS 的 §章节索引是否存在，以及文档引用的检查脚本。
 - 验证：`node tmp/check-docs.js` 2 passed / 0 warnings / 0 failed；`npm --prefix frontend run build`、`check-react-ssr.mjs`、`src/*.js` 语法检查与 `git diff --check` 通过。
+
+## 2026-11-09 · 第 37 关
+
+- 新增第 37 关「冻湖栈道」：小怪为盾牌僵尸、雷电僵尸与雪人僵尸，按第 1～3 波依次登场；盾牌僵尸精英固定在第 4 波，第 7 波由深海巨兽与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 36 关；关卡 hpScale 为 17.6、xpScale 为 0.067，等效血量预算 9808770，约为第 36 关的 1.16 倍。
+- 复用既有敌人，未新增类型；深海巨兽再次坐镇第 7 波，实际总生命按 `round(4500 × 17.6 × 1.45) × 5` 结算。阵容刻意让电系在盾牌与首领处有收益、在雷电处被削减，冰系被雪人与首领同时压制，火系则被雪人放大、被盾牌免疫燃烧。
+- 新增 `tmp/check-level37.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按新版手册同步：`README.md` 补充关卡总数与第 37 关条目，`DEVELOPMENT_PLAN.md` §10.3 参数表新增一行；`AGENTS.md` 的检查入口按 §2.3 的通用 `check-level<N>.js` 说明，无需新增脚本条目。
+- 验证：第 8～13 关、第 21～37 关专项、`check-level.js 37`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-37.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 37` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-37.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
