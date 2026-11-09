@@ -810,3 +810,12 @@ git diff --check
 - 验证：第 8～13 关、第 21～36 关专项、`check-level.js 36`、`check-level-preview.js`、`check-level-scroll.js`、`check-level8-xp.js`、`check-xp-36.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
 - 画面用 `tmp/trace-level-select.js 36` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-36.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
 - 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+
+## 2026-11-09 · 文档重构：精简 AGENTS、改写开发手册
+
+- `AGENTS.md` 由 259 行精简到 113 行：只保留 24 条铁律、开发手册章节索引、必跑验证、文档体系与提交规范；原「必须保持的核心规则」的详细说明、「常见扩展流程」、后端与 React 细节全部移入手册对应章节。
+- `DEVELOPMENT_PLAN.md` 由 1329 行改写为 673 行的开发手册（约 375 KB → 37 KB）：按 §0～§27 重新组织为使用说明、基础、战斗系统、表现层、后端、扩展流程、验收与归档；36 个关卡的逐关叙述压缩为 §10.3 的参数表（阵容、波次、投放、精英、首领、hpScale、xpScale）。
+- AGENTS 以章节号（如 §18、§21）索引手册，不写行号，避免每次编辑后漂移。
+- 新增 `docs/features/_template.md` 临时开发计划模板；`docs/README.md` 增加 `docs/features/` 职责与归档流程。
+- `tmp/check-docs.js` 改为校验手册 §10.3 关卡表、README 关卡条目、AGENTS 的 §章节索引是否存在，以及文档引用的检查脚本。
+- 验证：`node tmp/check-docs.js` 2 passed / 0 warnings / 0 failed；`npm --prefix frontend run build`、`check-react-ssr.mjs`、`src/*.js` 语法检查与 `git diff --check` 通过。

@@ -8,9 +8,10 @@
 | --- | --- | --- | --- |
 | `AGENTS.md` | 面向开发者与 AI 的协作规则 | 规则、边界或验证方式变化 | 必须遵守的规则、验证命令 |
 | `README.md` | 面向使用者的说明 | 启动方式或可玩内容变化 | 项目结构、运行方式、功能概览 |
-| `DEVELOPMENT_PLAN.md` | 系统设计与架构 | 设计、数据模型或验收标准变化 | 系统设计、关卡设计、验收标准 |
+| `DEVELOPMENT_PLAN.md` | 开发手册：各部分的开发方式 | 开发方式、数据模型或验收标准变化 | 各子系统怎么改、关卡参数表、验收标准 |
 | `DEVELOPMENT_LOG.md` | 按日期追加的历史日志 | 每轮开发结束 | 已发生的事实，不回填旧数字 |
-| `docs/archive/` | 已完成的实现说明与历史记录 | 只增不改 | 历史归档 |
+| `docs/features/` | 进行中的临时开发计划 | 新功能开工时新建 | 计划范围与步骤 |
+| `docs/archive/` | 已完成的计划与历史记录 | 只增不改 | 历史归档 |
 
 ## 单一事实来源
 
@@ -32,11 +33,15 @@
 
 | 归档文件 | 原用途 | 结论所在 |
 | --- | --- | --- |
-| `docs/archive/skill-progress-implementation.md` | 技能图纸与等级的一次性实现说明 | `DEVELOPMENT_PLAN.md` 第 20 节 |
-| `docs/archive/skill-super-traits-plan.md` | 技能超级词条的一次性实现说明 | `DEVELOPMENT_PLAN.md` 第 7 节与 `README.md` |
-| `docs/archive/rifle-development.plan.md` | 步枪账户成长系统设计草案 | `DEVELOPMENT_PLAN.md` 第 21 节 |
-| `docs/archive/iteration-acceptance-records.md` | 早期迭代验收记录 | 原 `DEVELOPMENT_PLAN.md` 第 11 节 |
+| `docs/archive/skill-progress-implementation.md` | 技能图纸与等级的一次性实现说明 | `DEVELOPMENT_PLAN.md` §8 |
+| `docs/archive/skill-super-traits-plan.md` | 技能超级词条的一次性实现说明 | `DEVELOPMENT_PLAN.md` §7.6 |
+| `docs/archive/rifle-development.plan.md` | 步枪账户成长系统设计草案 | `DEVELOPMENT_PLAN.md` §9 |
+| `docs/archive/iteration-acceptance-records.md` | 早期迭代验收记录 | 历史记录，见 `DEVELOPMENT_LOG.md` |
 
 ## 新增功能文档
 
-进行中的功能计划放在 `docs/features/`；完成后把结论并入正式文档，再把原文件移入 `docs/archive/` 并在此登记。
+1. 从 `docs/features/_template.md` 复制一份计划，命名为 `docs/features/<slug>.md`。
+2. 按计划实现并验证。
+3. 把结论并入 `DEVELOPMENT_PLAN.md` 对应章节（写开发方式，不写流水账）。
+4. 把计划文件移入 `docs/archive/features/`，并在此登记。
+5. 运行 `node tmp/check-docs.js`。

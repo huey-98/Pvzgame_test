@@ -57,13 +57,13 @@
 │   └── main.js             # 旧版免构建入口
 ├── AGENTS.md               # 面向后续开发者的协作约定与关键机制说明
 ├── DEVELOPMENT_LOG.md      # 历史上每一次功能变更的逐条记录
-├── DEVELOPMENT_PLAN.md     # 开发计划、系统设计与验收记录
+├── DEVELOPMENT_PLAN.md     # 开发手册：各部分开发方式与关卡参数
 └── README.md
 ```
 
 React 生产入口通过 Vite 按依赖顺序装载旧引擎模块；旧模块仍使用 `window.Game` 作为兼容层，便于现有专项脚本和 Canvas 渲染继续运行。React shell 负责挂载 Canvas，低频菜单与高频战斗界面统一交给完整旧 Canvas 界面；战斗实体、弹体、粒子和主循环仍留在游戏引擎内。`frontend/src/features/` 保留作为后续 React 界面切换的兼容层。
 
-**账户与数据层（已实施）** 让项目成为全栈应用：`server/`（FastAPI + SQLAlchemy 后端，含 `run.py` 与 `requirements.txt`）持有 SQLite 数据库 `data/blockline.db`，账户、登录会话、关卡进度与资源全部落库；前端通过 `src/accounts.js` 与 React UI Store 访问同源 `/api`。设计与规则见 [`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md) 第 12 节与第 19 节。
+**账户与数据层（已实施）** 让项目成为全栈应用：`server/`（FastAPI + SQLAlchemy 后端，含 `run.py` 与 `requirements.txt`）持有 SQLite 数据库 `data/blockline.db`，账户、登录会话、关卡进度与资源全部落库；前端通过 `src/accounts.js` 与 React UI Store 访问同源 `/api`。设计与规则见 [`DEVELOPMENT_PLAN.md`](./DEVELOPMENT_PLAN.md) §15、§16 与 §13。
 
 ## 运行
 

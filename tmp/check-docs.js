@@ -27,11 +27,9 @@ function scan(text, pattern, handler) {
 }
 
 var readme = read("README.md");
-var plan = read("DEVELOPMENT_PLAN.md");
+var manual = read("DEVELOPMENT_PLAN.md");
 var agents = read("AGENTS.md");
 var docsIndex = read("docs/README.md");
-var planCurrent = plan.split(/^## 11\./m)[0];
-var currentDocs = [["README.md", readme], ["DEVELOPMENT_PLAN.md", planCurrent]];
 
 var levelCount = C.levels.length;
 var maxLevel = C.maxLevel;
@@ -51,7 +49,7 @@ Object.keys(C.enemies).forEach(function (id) {
 });
 var resistGroups = Object.keys(shapes).length;
 
-currentDocs.forEach(function (pair) {
+[["README.md", readme], ["DEVELOPMENT_PLAN.md", manual]].forEach(function (pair) {
   var name = pair[0];
   var text = pair[1];
   scan(text, /(?:全部|现有|展示)\s*(\d+)\s*个关卡/g, function (m) {
@@ -86,7 +84,7 @@ currentDocs.forEach(function (pair) {
   });
 });
 
-[["README.md", readme], ["DEVELOPMENT_PLAN.md", planCurrent], ["AGENTS.md", agents], ["docs/README.md", docsIndex]].forEach(function (pair) {
+[["README.md", readme], ["DEVELOPMENT_PLAN.md", manual], ["AGENTS.md", agents], ["docs/README.md", docsIndex]].forEach(function (pair) {
   var name = pair[0];
   scan(pair[1], /tmp[\\/]([A-Za-z0-9_-]+\.js)\b/g, function (m) {
     if (!fs.existsSync(path.join(root, "tmp", m[1]))) {
@@ -95,10 +93,16 @@ currentDocs.forEach(function (pair) {
   });
 });
 
-var planLevels = {};
-scan(plan, /^### 关卡\s*(\d+)：/gm, function (m) { planLevels[Number(m[1])] = true; });
 var readmeLevels = {};
 scan(readme, /^-\s*第\s*(\d+)\s*关「/gm, function (m) { readmeLevels[Number(m[1])] = true; });
+
+var levelTableMatch = manual.match(/### 10\.3[^\n]*\n([\s\S]*?)(?=\n### |\n## )/);
+var manualLevels = {};
+if (!levelTableMatch) {
+  fail("DEVELOPMENT_PLAN.md 缺少 §10.3 关卡参数表");
+} else {
+  scan(levelTableMatch[1], /^\|\s*(\d+)\s*\|/gm, function (m) { manualLevels[Number(m[1])] = true; });
+}
 
 function compress(ids) {
   ids.sort(function (a, b) { return a - b; });
@@ -114,17 +118,29 @@ function compress(ids) {
   return parts.join("、");
 }
 
-var planMissing = [];
+var manualMissing = [];
 var readmeMissing = [];
 C.levels.forEach(function (level) {
-  if (!planLevels[level.id]) planMissing.push(level.id);
+  if (!manualLevels[level.id]) manualMissing.push(level.id);
   if (!readmeLevels[level.id]) readmeMissing.push(level.id);
 });
-if (planMissing.length) warn("DEVELOPMENT_PLAN.md 缺少第 " + compress(planMissing) + " 关的小节");
+if (manualMissing.length) warn("手册 §10.3 缺少第 " + compress(manualMissing) + " 关");
 if (readmeMissing.length) warn("README.md 缺少第 " + compress(readmeMissing) + " 关的功能条目");
 
-if (!failures.length) pass("关卡总数 " + levelCount + "、等级上限 " + maxLevel + "、图鉴 " + minionCount + "/" + eliteCount + "、抗性 " + resistGroups + " 组 / " + formCount + " 种均与 config 一致");
-if (!warnings.length) pass("文档中的关卡小节与引用脚本均完整");
+var manualSections = {};
+scan(manual, /^## (\d+)\./gm, function (m) { manualSections[Number(m[1])] = true; });
+var badRefs = {};
+scan(agents, /§(\d+)(?:\.\d+)?/g, function (m) {
+  if (!manualSections[Number(m[1])]) badRefs[m[1]] = true;
+});
+Object.keys(badRefs).forEach(function (id) {
+  fail("AGENTS.md 引用的手册 §" + id + " 不存在");
+});
+
+if (!failures.length) {
+  pass("关卡总数 " + levelCount + "、等级上限 " + maxLevel + "、图鉴 " + minionCount + "/" + eliteCount + "、抗性 " + resistGroups + " 组 / " + formCount + " 种均与 config 一致");
+}
+if (!warnings.length) pass("文档中的关卡表、关卡条目、章节索引与引用脚本均完整");
 
 passes.forEach(function (m) { console.log("  ok    " + m); });
 warnings.forEach(function (m) { console.log("  warn  " + m); });
