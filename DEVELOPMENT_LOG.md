@@ -800,3 +800,13 @@ git diff --check
 - `README.md` 补写第 1 关与第 14～20 关的功能条目，覆盖波次、投放量、阵容顺序、精英与首领位置、`hpScale` / `xpScale` 与等效血量预算。
 - `node tmp/check-docs.js` 从 2 条 warning 变为 0 failed / 0 warnings。
 - 验证：`check-docs.js`、`npm --prefix frontend run build`、`check-react-ssr.mjs` 19 项、`src/*.js` 语法检查与 `git diff --check` 通过。
+
+## 2026-11-09 · 第 36 关
+
+- 新增第 36 关「冰封球场」：小怪为篮球僵尸、寒霜兽与电锯僵尸，按第 1～3 波依次登场；篮球僵尸精英固定在第 4 波，第 7 波由机械垦荒者与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 35 关；关卡 hpScale 为 8.2、xpScale 为 0.055，等效血量预算 8471471，约为第 35 关的 1.16 倍。
+- 本关复用既有敌人，未新增类型；机械垦荒者再次坐镇第 7 波，实际总生命按 `round(4800 × 8.2 × 1.45) × 5` 结算。
+- 新增 `tmp/check-level36.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按单一事实来源更新：`README.md` 补充关卡总数与第 36 关条目，`DEVELOPMENT_PLAN.md` 补充关卡小节并校正总数，`AGENTS.md` 补入检查脚本。
+- 验证：第 8～13 关、第 21～36 关专项、`check-level.js 36`、`check-level-preview.js`、`check-level-scroll.js`、`check-level8-xp.js`、`check-xp-36.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 36` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-36.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
