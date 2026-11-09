@@ -829,3 +829,13 @@ git diff --check
 - 验证：第 8～13 关、第 21～37 关专项、`check-level.js 37`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-37.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
 - 画面用 `tmp/trace-level-select.js 37` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-37.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
 - 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+
+## 2026-11-09 · 第 38 关
+
+- 新增第 38 关「断翼病院」：小怪为护甲僵尸、毒蜂与轮椅僵尸，按第 1～3 波依次登场；毒蜂精英固定在第 4 波，第 7 波由风暴先锋与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 37 关；关卡 hpScale 为 20.8、xpScale 为 0.067，等效血量预算 11363001，约为第 37 关的 1.16 倍。
+- 复用既有敌人，未新增类型；风暴先锋再次坐镇第 7 波，实际总生命按 `round(5000 × 20.8 × 1.45) × 5` 结算。三种小怪分别代表「装甲耐久」「空中远程」「条件回血」，首领又免疫电系与能量系，逼迫玩家在物理、冰、火、风之间调整输出。
+- 新增 `tmp/check-level38.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按新版手册同步：`README.md` 补充关卡总数与第 38 关条目，`DEVELOPMENT_PLAN.md` §10.3 参数表新增一行；`AGENTS.md` 的通用 `check-level<N>.js` 说明无需改动。
+- 验证：第 8～13 关、第 21～38 关专项、`check-level.js 38`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-38.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 38` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-38.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
