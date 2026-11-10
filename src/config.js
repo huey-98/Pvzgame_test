@@ -492,6 +492,30 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelThirtyNineMixMap = { armored: "normal", wasp: "armored", wheelchair: "bomber" };
+  var levelThirtyNineWaves = levelThirtyEightWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelThirtyNineMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "armoredElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "devourer"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
+  var levelFortyMixMap = { normal: "bird", armored: "splitter", bomber: "frostBeast" };
+  var levelFortyWaves = levelThirtyNineWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelFortyMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "birdElite";
+    if (wave.boss) copy.boss = true;
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16, bossModelScale: 1.5,
     sprites: {
@@ -1159,7 +1183,9 @@
       { id: 35, name: "终焉工事", subtitle: "护甲、分裂与傀儡混编", brief: "护甲硬吃伤害、分裂一分为二、傀儡召唤木偶；第 4 波护甲精英，第 7 波看守者现身。", unlocked: true, hpScale: 8.8, xpScale: .059, waves: levelThirtyFiveWaves },
       { id: 36, name: "冰封球场", subtitle: "篮球、寒霜兽与电锯混编", brief: "篮球远程砸墙、寒霜兽阻挡弹道、电锯低血狂暴；第 4 波篮球精英，第 7 波机械垦荒者现身。", unlocked: true, hpScale: 8.2, xpScale: .055, waves: levelThirtySixWaves },
       { id: 37, name: "冻湖栈道", subtitle: "盾牌、雷电与雪人混编", brief: "盾牌削减弹道、雷电抗电、雪人抗冰；第 4 波盾牌精英，第 7 波深海巨兽破冰而出。", unlocked: true, hpScale: 17.6, xpScale: .067, waves: levelThirtySevenWaves },
-      { id: 38, name: "断翼病院", subtitle: "护甲、毒蜂与轮椅混编", brief: "护甲硬吃伤害、毒蜂悬空针刺、轮椅半血回血；第 4 波毒蜂精英，第 7 波风暴先锋现身。", unlocked: true, hpScale: 20.8, xpScale: .067, waves: levelThirtyEightWaves }
+      { id: 38, name: "断翼病院", subtitle: "护甲、毒蜂与轮椅混编", brief: "护甲硬吃伤害、毒蜂悬空针刺、轮椅半血回血；第 4 波毒蜂精英，第 7 波风暴先锋现身。", unlocked: true, hpScale: 20.8, xpScale: .067, waves: levelThirtyEightWaves },
+      { id: 39, name: "残垣闹市", subtitle: "普通、护甲与炸弹混编", brief: "普通僵尸成群涌来、护甲硬吃伤害、炸弹撞线引爆；第 4 波护甲精英，第 7 波暴食者现身。", unlocked: true, hpScale: 22, xpScale: .073, waves: levelThirtyNineWaves },
+      { id: 40, name: "裂翼长桥", subtitle: "飞鸟、分裂与寒霜兽混编", brief: "飞鸟全程悬空、分裂一分为二、寒霜兽阻挡弹道；第 4 波飞鸟精英，第 7 波尸潮领主现身。", unlocked: true, hpScale: 15.4, xpScale: .059, waves: levelFortyWaves }
     ],
     waves: levelOneWaves
   };
