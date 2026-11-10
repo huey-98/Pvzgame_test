@@ -850,3 +850,13 @@ git diff --check
 - 验证：第 8～13 关、第 21～40 关专项、`check-level.js 39`、`check-level.js 40`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-39.js` 与 `check-xp-40.js`（均第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
 - 画面用 `tmp/trace-level-select.js 39`、`tmp/trace-level-select.js 40` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-39.png` 与 `tmp/level-brief-40.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
 - 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+
+## 2026-11-10 · 第 41 关
+
+- 新增第 41 关「焦骸剧场」：小怪为火焰僵尸、傀儡僵尸与雷电僵尸，按第 1～3 波依次登场；火焰僵尸精英固定在第 4 波，第 7 波由烈焰掌控者与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 40 关；关卡 hpScale 为 27.8、xpScale 为 0.065，等效血量预算 17759327，约为第 40 关的 1.16 倍。
+- 复用既有敌人，未新增类型；烈焰掌控者再次坐镇第 7 波，实际总生命按 `round(4800 × 27.8 × 1.45) × 5` 结算。小怪分别压制燃烧 / 冻结、能量与电系，首领又同时免疫冰系与火系，逼迫玩家转向物理、能量、电系与风系。
+- 新增 `tmp/check-level41.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按新版手册同步：`README.md` 补充关卡总数与第 41 关条目，`DEVELOPMENT_PLAN.md` §10.3 参数表新增一行；`AGENTS.md` 的通用 `check-level<N>.js` 说明无需改动。
+- 验证：第 8～13 关、第 21～41 关专项、`check-level.js 41`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-41.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 41` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-41.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
