@@ -871,6 +871,16 @@ git diff --check
 - 画面用 `tmp/trace-level-select.js 42` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-42.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
 - 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
 
+## 2026-11-11 · 第 43 关
+
+- 新增第 43 关「锈铁车场」：小怪为电锯僵尸、篮球僵尸与蜥蜴僵尸，按第 1～3 波依次登场；电锯僵尸精英固定在第 4 波，第 7 波由机械垦荒者与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 42 关；关卡 hpScale 为 37.8、xpScale 为 0.066，等效血量预算 23857188，约为第 42 关的 1.16 倍。
+- 复用既有敌人，未新增类型；机械垦荒者再次坐镇第 7 波，实际总生命按 `round(4800 × 37.8 × 1.45) × 5` 结算。电锯与篮球分别提供低血狂暴与远程砸墙，蜥蜴补上贴地高速与抗电；首领免疫物理、能量减半且弱风，同时免疫燃烧、麻痹、眩晕与击退。
+- 新增 `tmp/check-level43.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按新版手册同步：`README.md` 补充关卡总数与第 43 关条目，`DEVELOPMENT_PLAN.md` §10.3 参数表新增一行；`AGENTS.md` 的通用 `check-level<N>.js` 说明无需改动。
+- 验证：第 8～13 关、第 21～43 关专项、`check-level.js 43`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-43.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 43` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-43.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+
 ## 2026-11-11 · 宝石词条扩充：防线格挡与四类条件增伤
 
 - 服务端 `GEM_AFFIXES` 新增防线格挡、首领增伤、负面增伤、枪械增伤与低血增伤 5 条词条，`affix_payload` 支持可选 `suffix`；新词条自动进入掉落与调试注入池，未改表结构。
@@ -880,3 +890,13 @@ git diff --check
 - 属性面板新增「宝石特效」行与低血阈值提示；`config.gems.lowWallHpThreshold` 与城墙低血变色共用阈值。
 - 验证：`npm --prefix frontend run build`、`check-react-ssr.mjs`、源码 `node --check`、`check-docs.js`、`check_db.py`、`compileall server`、`git diff --check` 通过；`check-gems.js` 289 项、`check-character.js` 262 项、新增 `check-gem-combat.js` 22 项全部通过。
 - 画面用 `tmp/trace-draw.js account attributesGems` 与 `tmp/trace-draw.js wallBlock` 配合 `replay-draw.py` 出图，核对属性面板宝石特效行与城墙格挡余量无重叠。
+
+## 2026-11-11 · 第 44 关
+
+- 新增第 44 关「蜂霜哨站」：小怪为普通僵尸、毒蜂与寒霜兽，按第 1～3 波依次登场；普通僵尸精英固定在第 4 波，第 7 波由深海巨兽与小怪同场；共 20 波、常规小怪总投放 2988 只。波次投放量、间隔与逐波血量倍率沿用第 43 关；关卡 hpScale 为 33.7、xpScale 为 0.066，等效血量预算 27634851，约为第 43 关的 1.16 倍。
+- 复用既有敌人，未新增类型；深海巨兽再次坐镇第 7 波，实际总生命按 `round(4500 × 33.7 × 1.45) × 5` 结算。普通僵尸提供数量压力，毒蜂补上飞行远程与风 / 能量抗性，寒霜兽阻挡穿透弹道并只怕火；首领免疫燃烧、抗冰弱电，冻结时反而回血，迫使玩家避免纯冰系控制。
+- 新增 `tmp/check-level44.js`，覆盖 20 波阵容、精英、首领实际生成与抗性、等效血量预算、滚动列表、简介面板、LV.2～LV.20 共 19 次词条与完整通关。
+- 文档按新版手册同步：`README.md` 补充关卡总数与第 44 关条目，`DEVELOPMENT_PLAN.md` §10.3 参数表新增一行；`AGENTS.md` 的通用 `check-level<N>.js` 说明无需改动。
+- 验证：第 8～13 关、第 21～44 关专项、`check-level.js 44`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-44.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
+- 画面用 `tmp/trace-level-select.js 44` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-44.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
+- 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
