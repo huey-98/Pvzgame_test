@@ -870,3 +870,13 @@ git diff --check
 - 验证：第 8～13 关、第 21～42 关专项、`check-level.js 42`、`check-level-preview.js`、`check-level-scroll.js`、`check-xp-42.js`（第 20/20 波满级）、`check-hp-budget.js`、`check-boss-update.js`、`check-health-bars.js`、`check-status.js`、`check-resist.js`、`check-test-panel.js`、`check-bomber.js`、`check-flame-master.js`、`check-skills.js`、`check-rifle.js`、`check-rewards.js`、`check-super-traits.js`、`node tmp/check-docs.js` 全部通过；源码语法检查与 `git diff --check` 通过。
 - 画面用 `tmp/trace-level-select.js 42` + `tmp/draw-level-select.py` 回放生成 `tmp/level-brief-42.png`，核对简介两行、五行阵容与面板边界均无重叠或越界。
 - 构建：`npm --prefix frontend run build` 通过，`check-react-ssr.mjs` 19 项通过。
+
+## 2026-11-11 · 宝石词条扩充：防线格挡与四类条件增伤
+
+- 服务端 `GEM_AFFIXES` 新增防线格挡、首领增伤、负面增伤、枪械增伤与低血增伤 5 条词条，`affix_payload` 支持可选 `suffix`；新词条自动进入掉落与调试注入池，未改表结构。
+- 客户端 `Game.gems` 汇总 5 个新字段，`Game.attributes` 计算 `wallBlockCharges` 与四类条件增伤，并在开局写入 `wall.blockMax` / `wall.blockCharges` 与玩家字段。
+- 新增 `Game.damageWall` 统一防线受伤入口，近战、远程弹与炸弹爆炸三条路径全部改走该入口；有格挡时优先消耗次数并完全抵消伤害，城墙耐久条上方显示格挡余量。
+- 新增 `Game.isEliteOrBossEnemy` / `Game.hasNegativeStatus` / `Game.getGemDamageScale`，在 `Game.damageEnemy` 内接首领、负面、枪械与低血条件增伤；燃烧与冻伤每秒伤害仍不经过 `damageEnemy`。
+- 属性面板新增「宝石特效」行与低血阈值提示；`config.gems.lowWallHpThreshold` 与城墙低血变色共用阈值。
+- 验证：`npm --prefix frontend run build`、`check-react-ssr.mjs`、源码 `node --check`、`check-docs.js`、`check_db.py`、`compileall server`、`git diff --check` 通过；`check-gems.js` 289 项、`check-character.js` 262 项、新增 `check-gem-combat.js` 22 项全部通过。
+- 画面用 `tmp/trace-draw.js account attributesGems` 与 `tmp/trace-draw.js wallBlock` 配合 `replay-draw.py` 出图，核对属性面板宝石特效行与城墙格挡余量无重叠。

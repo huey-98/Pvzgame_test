@@ -136,23 +136,18 @@
         if (!charging && info.wallExplosionDamage > 0 && !current.wallExplosionTriggered) {
           var blastY = wall.y - wall.height / 2 - 8;
           current.wallExplosionTriggered = true;
-          wall.hp -= info.wallExplosionDamage;
+          var blastHit = Game.damageWall(info.wallExplosionDamage, current.x, blastY - 18);
           S.explosions.push({ type: "bomberBlast", x: current.x, y: blastY, radius: info.wallExplosionRadius || 42, life: .55, duration: .55 });
           Game.burst(current.x, blastY, 20, "#ff8a3d");
-          Game.addText(current.x, blastY - 18, "-" + info.wallExplosionDamage, C.colors.red);
           current.attackTimer = info.attackInterval || 1;
-          if (wall.hp <= 0) {
-            wall.hp = 0;
-            Game.loseLevel("城墙失守");
-            continue;
-          }
+          if (blastHit.dead) continue;
         }
         if (!charging && current.attackTimer <= 0) {
           if (ranged) { Game.throwEnemyShot(current); current.attackTimer = ranged.interval * U.rand(.9, 1.1); }
           else {
-            wall.hp -= info.damage; current.attackTimer = Game.isBossEnemy(current) ? .65 : (info.attackInterval || 1);
-            Game.burst(current.x, wall.y, 4, C.colors.red); Game.addText(current.x, wall.y - 19, "-" + info.damage, C.colors.red);
-            if (wall.hp <= 0) { wall.hp = 0; Game.loseLevel("城墙失守"); }
+            var meleeHit = Game.damageWall(info.damage, current.x, wall.y - 19); current.attackTimer = Game.isBossEnemy(current) ? .65 : (info.attackInterval || 1);
+            Game.burst(current.x, wall.y, 4, C.colors.red);
+            if (meleeHit.dead) continue;
           }
         }
       } else {

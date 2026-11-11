@@ -2768,7 +2768,7 @@
     if (!wall) return;
     var left = wall.x - wall.width / 2, top = wall.y - wall.height / 2;
     ctx.save();
-    var healthy = wall.hp > wall.maxHp * .35;
+    var healthy = wall.hp > wall.maxHp * (C.gems.lowWallHpThreshold || .35);
     var frontHeight = 56;
     var wallGradient = ctx.createLinearGradient(0, top, 0, top + frontHeight);
     wallGradient.addColorStop(0, healthy ? "#607a7d" : "#875861");
@@ -2825,6 +2825,7 @@
     U.roundedRect(ctx, left + 34, top - 25, wall.width - 68, 8, 4, "rgba(0, 0, 0, .72)");
     U.roundedRect(ctx, left + 34, top - 25, (wall.width - 68) * U.clamp(wall.hp / wall.maxHp, 0, 1), 8, 4, healthy ? C.colors.green : C.colors.red);
     text("城墙 " + Math.ceil(wall.hp) + " / " + wall.maxHp, wall.x, top - 30, "bold 10px Segoe UI, Microsoft YaHei", C.colors.text, "center");
+    if (wall.blockMax > 0) text("格挡 " + (wall.blockCharges || 0) + " / " + wall.blockMax, wall.x, top - 42, "bold 9px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
     ctx.restore();
   };
 
@@ -3266,6 +3267,17 @@
       text(info.name + "系", x + 10, y + 8, "10px Segoe UI, Microsoft YaHei", C.colors.text);
       text(String(Math.round(a.elementAttack[id])), x + 10, y + 24, "bold 15px Segoe UI, Microsoft YaHei", info.color);
     });
+    var traitRow1 = [], traitRow2 = [];
+    if (a.wallBlockCharges) traitRow1.push("格挡 " + a.wallBlockCharges + " 次/局");
+    if (a.eliteDamage) traitRow1.push("首领 +" + attributePercent(a.eliteDamage));
+    if (a.debuffDamage) traitRow1.push("负面 +" + attributePercent(a.debuffDamage));
+    if (a.rifleDamage) traitRow2.push("枪械 +" + attributePercent(a.rifleDamage));
+    if (a.lowWallDamage) traitRow2.push("低血 +" + attributePercent(a.lowWallDamage));
+    [traitRow1, traitRow2].forEach(function (row, index) {
+      if (!row.length) return;
+      text((index === 0 ? "宝石特效 · " : "") + row.join(" · "), center, ui.gemTraitY + index * 12, "8px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
+    });
+    if (a.lowWallDamage) text("低血增伤在防线血量低于 " + Math.round((C.gems.lowWallHpThreshold || .35) * 100) + "% 时生效", center, ui.gemTraitNoteY, "8px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     text("攻击与元素加成对直接命中与持续伤害生效", center, ui.noteY, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     text("攻击 / 元素无上限 · 装备、城墙与宝石加成生效", center, ui.noteY + 16, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");
     text("暴击仅作用于步枪", center, ui.noteY + 32, "9px Segoe UI, Microsoft YaHei", C.colors.muted, "center");

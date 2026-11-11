@@ -32,10 +32,11 @@ def affix_value(affix_id: str, quality: int) -> int | float:
 def affix_payload(affix_id: str, quality: int) -> dict:
     info = _affix(affix_id)
     value = affix_value(affix_id, _quality(quality))
+    suffix = info.get("suffix", "")
     if info.get("percent"):
-        text = "{} +{}%".format(info["name"], "{:g}".format(round(value * 100, 4)))
+        text = "{} +{}%{}".format(info["name"], "{:g}".format(round(value * 100, 4)), suffix)
     else:
-        text = "{} +{}".format(info["name"], value)
+        text = "{} +{}{}".format(info["name"], value, suffix)
     return {
         "id": affix_id if affix_id in config.GEM_AFFIXES else "attack",
         "kind": info["kind"],

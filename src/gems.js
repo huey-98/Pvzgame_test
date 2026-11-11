@@ -229,7 +229,12 @@
       wallHpBonus: 0,
       critRate: 0,
       critDamage: 0,
-      statusDurationMultiplier: 0
+      statusDurationMultiplier: 0,
+      wallBlockCharges: 0,
+      eliteDamage: 0,
+      debuffDamage: 0,
+      rifleDamage: 0,
+      lowWallDamage: 0
     };
   }
 
@@ -246,6 +251,11 @@
       else if (kind === "critRate") totals.critRate += value;
       else if (kind === "critDamage") totals.critDamage += value;
       else if (kind === "statusDurationMultiplier") totals.statusDurationMultiplier += value;
+      else if (kind === "wallBlock") totals.wallBlockCharges += value;
+      else if (kind === "eliteDamage") totals.eliteDamage += value;
+      else if (kind === "debuffDamage") totals.debuffDamage += value;
+      else if (kind === "rifleDamage") totals.rifleDamage += value;
+      else if (kind === "lowWallDamage") totals.lowWallDamage += value;
     });
     totals.socketed = socketed;
     return totals;

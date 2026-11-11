@@ -39,7 +39,7 @@
     s.characterGemDetail = null; s.characterGemReplace = null; s.characterResourceDetail = null; s.characterEquipItem = null; s.characterEquipPage = 0; s.characterResourcePage = 0; s.skillProgressPage = 0;
     s.accountResourcePage = 0; s.skillCodexLevelPanel = false; s.skillCodexRequirementTraitId = null; s.rifleProgressMilestonePanel = false;
     s.gemSynthesisOpen = false; s.gemSynthesisPage = 0; s.gemSynthesisFocus = 0; s.equipmentBagPart = "arm";
-    s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp };
+    s.wall = { x: C.width / 2, y: C.height - 125, width: C.width - 30, height: 30, maxHp: C.wallMaxHp, hp: C.wallMaxHp, blockMax: 0, blockCharges: 0 };
     if (Game.attributes) { Game.attributes.applyPlayer(s.player); Game.attributes.applyWall(s.wall); }
     s.session = { level: s.selectedLevel, waves: waves, xpScale: (level && level.xpScale) || 1, hpScale: (level && level.hpScale) || 1, elapsed: 0, wave: 1, spawnCount: 0, spawnTimer: .25, eliteSpawned: false, bossSpawned: false, pendingWin: false, kills: 0, message: "", messageTimer: 0, reward: null };
   };

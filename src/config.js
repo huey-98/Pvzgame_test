@@ -632,7 +632,8 @@
       statX: [44, 188], statY: [192, 236, 280],
       elementTitleY: 326,
       elementX: [56, 160, 264], elementY: [360, 392], elementOrder: ["physical", "fire", "ice", "electric", "wind", "energy"],
-      noteY: 444,
+      gemTraitY: 428, gemTraitNoteY: 452,
+      noteY: 468,
       back: { x: 98, y: 514, w: 164, h: 36 }
     },
     characterUI: {
@@ -935,6 +936,7 @@
     wall: { maxLevel: 200, hpPerLevel: 200, breakthroughStep: 10, rareEarthBase: 2 },
     gems: {
       maxQuality: 4, socketsPerPart: 6, synthesisCost: 5,
+      lowWallHpThreshold: .35,
       qualities: [
         { id: 0, name: "灰色", short: "灰", color: "#9aa8b2" },
         { id: 1, name: "绿色", short: "绿", color: "#63e6a0" },

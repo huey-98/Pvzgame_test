@@ -42,6 +42,11 @@
     var info = enemy && C.enemies[enemy.type];
     return !!(info && info.codexCategory === "boss");
   };
+  Game.isEliteOrBossEnemy = function (enemy) {
+    if (Game.isBossEnemy(enemy)) return true;
+    var info = enemy && C.enemies[enemy.type];
+    return !!(info && info.codexCategory === "elite");
+  };
   Game.getEnemyHealthBars = function (enemy) {
     var info = enemy && C.enemies[enemy.type], cfg = C.bossHealth || {};
     if (Game.isBossEnemy(enemy)) return Math.max(1, cfg.bars || 1);
@@ -199,6 +204,7 @@
   Game.testRestore = function () {
     if (!S.session || !S.session.testArena) return;
     S.wall.hp = S.wall.maxHp;
+    S.wall.blockCharges = S.wall.blockMax || 0;
     S.player.hp = S.player.maxHp;
     S.player.ammo = S.player.magazineSize;
     S.player.reloadTimer = 0;
@@ -714,6 +720,10 @@
     return true;
   };
   Game.isHardControlled = function (enemy) { return !!enemy && (enemy.control || 0) > 0; };
+  Game.hasNegativeStatus = function (enemy) {
+    if (!enemy) return false;
+    return (enemy.burn || 0) > 0 || (enemy.slow || 0) > 0 || (enemy.control || 0) > 0 || (enemy.wound || 0) > 0 || (enemy.woundExtra || 0) > 0 || Game.getFrostbiteStacks(enemy) > 0;
+  };
   Game.applyHardControl = function (enemy, type, duration) {
     if (!duration || duration <= 0) return false;
     var scale = Game.getStatusScale(enemy, type), status = (S.player && S.player.statusDurationMultiplier) || 1;
@@ -1985,6 +1995,31 @@
     var progress = Game.getProgressSkill(skillId);
     return !!(progress && progress.milestones && progress.milestones[level]);
   };
+  Game.getGemDamageScale = function (enemy, source) {
+    var p = S.player || {}, scale = 1;
+    if (p.eliteDamage && Game.isEliteOrBossEnemy(enemy)) scale *= 1 + p.eliteDamage;
+    if (p.debuffDamage && Game.hasNegativeStatus(enemy)) scale *= 1 + p.debuffDamage;
+    if (p.rifleDamage && source && source.damageSource === "rifle") scale *= 1 + p.rifleDamage;
+    if (p.lowWallDamage && S.wall && S.wall.maxHp > 0 && S.wall.hp > 0 && S.wall.hp / S.wall.maxHp <= C.gems.lowWallHpThreshold) scale *= 1 + p.lowWallDamage;
+    return scale;
+  };
+  Game.damageWall = function (amount, x, y) {
+    var wall = S.wall;
+    if (!wall) return { blocked: false, dead: false };
+    if ((wall.blockCharges || 0) > 0) {
+      wall.blockCharges--;
+      Game.addText(x, y, "格挡", C.colors.cyan);
+      return { blocked: true, dead: false };
+    }
+    wall.hp -= amount;
+    Game.addText(x, y, "-" + amount, C.colors.red);
+    if (wall.hp <= 0) {
+      wall.hp = 0;
+      Game.loseLevel("城墙失守");
+      return { blocked: false, dead: true };
+    }
+    return { blocked: false, dead: false };
+  };
   Game.damageEnemy = function (enemy, amount, bullet) {
     if (Game.isRaging(enemy)) return false;
     if (Game.blockWithArmor(enemy)) { enemy.hitFlash = .08; Game.addText(enemy.x + U.rand(-5, 5), enemy.y - C.enemies[enemy.type].radius, "格挡", C.colors.cyan); return; }
@@ -1993,7 +2028,7 @@
     var p = S.player || {}, attack = p.attackMultiplier === undefined ? 1 : p.attackMultiplier;
     var elementAttack = p.elementMultipliers && p.elementMultipliers[element] !== undefined ? p.elementMultipliers[element] : 1;
     var progressSkillId = bullet && (bullet.progressSkillId || bullet.damageSource), progressScale = Game.getProgressSkillDamageScale(progressSkillId);
-    var actualDamage = amount * attack * elementAttack * progressScale * Game.getElementDamageScale(enemy, element) * Game.getDamageSourceScale(enemy, bullet) * (enemy.damageTakenTimer > 0 ? enemy.damageTakenMultiplier || 1 : 1); enemy.hp -= actualDamage; enemy.hitFlash = .08; Game.tryStartRage(enemy); if (!bullet.noWeaponEffects && S.player.burn) Game.applyBurn(enemy, 10 + S.player.burn * 3, 1.5 + S.player.burn * .4); if (!bullet.noWeaponEffects && S.player.freeze && element === "ice") { Game.applySlow(enemy, 1.2 + S.player.freeze * .25, .58); Game.applyFreeze(enemy, C.rifleFreezeDuration); } if (!bullet.silentText) Game.addText(enemy.x + U.rand(-5, 5), enemy.y - C.enemies[enemy.type].radius, bullet.critical ? Math.ceil(actualDamage) + " 暴击" : String(Math.ceil(actualDamage)), bullet.critical ? C.colors.yellow : C.colors.text);
+    var actualDamage = amount * attack * elementAttack * progressScale * Game.getGemDamageScale(enemy, bullet) * Game.getElementDamageScale(enemy, element) * Game.getDamageSourceScale(enemy, bullet) * (enemy.damageTakenTimer > 0 ? enemy.damageTakenMultiplier || 1 : 1); enemy.hp -= actualDamage; enemy.hitFlash = .08; Game.tryStartRage(enemy); if (!bullet.noWeaponEffects && S.player.burn) Game.applyBurn(enemy, 10 + S.player.burn * 3, 1.5 + S.player.burn * .4); if (!bullet.noWeaponEffects && S.player.freeze && element === "ice") { Game.applySlow(enemy, 1.2 + S.player.freeze * .25, .58); Game.applyFreeze(enemy, C.rifleFreezeDuration); } if (!bullet.silentText) Game.addText(enemy.x + U.rand(-5, 5), enemy.y - C.enemies[enemy.type].radius, bullet.critical ? Math.ceil(actualDamage) + " 暴击" : String(Math.ceil(actualDamage)), bullet.critical ? C.colors.yellow : C.colors.text);
     return true;
   };
   Game.throwEnemyShot = function (enemy) {
@@ -2014,14 +2049,11 @@
       shot.travel += shot.speed * dt;
       if (shot.y < shot.targetY) continue;
       shot.y = shot.targetY;
-      S.wall.hp -= shot.damage;
+      var wallHit = Game.damageWall(shot.damage, shot.x, shot.targetY - 19);
       Game.burst(shot.x, shot.targetY, 5, shot.accent || C.enemies.basketball.accent);
-      Game.addText(shot.x, shot.targetY - 19, "-" + shot.damage, C.colors.red);
       S.enemyShots.splice(i, 1);
-      if (S.wall.hp <= 0) {
-        S.wall.hp = 0;
+      if (wallHit.dead) {
         if (S.session) S.session.messageTimer = 3;
-        Game.loseLevel("城墙失守");
         return;
       }
     }

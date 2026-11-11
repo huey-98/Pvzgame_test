@@ -148,6 +148,11 @@ GEM_AFFIXES = {
     "critRate": {"kind": "critRate", "name": "暴击率", "values": (.01, .02, .03, .04, .05), "percent": True},
     "critDamage": {"kind": "critDamage", "name": "暴击伤害", "values": (.10, .20, .30, .40, .50), "percent": True},
     "statusDurationMultiplier": {"kind": "statusDurationMultiplier", "name": "负面时间", "values": (.10, .20, .30, .40, .50), "percent": True},
+    "wallBlock": {"kind": "wallBlock", "name": "防线格挡", "values": (1, 2, 3, 4, 5), "suffix": " 次"},
+    "eliteDamage": {"kind": "eliteDamage", "name": "首领增伤", "values": (.10, .20, .30, .40, .50), "percent": True},
+    "debuffDamage": {"kind": "debuffDamage", "name": "负面增伤", "values": (.10, .20, .30, .40, .50), "percent": True},
+    "rifleDamage": {"kind": "rifleDamage", "name": "枪械增伤", "values": (.05, .10, .15, .20, .25), "percent": True},
+    "lowWallDamage": {"kind": "lowWallDamage", "name": "低血增伤", "values": (.10, .20, .30, .40, .50), "percent": True},
 }
 GEM_AFFIX_IDS = tuple(GEM_AFFIXES)
 

@@ -25,6 +25,11 @@
     var crit = clamp(base.critRate + finite(mod.critRate) + finite(gem.critRate) + finite(skill.critRate), 0, caps.critRate);
     var critDamage = clamp(base.critDamage + finite(mod.critDamage) + finite(gem.critDamage), 1, caps.critDamage);
     var status = clamp(base.statusDurationMultiplier + finite(mod.statusDurationMultiplier) + finite(gem.statusDurationMultiplier), 1, caps.statusDurationMultiplier);
+    var wallBlockCharges = Math.max(0, Math.round(finite(gem.wallBlockCharges)));
+    var eliteDamage = Math.max(0, finite(gem.eliteDamage));
+    var debuffDamage = Math.max(0, finite(gem.debuffDamage));
+    var rifleDamage = Math.max(0, finite(gem.rifleDamage));
+    var lowWallDamage = Math.max(0, finite(gem.lowWallDamage));
     return {
       attack: attack,
       elementAttack: elements,
@@ -33,7 +38,12 @@
       wallMaxHp: Math.max(1, C.wallMaxHp + wallBonus),
       critRate: crit,
       critDamage: critDamage,
-      statusDurationMultiplier: status
+      statusDurationMultiplier: status,
+      wallBlockCharges: wallBlockCharges,
+      eliteDamage: eliteDamage,
+      debuffDamage: debuffDamage,
+      rifleDamage: rifleDamage,
+      lowWallDamage: lowWallDamage
     };
   }
 
@@ -87,11 +97,17 @@
       Object.keys(current.elementAttack).forEach(function (id) { p.elementMultipliers[id] = current.elementAttack[id] / 100; });
       p.crit = current.critRate;
       p.critDamage = current.critDamage;
+      p.eliteDamage = current.eliteDamage;
+      p.debuffDamage = current.debuffDamage;
+      p.rifleDamage = current.rifleDamage;
+      p.lowWallDamage = current.lowWallDamage;
     },
     applyWall: function (wall) {
       if (!wall) return;
       wall.maxHp = current.wallMaxHp;
       wall.hp = wall.maxHp;
+      wall.blockMax = current.wallBlockCharges;
+      wall.blockCharges = current.wallBlockCharges;
     },
     getAttackMultiplier: function () { return current.attack / 100; },
     getCooldownRate: function () { return 1 / (1 - current.cooldownReduction); },

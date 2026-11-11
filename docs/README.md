@@ -37,6 +37,7 @@
 | `docs/archive/skill-super-traits-plan.md` | 技能超级词条的一次性实现说明 | `DEVELOPMENT_PLAN.md` §7.6 |
 | `docs/archive/rifle-development.plan.md` | 步枪账户成长系统设计草案 | `DEVELOPMENT_PLAN.md` §9 |
 | `docs/archive/iteration-acceptance-records.md` | 早期迭代验收记录 | 历史记录，见 `DEVELOPMENT_LOG.md` |
+| `docs/archive/features/gem-affix-expansion.md` | 宝石词条扩充（防线格挡与四类条件增伤）的一次性实现说明 | `DEVELOPMENT_PLAN.md` §17.4 |
 
 ## 新增功能文档
 
