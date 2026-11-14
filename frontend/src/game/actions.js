@@ -36,16 +36,14 @@ export const actions = {
       return result;
     }));
   },
-  logout: function () {
-    return track(Game().accounts.logout().then(function () { Game().backToMenu(); }));
-  },
+  logout: function () { return track(Game().logoutAccount()); },
   removeAccount: function (password) {
     return track(Game().accounts.removeAccount(password).then(function (result) {
       if (result && result.ok) Game().state.screen = "menu";
       return result;
     }));
   },
-  importLegacy: function () { return track(Game().accounts.importLegacy()); },
+  importLegacy: function () { return track(Game().importLegacyProgress()); },
   backToMenu: function () { return run(function () { Game().exitToMenu(); }); },
   openLevelSelect: function () { return run(function () { Game().openLevelSelect(); }); },
   openZombieCodex: function () { return run(function () { Game().openZombieCodex(); }); },
@@ -69,13 +67,20 @@ export const actions = {
   toggleRifle: function () { return run(function () { Game().toggleRifle(); }); },
   upgradeEquipment: function (slotId) { return track(Game().upgradeEquipment(slotId)); },
   equipEquipment: function (itemId) { return track(Game().accounts.equipEquipment(itemId)); },
+  equipBagItem: function (itemId) { return track(Game().equipEquipmentItem(itemId)); },
+  replaceCharacterEquipment: function (itemId) { return track(Game().replaceCharacterEquipment(itemId)); },
   upgradeWall: function (action) { return track(Game().upgradeWall(action)); },
   upgradeSkill: function (skillId) { return track(Game().upgradeSkill(skillId)); },
   upgradeRifle: function () { return track(Game().accounts.upgradeRifle()); },
   socketGem: function (gemId, slotIndex) { return track(Game().accounts.socketGem(gemId, slotIndex)); },
-  unsocketGem: function (gemId) { return track(Game().accounts.unsocketGem(gemId)); },
-  toggleGemLock: function (gemId, locked) { return track(Game().accounts.toggleGemLock(gemId, locked)); },
-  synthesizeAllGems: function () { return track(Game().accounts.synthesizeAllGems()); },
+  socketCharacterGem: function (gemId) { return track(Game().socketCharacterGem(gemId)); },
+  replaceCharacterGem: function (gemId, slotIndex) { return track(Game().replaceCharacterGem(gemId, slotIndex)); },
+  unsocketGem: function (gemId) { return track(Game().unsocketGem(gemId)); },
+  toggleGemLock: function (gemId, locked) {
+    if (locked === undefined) return track(Game().toggleGemLock(gemId));
+    return track(Game().accounts.toggleGemLock(gemId, locked));
+  },
+  synthesizeAllGems: function () { return track(Game().synthesizeAllGems()); },
   selectTestEnemy: function (offset) { return run(function () { Game().selectTestEnemy(offset); }); },
   setTestEnemy: function (id) { return run(function () { Game().setTestEnemy(id); }); },
   selectTestSkill: function (offset) { return run(function () { Game().selectTestSkill(offset); }); },
@@ -94,7 +99,62 @@ export const actions = {
   },
   setSkillRangePreview: function (id) {
     return run(function () { Game().state.skillRangePreview = id || null; });
-  }
+  },
+  openLevelPreview: function (levelId) { return run(function () { Game().openLevelPreview(levelId); }); },
+  closeLevelPreview: function () { return run(function () { Game().closeLevelPreview(); }); },
+  scrollLevelList: function (delta) { return run(function () { Game().scrollLevelList(delta); }); },
+  setAccountResourcePage: function (delta) { return run(function () { Game().setAccountResourcePage(delta); }); },
+  setAccountMode: function (mode) { return run(function () { Game().setAccountMode(mode); }); },
+  selectCharacterPart: function (partId) { return run(function () { Game().selectCharacterPart(partId); }); },
+  setCharacterTab: function (tab) { return run(function () { Game().setCharacterTab(tab); }); },
+  openCharacterGems: function (partId) { return run(function () { Game().openCharacterGems(partId); }); },
+  closeCharacterGems: function () { return run(function () { Game().closeCharacterGems(); }); },
+  setCharacterGemPage: function (delta) { return run(function () { Game().setCharacterGemPage(delta); }); },
+  openCharacterGemDetail: function (gemId) { return run(function () { Game().openCharacterGemDetail(gemId); }); },
+  closeCharacterGemDetail: function () { return run(function () { Game().closeCharacterGemDetail(); }); },
+  openCharacterEquip: function (itemId) { return run(function () { Game().openCharacterEquip(itemId); }); },
+  closeCharacterEquip: function () { return run(function () { Game().closeCharacterEquip(); }); },
+  setCharacterEquipPage: function (delta) { return run(function () { Game().setCharacterEquipPage(delta); }); },
+  openCharacterResource: function (resourceId) { return run(function () { Game().openCharacterResource(resourceId); }); },
+  closeCharacterResource: function () { return run(function () { Game().closeCharacterResource(); }); },
+  setCharacterResourcePage: function (delta) { return run(function () { Game().setCharacterResourcePage(delta); }); },
+  openGemSynthesis: function () { return run(function () { Game().openGemSynthesis(); }); },
+  closeGemSynthesis: function () { return run(function () { Game().closeGemSynthesis(); }); },
+  setGemSynthesisPage: function (delta) { return run(function () { Game().setGemSynthesisPage(delta); }); },
+  focusGemSynthesis: function (gemId) { return run(function () { Game().focusGemSynthesis(gemId); }); },
+  selectEquipmentBagPart: function (partId) { return run(function () { Game().selectEquipmentBagPart(partId); }); },
+  setSkillProgressPage: function (delta) { return run(function () { Game().setSkillProgressPage(delta); }); },
+  setZombieCategory: function (category) {
+    return run(function () {
+      const state = Game().state;
+      state.zombieCodexCategory = category;
+      state.selectedZombieCodexId = null;
+      state.codexPage = 0;
+    });
+  },
+  selectZombie: function (id) { return run(function () { Game().state.selectedZombieCodexId = id; }); },
+  selectSkillCodex: function (id) {
+    return run(function () {
+      const state = Game().state;
+      state.selectedSkillCodexId = id;
+      state.codexPage = 0;
+      state.skillCodexLevelPanel = false;
+      state.skillCodexRequirementTraitId = null;
+    });
+  },
+  clearSkillCodexSelection: function () {
+    return run(function () {
+      const state = Game().state;
+      state.selectedSkillCodexId = null;
+      state.codexPage = 0;
+      state.skillCodexLevelPanel = false;
+      state.skillCodexRequirementTraitId = null;
+    });
+  },
+  setCodexPage: function (page) { return run(function () { Game().state.codexPage = page; }); },
+  setSkillCodexLevelPanel: function (open) { return run(function () { Game().state.skillCodexLevelPanel = !!open; }); },
+  setSkillRequirement: function (id) { return run(function () { Game().state.skillCodexRequirementTraitId = id || null; }); },
+  setRifleMilestonePanel: function (open) { return run(function () { Game().state.rifleProgressMilestonePanel = !!open; }); }
 };
 
 export function getConfig() {

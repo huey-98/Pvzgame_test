@@ -56,6 +56,7 @@
   }
 
   function handleLevelPointerMove(event) {
+    if (Game.reactOwnsScreen && Game.reactOwnsScreen(S.screen)) return;
     if (!levelDrag || S.screen !== "levelSelect" || S.levelPreview) return;
     var point = Game.pointerPosition(event), delta = point.y - levelDrag.startY;
     if (!levelDrag.moved && Math.abs(delta) >= C.levelSelect.dragThreshold) levelDrag.moved = true;
@@ -325,6 +326,10 @@
   };
 
   Game.syncAccountDialog = function () {
+    if (Game.shell === "react") {
+      if (accountDialog && !accountDialog.hidden) closeAccountDialog();
+      return;
+    }
     if (!accountDialog || accountDialog.hidden) return;
     if (S.screen !== "login" && S.screen !== "account") closeAccountDialog();
   };
@@ -373,6 +378,7 @@
       if (S.screen === "playing" || S.screen === "testArena") Game.setManualAim(point.x, point.y);
       return;
     }
+    if (Game.reactOwnsScreen && Game.reactOwnsScreen(S.screen)) return;
 
     if (S.screen === "menu") {
       var menuButtons = C.menu.buttons;
@@ -637,6 +643,7 @@
   addInputListener(window, "pointerup", function (event) { handleLevelPointerUp(event, false); });
   addInputListener(window, "pointercancel", function (event) { handleLevelPointerUp(event, true); });
   addInputListener(canvas, "wheel", function (event) {
+    if (Game.reactOwnsScreen && Game.reactOwnsScreen(S.screen)) return;
     if (S.screen !== "levelSelect" || S.levelPreview) return;
     var point = Game.pointerPosition(event);
     if (!pointInRect(point, Game.getLevelListViewport())) return;

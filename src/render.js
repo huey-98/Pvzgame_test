@@ -14,6 +14,7 @@
     canvas.height = Math.round(C.height * pixelRatio);
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     if (Game.layoutWorld) Game.layoutWorld();
+    if (typeof Game.onViewResize === "function") Game.onViewResize();
   }
 
   Game.initializeView = function (nextCanvas) {
@@ -116,6 +117,10 @@
     Game.drawEffects();
     Game.drawRangePreview();
     if (Game.uiMode === "react") return;
+    if (Game.reactOwnsScreen && Game.reactOwnsScreen(S.screen)) {
+      Game.updateTestControls();
+      return;
+    }
     Game.drawHud();
     Game.updateTestControls();
     if (S.screen === "menu") Game.drawMenu();
@@ -1922,7 +1927,7 @@
       var control = statusInfo(enemy.controlType);
       text(control.label || "控", enemy.x, enemy.y - reach - 17, "bold 10px Segoe UI, Microsoft YaHei", control.color, "center");
     }
-    if (enemy.armorCharges > 0) {
+    if (enemy.armorCharges > 0 && !enemy.hideHealthBar) {
       var armorLabel = "甲 " + enemy.armorCharges, armorBadgeWidth = armorLabel.length > 3 ? 30 : 22;
       U.roundedRect(ctx, enemy.x - reach - armorBadgeWidth - 3, enemy.y - reach - 18, armorBadgeWidth, 12, 4, "rgba(12, 30, 40, .88)", enemy.armorFlash > 0 ? C.colors.cyan : "rgba(104, 216, 255, .5)");
       text(armorLabel, enemy.x - reach - armorBadgeWidth / 2 - 3, enemy.y - reach - 9, "bold 8px Segoe UI, Microsoft YaHei", C.colors.cyan, "center");
@@ -4544,5 +4549,49 @@
     if (reward && reward.status === "done") text("奖励已存入账户 · " + Game.accounts.getUsername(), C.width / 2, ui.rewardHintY, "11px Segoe UI, Microsoft YaHei", C.colors.green, "center");
     Game.button(ui.restart.x, ui.restart.y, ui.restart.w, ui.restart.h, "重新开始", win ? C.colors.green : C.colors.yellow);
     Game.button(ui.back.x, ui.back.y, ui.back.w, ui.back.h, "返回首页", "#4b7180");
+  };
+
+  Game.drawCodexEnemyModel = function (target, id, enemy, x, y, width, height, detail) {
+    var previous = ctx;
+    ctx = target;
+    drawCodexEnemyModel(id, enemy, x, y, width, height, detail);
+    ctx = previous;
+  };
+  Game.drawSkillGlyph = function (target, id, x, y, size, color) {
+    var previous = ctx;
+    ctx = target;
+    drawSkillGlyph(id, x, y, size, color);
+    ctx = previous;
+  };
+  Game.drawEquipmentGlyph = function (target, kind, x, y, size, color) {
+    var previous = ctx;
+    ctx = target;
+    drawEquipmentGlyph(kind, x, y, size, color);
+    ctx = previous;
+  };
+  Game.drawGemIcon = function (target, x, y, size, color) {
+    var previous = ctx;
+    ctx = target;
+    drawGemIcon(x, y, size, color);
+    ctx = previous;
+  };
+  Game.drawResourceIcon = function (target, id, x, y, size, color) {
+    var previous = ctx;
+    ctx = target;
+    drawResourceIcon(id, x, y, size, color);
+    ctx = previous;
+  };
+  Game.drawMaterialIcon = function (target, kind, x, y, size) {
+    var previous = ctx;
+    ctx = target;
+    drawMaterialIcon(kind, x, y, size);
+    ctx = previous;
+  };
+  Game.getCodexEnemyTraits = function (enemy) {
+    return {
+      elements: enemyElementTraits(enemy),
+      status: enemyStatusTraits(enemy),
+      summons: enemySummonTraits(enemy)
+    };
   };
 })(window.Game = window.Game || {});

@@ -7,6 +7,12 @@
     if (node && node.style) node.style.display = display;
   }
   Game.state = { screen: "menu", selectedLevel: 1, accountMode: "login", accountResourcePage: 0, player: null, bullets: [], skillProjectiles: [], armoredCars: [], bombDrops: [], bombZones: [], electromagneticZones: [], tornadoes: [], drones: [], hailStorms: [], iceFields: [], fuelShells: [], fuelPools: [], enemyShots: [], explosions: [], enemies: [], pendingSpawns: [], particles: [], texts: [], upgradeCards: [], wall: null, session: null, testArena: null, skillRangePreview: null, levelPreview: null, levelScroll: 0, characterPart: "arm", characterTab: "gem", characterGemPage: 0, characterGems: null, characterGemDetail: null, characterGemReplace: null, characterResourceDetail: null, characterResourcePage: 0, characterEquipItem: null, characterEquipPage: 0, skillProgressPage: 0, skillCodexLevelPanel: false, skillCodexRequirementTraitId: null, rifleProgressMilestonePanel: false, gemSynthesisOpen: false, gemSynthesisPage: 0, gemSynthesisFocus: 0, equipmentBagPart: "arm" };
+  Game.shell = "legacy";
+  Game.onViewResize = null;
+  Game.reactOwnsScreen = function (screen) {
+    if (Game.shell !== "react") return false;
+    return screen === "menu" || screen === "levelSelect" || screen === "login" || screen === "account" || screen === "attributes" || screen === "character" || screen === "equipment" || screen === "equipmentBag" || screen === "wall" || screen === "skillProgress" || screen === "zombieCodex" || screen === "skillCodex";
+  };
   Game.getWaveBossType = function (wave) {
     var type = wave && wave.bossType;
     return type && C.enemies[type] && C.enemies[type].codexCategory === "boss" ? type : "boss";
@@ -345,11 +351,14 @@
     else Game.openLogin();
   };
   Game.logoutAccount = function () {
-    Game.accounts.logout().then(function () { Game.backToMenu(); });
+    return Game.accounts.logout().then(function () { Game.backToMenu(); });
   };
   Game.importLegacyProgress = function () {
-    if (Game.accounts.getStatus() !== "ready") { Game.accounts.state.notice = "登录后才能导入旧进度"; return; }
-    Game.accounts.importLegacy();
+    if (Game.accounts.getStatus() !== "ready") {
+      Game.accounts.state.notice = "登录后才能导入旧进度";
+      return Promise.resolve({ ok: false });
+    }
+    return Game.accounts.importLegacy();
   };
   Game.upgradeEquipment = function (slotId) {
     if (Game.state.screen !== "equipment") return Promise.resolve({ ok: false });

@@ -1,4 +1,28 @@
 #root { display: flex; width: 100%; min-height: 100vh; align-items: center; justify-content: center; }
+.meta-stage { position: absolute; inset: 1px; z-index: 5; overflow: hidden; border-radius: 20px; pointer-events: auto; }
+.meta-scale { position: absolute; left: 0; top: 0; transform-origin: top left; user-select: none; }
+.meta-overlay { position: absolute; inset: 0; background: rgba(3, 9, 13, .84); pointer-events: none; }
+.meta-panel { position: absolute; border: 1px solid transparent; box-shadow: 0 4px 12px rgba(0, 0, 0, .24); pointer-events: auto; }
+.meta-rect { position: absolute; box-sizing: border-box; border: 1px solid transparent; pointer-events: none; }
+.meta-btn, .meta-flat, .meta-clear, .meta-orb { position: absolute; margin: 0; padding: 0; border-style: solid; appearance: none; font-family: inherit; }
+button.meta-btn, button.meta-flat, button.meta-clear, button.meta-orb, button.meta-mask { cursor: pointer; }
+.meta-btn:focus, .meta-flat:focus, .meta-clear:focus, .meta-orb:focus, .meta-field:focus { outline: none; }
+.meta-clip { position: absolute; overflow: hidden; }
+.meta-btn { border-width: 0; border-radius: 13px; color: #071217; background-color: transparent; }
+.meta-flat, .meta-clear { border-width: 1px; background-clip: padding-box; }
+.meta-clear { border-color: transparent; background: transparent; }
+.meta-anchor { position: absolute; left: 0; right: 0; margin: 0; padding: 0; text-align: center; white-space: nowrap; pointer-events: none; }
+.meta-text { position: absolute; width: max-content; margin: 0; padding: 0; white-space: nowrap; pointer-events: none; }
+.meta-badge { position: absolute; height: 20px; box-sizing: border-box; border: 1px solid rgba(255, 255, 255, .12); border-radius: 10px; background: rgba(5, 16, 23, .72); pointer-events: none; }
+.meta-banner { position: absolute; box-sizing: border-box; border: 1px solid; border-radius: 11px; background: rgba(5, 16, 23, .86); pointer-events: none; }
+.meta-orb { box-sizing: border-box; border-width: 2px; border-radius: 50%; background: rgba(13, 34, 46, .94); color: #f4f8fb; }
+.meta-dot { position: absolute; box-sizing: border-box; border: 1.2px solid transparent; border-radius: 50%; pointer-events: none; }
+.meta-field { position: absolute; box-sizing: border-box; margin: 0; padding: 0 0 0 12px; border: 1px solid rgba(153, 205, 218, .22); border-radius: 10px; background: rgba(13, 34, 46, .92); color: #f4f8fb; font-family: inherit; font-size: 13px; outline: none; user-select: text; }
+.meta-field::placeholder { color: #9ab0bc; }
+.meta-mini { position: absolute; pointer-events: none; }
+.meta-pop { position: absolute; inset: 0; z-index: 6; }
+.meta-mask { position: absolute; inset: 0; margin: 0; padding: 0; border: 0; cursor: pointer; }
+.meta-line { position: absolute; height: 1px; background: rgba(153, 205, 218, .16); pointer-events: none; }
 button, input { font: inherit; }
 button { color: inherit; }
 .react-ui { position: absolute; inset: 0; z-index: 4; pointer-events: none; }

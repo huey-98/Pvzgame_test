@@ -491,21 +491,22 @@ git diff --check
 - 敌人分层用 `Game.drawEnemies(singleEnemy, layer)` 的 `"ground"` / `"air"`。
 - 完整自定义身体绘制完成后尽早 `return`，不要继续叠加通用僵尸部件。
 - 尺寸、锚点与挂点集中在 `config.sprites` / `config.skillRing`；逻辑宽度固定为 `config.width`。
-- `Game.uiMode === "react"` 时只绘制战场，React 已接管的菜单、HUD、暂停、升级与结算不回退到 Canvas。
+- `Game.shell === "react"` 且 `Game.reactOwnsScreen(screen)` 为真时，局外页不再由 Canvas 绘制。HUD、暂停、升级三选一、结算和测试场仍由 `render.js` 绘制。离线入口保持 `Game.shell === "legacy"`。
 
 ## 12. 输入层
 
 - 输入只进 `input.js`；所有点击区域必须与绘制共用同一套几何函数。
 - 修改 HUD、弹窗、技能槽或列表布局时同步检查 `input.js`。
 - 长按预览状态只存于 `S.skillRangePreview`，暂停与重置时清空。
-- React 浮层打开时阻止事件穿透到 Canvas；战场瞄准与坐标相关操作留在 Canvas。
+- React 局外页打开时，`input.js` 不再处理该页点击、关卡拖拽和滚轮。战斗瞄准、暂停、选词条和结算点击仍留在 `input.js`。
 
 ## 13. React 前端
 
 - 生产入口由 FastAPI 返回 `frontend/dist/index.html`；`/app-assets/` 只托管构建产物，`/assets/`、`/pictures/` 托管游戏素材。
 - `frontend/src/game/engine.js` 是旧引擎导入顺序的唯一来源。
 - `Game.mount()` / `Game.destroy()` 必须幂等：只允许一个 RAF 循环；卸载必须取消 RAF、定时器与全部监听。
-- 新页面先通过 `actions.js` 定义命令，再由 `ui-store.js` 提供快照；不要在组件内直接写 `Game.state` 或请求 `/api`。
+- `Game.mount()` 把 `Game.shell` 设为 `"react"`，`Game.destroy()` 恢复 `"legacy"`。局外页放在 `#game-shell` 内的逻辑舞台，按 `config.width` × 当前 `config.height` 缩放，矩形继续读 `config.*UI`。
+- 新页面先通过 `actions.js` 定义命令，再由 `ui-store.js` 提供快照；不要在组件内直接写 `Game.state` 或请求 `/api`。`resizeCanvas` 通过 `Game.onViewResize` 通知刷新快照。
 - Vite 构建资源目录固定为 `app-assets`，不要改回 `assets`。
 - `#root` 保持全屏 Flex 居中。
 - 人工检查：竖屏手机、桌面、滚动、弹窗层级、输入法、长按取消、点击穿透与离线状态。

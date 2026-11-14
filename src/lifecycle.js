@@ -19,6 +19,7 @@
     }
     if (Game.initializeInput) Game.initializeInput(options.canvas);
     Game.uiMode = "legacy";
+    Game.shell = "react";
     mounted = true;
     lastTime = 0;
     Game.reset();
@@ -42,6 +43,8 @@
     if (Game.destroyInput) Game.destroyInput();
     if (Game.destroyView) Game.destroyView();
     Game.uiMode = "legacy";
+    Game.shell = "legacy";
+    Game.onViewResize = null;
     return Promise.resolve();
   };
 

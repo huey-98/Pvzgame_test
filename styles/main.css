@@ -119,7 +119,8 @@ canvas {
   #test-controls.collapsed { position: fixed; top: 50%; left: auto; right: 8px; width: 48px; height: 88px; transform: translateY(-50%); }
 }
 
-#account-dialog {
+#account-dialog,
+.account-dialog-backdrop {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -130,7 +131,8 @@ canvas {
   background: rgba(3, 9, 13, .72);
 }
 
-#account-dialog[hidden] { display: none; }
+#account-dialog[hidden],
+.account-dialog-backdrop[hidden] { display: none; }
 
 .account-dialog-card {
   width: min(330px, calc(100vw - 32px));
@@ -142,15 +144,15 @@ canvas {
 }
 
 .account-dialog-card h2 { margin: 0 0 6px; color: #ffd166; font-size: 19px; }
-#account-dialog-note { margin: 0 0 14px; color: rgba(204, 224, 233, .78); font-size: 12px; line-height: 1.6; }
-#account-dialog-note:empty { display: none; }
+#account-dialog-note, .account-dialog-note { margin: 0 0 14px; color: rgba(204, 224, 233, .78); font-size: 12px; line-height: 1.6; }
+#account-dialog-note:empty, .account-dialog-note:empty { display: none; }
 .account-dialog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .account-dialog-row[hidden] { display: none; }
 .account-dialog-row > span { flex: 0 0 52px; color: #68d8ff; font-size: 13px; font-weight: 700; }
 .account-dialog-row input { flex: 1 1 auto; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid rgba(153, 205, 218, .32); border-radius: 10px; background: rgba(13, 34, 46, .96); color: #f4f8fb; font: inherit; font-size: 14px; }
 .account-dialog-row input:focus { outline: none; border-color: #68d8ff; box-shadow: 0 0 10px rgba(104, 216, 255, .35); }
 .account-dialog-row input:disabled { color: rgba(204, 224, 233, .7); }
-#account-dialog-error { min-height: 18px; margin: 0 0 10px; color: #ff6b6b; font-size: 12px; }
+#account-dialog-error, .account-dialog-error { min-height: 18px; margin: 0 0 10px; color: #ff6b6b; font-size: 12px; }
 .account-dialog-actions { display: flex; gap: 10px; }
 .account-dialog-actions button { min-height: 44px; flex: 1 1 0; border: 1px solid rgba(104, 216, 255, .7); border-radius: 10px; background: #16404e; color: #f4f8fb; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .account-dialog-actions button:hover { filter: brightness(1.18); }

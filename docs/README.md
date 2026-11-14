@@ -38,6 +38,7 @@
 | `docs/archive/rifle-development.plan.md` | 步枪账户成长系统设计草案 | `DEVELOPMENT_PLAN.md` §9 |
 | `docs/archive/iteration-acceptance-records.md` | 早期迭代验收记录 | 历史记录，见 `DEVELOPMENT_LOG.md` |
 | `docs/archive/features/gem-affix-expansion.md` | 宝石词条扩充（防线格挡与四类条件增伤）的一次性实现说明 | `DEVELOPMENT_PLAN.md` §17.4 |
+| `docs/archive/features/react-meta-ui.md` | 局外界面改由 React 绘制的实现计划 | `DEVELOPMENT_PLAN.md` §11、§12、§13 |
 
 ## 新增功能文档
 
