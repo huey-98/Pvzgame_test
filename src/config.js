@@ -564,6 +564,18 @@
     if (wave.hpScale) copy.hpScale = wave.hpScale;
     return copy;
   });
+  var levelFortyFiveMixMap = { normal: "wheelchair", wasp: "runner", frostBeast: "thunder" };
+  var levelFortyFiveWaves = levelFortyFourWaves.map(function (wave) {
+    var copy = {
+      total: wave.total,
+      interval: wave.interval,
+      mix: wave.mix.map(function (type) { return levelFortyFiveMixMap[type]; })
+    };
+    if (wave.elite) copy.elite = "wheelchairElite";
+    if (wave.boss) { copy.boss = true; copy.bossType = "stormVanguard"; }
+    if (wave.hpScale) copy.hpScale = wave.hpScale;
+    return copy;
+  });
   Game.config = {
     width: 360, height: 640, maxLevel: 20, maxSkillSlots: 4, superTraitChance: .2, wallMaxHp: 1000, armorBlockWindow: .12, xpBase: 15, xpMultiplier: 1.13, xpBonus: 6, rifleSideOffset: -6, muzzleDistance: 34, magazineCapacity: 35, reloadDuration: 2, spreadAngle: .12, flyingHover: 16, bossModelScale: 1.5,
     sprites: {
@@ -1239,7 +1251,8 @@
       { id: 41, name: "焦骸剧场", subtitle: "火焰、傀儡与雷电混编", brief: "火焰免疫燃烧冻结、傀儡半血召唤木偶、雷电抗电；第 4 波火焰精英，第 7 波烈焰掌控者现身。", unlocked: true, hpScale: 27.8, xpScale: .065, waves: levelFortyOneWaves },
       { id: 42, name: "雪盾堡垒", subtitle: "盾牌、雪人与炸弹混编", brief: "盾牌削减弹道、雪人抗冰、炸弹撞线引爆；第 4 波盾牌精英，第 7 波看守者现身。", unlocked: true, hpScale: 27.2, xpScale: .061, waves: levelFortyTwoWaves },
       { id: 43, name: "锈铁车场", subtitle: "电锯、篮球与蜥蜴混编", brief: "电锯低血狂暴冲锋、篮球远程砸墙、蜥蜴抗电快爬；第 4 波电锯精英，第 7 波机械垦荒者现身。", unlocked: true, hpScale: 37.8, xpScale: .066, waves: levelFortyThreeWaves },
-      { id: 44, name: "蜂霜哨站", subtitle: "普通、毒蜂与寒霜兽混编", brief: "普通僵尸成群涌来、毒蜂悬空针刺、寒霜兽阻挡弹道；第 4 波普通精英，第 7 波深海巨兽破冰而出。", unlocked: true, hpScale: 33.7, xpScale: .066, waves: levelFortyFourWaves }
+      { id: 44, name: "蜂霜哨站", subtitle: "普通、毒蜂与寒霜兽混编", brief: "普通僵尸成群涌来、毒蜂悬空针刺、寒霜兽阻挡弹道；第 4 波普通精英，第 7 波深海巨兽破冰而出。", unlocked: true, hpScale: 33.7, xpScale: .066, waves: levelFortyFourWaves },
+      { id: 45, name: "疾影病房", subtitle: "轮椅、快跑与雷电混编", brief: "轮椅半血回血、快跑高速冲线、雷电抗电；第 4 波轮椅精英，第 7 波风暴先锋现身。", unlocked: true, hpScale: 67.1, xpScale: .08, waves: levelFortyFiveWaves }
     ],
     waves: levelOneWaves
   };
