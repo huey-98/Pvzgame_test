@@ -45,7 +45,7 @@
     });
     if (hasData) Game.attributes.setModifiers({ attack: attack, elementAttack: elements });
     else Game.attributes.clearModifiers();
-    if (Game.state && Game.state.player) Game.attributes.applyPlayer(Game.state.player);
+    if (Game.attributes.applyPlayerOutsideRun) Game.attributes.applyPlayerOutsideRun();
   }
 
   function applyAccount(data) {
@@ -140,7 +140,7 @@
     state.bag = [];
     if (!Game.attributes) return;
     Game.attributes.clearModifiers();
-    if (Game.state && Game.state.player) Game.attributes.applyPlayer(Game.state.player);
+    if (Game.attributes.applyPlayerOutsideRun) Game.attributes.applyPlayerOutsideRun();
   }
 
   function getSlots() {

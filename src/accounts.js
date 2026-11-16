@@ -42,7 +42,8 @@
     lastReportSaved: false,
     lastReportReason: "",
     pendingWrites: 0,
-    notice: ""
+    notice: "",
+    epoch: 0
   };
 
   function settings() { return C.accounts || {}; }
@@ -91,7 +92,16 @@
     return fallback;
   }
 
-  function forgetAccount() {
+  function bumpEpoch() {
+    state.epoch += 1;
+    return state.epoch;
+  }
+
+  function isCurrent(epoch) {
+    return epoch === state.epoch;
+  }
+
+  function clearAccountData() {
     state.account = null;
     state.progress = {};
     state.sessionProgress = {};
@@ -99,6 +109,8 @@
     state.equipment = null;
     state.equipmentBusy = false;
     state.equipmentBusySlot = null;
+    state.equipmentError = "";
+    state.equipmentNotice = "";
     state.equipmentBag = [];
     state.equipmentBagBusy = false;
     state.equipmentBagError = "";
@@ -106,9 +118,13 @@
     state.wall = null;
     state.wallBusy = false;
     state.wallAction = null;
+    state.wallError = "";
+    state.wallNotice = "";
     state.gems = null;
     state.gemBusy = false;
     state.gemAction = null;
+    state.gemError = "";
+    state.gemNotice = "";
     state.skills = null;
     state.skillBusy = false;
     state.skillBusyId = null;
@@ -125,7 +141,13 @@
     if (Game.rifleProgress) Game.rifleProgress.clear();
   }
 
+  function forgetAccount() {
+    bumpEpoch();
+    clearAccountData();
+  }
+
   function applyMe(data) {
+    bumpEpoch();
     state.account = data.account || null;
     state.progress = data.progress || {};
     state.sessionProgress = {};
@@ -156,7 +178,9 @@
       forgetAccount();
       return Promise.resolve(state.status);
     }
+    var epoch = state.epoch;
     return request(settings().healthPath || "/api/health").then(function (health) {
+      if (!isCurrent(epoch)) return state.status;
       if (health.networkError || health.status !== 200 || !health.data || health.data.ok !== true) {
         state.status = "offline";
         state.error = "未连接数据库";
@@ -164,6 +188,7 @@
         return state.status;
       }
       return request("/api/me").then(function (result) {
+        if (!isCurrent(epoch)) return state.status;
         if (result.status === 200 && result.data) { applyMe(result.data); return state.status; }
         if (result.status === 401) { state.status = "guest"; forgetAccount(); state.error = ""; return state.status; }
         state.status = "offline";
@@ -177,6 +202,7 @@
   function authenticate(path, username, password) {
     state.busy = true;
     state.error = "";
+    var epoch = state.epoch;
     if (isFileProtocol()) {
       state.busy = false;
       state.status = "offline";
@@ -184,6 +210,7 @@
       return Promise.resolve({ ok: false, error: state.error });
     }
     return request(path, { method: "POST", body: { username: username, password: password } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.busy = false;
       if (result.status === 200 || result.status === 201) {
         return load().then(function () { return { ok: state.status === "ready" }; });
@@ -204,11 +231,13 @@
 
   function logout() {
     state.busy = true;
+    state.lastReportSaved = false;
+    forgetAccount();
+    if (state.status !== "offline") state.status = "guest";
+    var epoch = state.epoch;
     return request("/api/auth/logout", { method: "POST" }).then(function () {
+      if (!isCurrent(epoch)) return { ok: true };
       state.busy = false;
-      state.lastReportSaved = false;
-      forgetAccount();
-      if (state.status !== "offline") state.status = "guest";
       return { ok: true };
     });
   }
@@ -216,7 +245,9 @@
   function removeAccount(password) {
     state.busy = true;
     state.error = "";
+    var epoch = state.epoch;
     return request("/api/me", { method: "DELETE", body: { password: password } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.busy = false;
       if (result.status === 204) {
         state.lastReportSaved = false;
@@ -266,11 +297,13 @@
     state.lastReportSaved = true;
     state.lastReportReason = "";
     state.pendingWrites += 1;
+    var epoch = state.epoch;
     return request("/api/me/progress", {
       method: "POST",
       body: { levelId: levelId, time: stats.time, kills: stats.kills, win: !!stats.win }
     }).then(function (result) {
       state.pendingWrites -= 1;
+      if (!isCurrent(epoch)) return { ok: false, status: 401 };
       if (result.status === 200 && result.data && result.data.level) {
         state.progress[String(levelId)] = result.data.level;
         return { ok: true };
@@ -285,7 +318,9 @@
 
   function addResource(resourceId, delta) {
     if (state.status !== "ready") return Promise.resolve({ ok: false });
+    var epoch = state.epoch;
     return request("/api/me/resources", { method: "POST", body: { resourceId: resourceId, delta: delta } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, status: 401 };
       if (result.status === 200 && result.data && result.data.resources) {
         applyResources(result.data.resources);
         return { ok: true };
@@ -296,7 +331,9 @@
 
   function claimRewards(levelId, level, win) {
     if (state.status !== "ready") return Promise.resolve({ ok: false, reason: state.status, error: statusNote() });
+    var epoch = state.epoch;
     return request("/api/me/rewards", { method: "POST", body: { levelId: levelId, level: level, win: !!win } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, reason: "guest", error: "登录已过期", status: 401 };
       if (result.status === 200 && result.data && result.data.rewards) {
         applyResources(result.data.resources || {});
         state.equipment = result.data.equipment || state.equipment;
@@ -319,6 +356,7 @@
       }
       return { ok: false, error: errorMessage(result, "奖励领取失败"), status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, reason: "guest", error: "登录已过期", status: 401 };
       state.status = "offline";
       return { ok: false, reason: "offline", error: "未连接数据库" };
     });
@@ -330,7 +368,9 @@
     state.equipmentBagBusy = true;
     state.equipmentBagError = "";
     state.equipmentBagNotice = "";
+    var epoch = state.epoch;
     return request("/api/me/equipment/equip", { method: "POST", body: { itemId: itemId } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.equipmentBagBusy = false;
       if (result.status === 200 && result.data && result.data.equipment) {
         state.equipment = result.data.equipment;
@@ -350,6 +390,7 @@
       state.equipmentBagError = errorMessage(result, result.networkError ? "未连接数据库" : "换装失败");
       return { ok: false, error: state.equipmentBagError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.equipmentBagBusy = false;
       state.equipmentBagError = "未连接数据库";
       return { ok: false, error: state.equipmentBagError };
@@ -363,7 +404,9 @@
     state.equipmentBusySlot = slotId;
     state.equipmentError = "";
     state.equipmentNotice = "";
+    var epoch = state.epoch;
     return request("/api/me/equipment/upgrade", { method: "POST", body: { slotId: slotId } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.equipmentBusy = false;
       state.equipmentBusySlot = null;
       if (result.status === 200 && result.data && result.data.equipment) {
@@ -382,6 +425,7 @@
       state.equipmentError = errorMessage(result, result.networkError ? "未连接数据库" : "强化失败");
       return { ok: false, error: state.equipmentError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.equipmentBusy = false;
       state.equipmentBusySlot = null;
       state.equipmentError = "未连接数据库";
@@ -396,7 +440,9 @@
     state.wallAction = action;
     state.wallError = "";
     state.wallNotice = "";
+    var epoch = state.epoch;
     return request("/api/me/wall/upgrade", { method: "POST", body: { action: action } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.wallBusy = false;
       state.wallAction = null;
       if (result.status === 200 && result.data && result.data.wall) {
@@ -415,6 +461,7 @@
       state.wallError = errorMessage(result, result.networkError ? "未连接数据库" : "城墙操作失败");
       return { ok: false, error: state.wallError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.wallBusy = false;
       state.wallAction = null;
       state.wallError = "未连接数据库";
@@ -429,7 +476,9 @@
     state.skillBusyId = skillId;
     state.skillError = "";
     state.skillNotice = "";
+    var epoch = state.epoch;
     return request("/api/me/skills/upgrade", { method: "POST", body: { skillId: skillId } }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.skillBusy = false;
       state.skillBusyId = null;
       if (result.status === 200 && result.data && result.data.skills) {
@@ -448,6 +497,7 @@
       state.skillError = errorMessage(result, result.networkError ? "未连接数据库" : "技能强化失败");
       return { ok: false, error: state.skillError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.skillBusy = false;
       state.skillBusyId = null;
       state.skillError = "未连接数据库";
@@ -461,7 +511,9 @@
     state.rifleBusy = true;
     state.rifleError = "";
     state.rifleNotice = "";
+    var epoch = state.epoch;
     return request("/api/me/rifle/upgrade", { method: "POST" }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.rifleBusy = false;
       if (result.status === 200 && result.data && result.data.rifle) {
         state.rifle = result.data.rifle;
@@ -479,6 +531,7 @@
       state.rifleError = errorMessage(result, result.networkError ? "未连接数据库" : "步枪强化失败");
       return { ok: false, error: state.rifleError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.rifleBusy = false;
       state.rifleError = "未连接数据库";
       return { ok: false, error: state.rifleError };
@@ -492,7 +545,9 @@
     state.gemAction = action;
     state.gemError = "";
     state.gemNotice = "";
+    var epoch = state.epoch;
     return request(path, { method: "POST", body: body }).then(function (result) {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.gemBusy = false;
       state.gemAction = null;
       if (result.status === 200 && result.data && result.data.gems) {
@@ -510,6 +565,7 @@
       state.gemError = errorMessage(result, result.networkError ? "未连接数据库" : "宝石操作失败");
       return { ok: false, error: state.gemError, status: result.status };
     }, function () {
+      if (!isCurrent(epoch)) return { ok: false, error: "登录已过期", status: 401 };
       state.gemBusy = false;
       state.gemAction = null;
       state.gemError = "未连接数据库";
@@ -606,10 +662,13 @@
   function importLegacy() {
     var pending = pendingLegacy();
     if (!pending.length || state.status !== "ready") return Promise.resolve({ ok: false, count: 0 });
+    var epoch = state.epoch;
     var chain = Promise.resolve(), imported = 0;
     pending.forEach(function (levelId) {
       chain = chain.then(function () {
+        if (!isCurrent(epoch)) return;
         return request("/api/me/progress", { method: "POST", body: { levelId: levelId, win: true } }).then(function (result) {
+          if (!isCurrent(epoch)) return;
           if (result.status === 200 && result.data && result.data.level) {
             state.progress[String(levelId)] = result.data.level;
             imported += 1;
@@ -618,6 +677,7 @@
       });
     });
     return chain.then(function () {
+      if (!isCurrent(epoch)) return { ok: false, count: 0 };
       state.notice = imported ? "已导入 " + imported + " 关旧进度" : "没有可导入的旧进度";
       return { ok: true, count: imported };
     });

@@ -890,11 +890,11 @@
     },
     rifleProgressTraits: {
       4: { name: "分裂子弹", detail: "解锁“分裂子弹”词条；达到 Lv.4 后才可能在局内三选一出现，不会直接获得效果。" },
-      14: { name: "快速换弹", detail: "换弹时间 ×0.94。" },
+      14: { name: "快速换弹", detail: "换弹时间 ×0.94。", stat: "reloadScale" },
       24: { name: "射速解锁", detail: "解锁局内射速词条。" },
-      36: { name: "火力同步", detail: "射击间隔额外 ×0.96。" },
+      36: { name: "火力同步", detail: "射击间隔额外 ×0.96。", stat: "fireRateScale" },
       44: { name: "子弹弹射", detail: "解锁“子弹弹射”词条；达到 Lv.44 后才可能在局内三选一出现，不会直接获得效果。" },
-      52: { name: "战术穿透", detail: "步枪子弹初始穿透 +1。" }
+      52: { name: "战术穿透", detail: "步枪子弹初始穿透 +1。", stat: "bonusPierce" }
     },
     skillProgressTraits: {
       bombardment: {

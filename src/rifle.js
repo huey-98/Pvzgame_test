@@ -11,6 +11,15 @@
   function clampLevel(value) { return Math.max(baseLevel(), Math.round(finite(value) || baseLevel())); }
   function nodes() { return config().milestones || []; }
 
+  function hasStat(lv, stat) {
+    var list = nodes();
+    for (var i = 0; i < list.length; i++) {
+      var trait = C.rifleProgressTraits && C.rifleProgressTraits[list[i]];
+      if (trait && trait.stat === stat && lv >= list[i]) return true;
+    }
+    return false;
+  }
+
   function current(forcedLevel) {
     var lv = forcedLevel === undefined ? level : forcedLevel;
     return {
@@ -19,9 +28,9 @@
       damagePerLevel: finite(config().damagePerLevel),
       blueprintId: config().blueprintId || "",
       cooldownRate: 1,
-      fireRateScale: lv >= 36 ? finite(config().fireRateScale) || 1 : 1,
-      reloadScale: lv >= 14 ? finite(config().reloadScale) || 1 : 1,
-      bonusPierce: lv >= 52 ? finite(config().bonusPierce) : 0
+      fireRateScale: hasStat(lv, "fireRateScale") ? (finite(config().fireRateScale) || 1) : 1,
+      reloadScale: hasStat(lv, "reloadScale") ? (finite(config().reloadScale) || 1) : 1,
+      bonusPierce: hasStat(lv, "bonusPierce") ? finite(config().bonusPierce) : 0
     };
   }
 

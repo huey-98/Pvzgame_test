@@ -2,6 +2,15 @@
 
 > 这是一份**按日期记录的历史日志**（最后一篇停在 2026-10-03），每条记录只描述当时的实现与数值，其中被后续改动覆盖的数字不会回填。**当前生效的规则与数值以 `README.md`、`DEVELOPMENT_PLAN.md`、`AGENTS.md` 与 `src/config.js` 为准**；新增功能时优先同步这三份文档，本日志仅在需要留档时追加。
 
+## 2026-11-16 · 修复冷却方向、会话串写与局内暴击被覆盖
+
+- `Game.tickSkillCooldown` 把账户技能的 `cooldownRate` 当作间隔倍率，改为用它去除倒计时速度。高等级技能冷却缩短，不再变长。
+- 账户写请求记下会话代号。登出、`forgetAccount` 与 `applyMe` 更换代号后，迟到的强化、领奖、换装和导入响应不再写回上一账户的步枪、资源或养成缓存。登出立刻清缓存。
+- `forgetAccount` 补清装备、城墙、宝石的错误和提示。
+- 装备与宝石在战斗、暂停、升级、测试场、撤退中不再调用 `applyPlayer`，局内暴击词条不会被账户刷新盖掉。
+- 步枪换弹、射速、穿透改为读取 `rifleProgressTraits` 的 `stat` 标记，不再在 `rifle.js` 写死等级门槛。
+- 新增 `tmp/check-review-fixes.js`（19 项）并给步枪快照脚本补上 `stat` 标记断言。验证：`check-review-fixes.js` 19/19、`check-rifle-snapshot.js` 16/16、`src/*.js` 语法检查、`node tmp/check-docs.js` 2 passed、`git diff --check`、`npm --prefix frontend run build`、`check-react-ssr.mjs` 19/19 通过。
+
 ## 2026-11-16 · 修复步枪快照污染与登出缓存残留
 
 - 修复 `src/rifle.js` 的 `getCombatSnapshot(true)`：原实现在生成测试场 Lv.1 快照时直接把模块级 `level` / `milestones` 重置为基础值，导致离开测试场后的第一个正式关卡沿用 Lv.1 步枪快照（伤害与 14/36/52 节点全部丢失），直到结算领奖重新 `applyAccount` 才恢复。改为纯函数式快照（与 `skills.js` 对齐），`force` 参数只影响返回值，不再写模块缓存。

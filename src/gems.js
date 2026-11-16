@@ -266,7 +266,7 @@
     var totals = getTotals();
     if (totals.socketed) Game.attributes.setGemModifiers(totals);
     else Game.attributes.clearGemModifiers();
-    if (Game.state && Game.state.player) Game.attributes.applyPlayer(Game.state.player);
+    if (Game.attributes.applyPlayerOutsideRun) Game.attributes.applyPlayerOutsideRun();
   }
 
   function applyAccount(data) {
@@ -278,7 +278,7 @@
     state.data = null;
     if (!Game.attributes) return;
     Game.attributes.clearGemModifiers();
-    if (Game.state && Game.state.player) Game.attributes.applyPlayer(Game.state.player);
+    if (Game.attributes.applyPlayerOutsideRun) Game.attributes.applyPlayerOutsideRun();
   }
 
   Game.gems = {

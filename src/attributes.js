@@ -102,6 +102,13 @@
       p.rifleDamage = current.rifleDamage;
       p.lowWallDamage = current.lowWallDamage;
     },
+    applyPlayerOutsideRun: function () {
+      var session = Game.state;
+      if (!session || !session.player) return;
+      var screen = session.screen;
+      if (screen === "playing" || screen === "paused" || screen === "upgrade" || screen === "testArena" || screen === "retreat") return;
+      this.applyPlayer(session.player);
+    },
     applyWall: function (wall) {
       if (!wall) return;
       wall.maxHp = current.wallMaxHp;

@@ -578,7 +578,8 @@
   };
   Game.tickSkillCooldown = function (skill, dt) {
     var p = S.player, rate = (p && p.cooldownRate) || 1, progress = p && p.accountSkills && skill.progressSkillId ? p.accountSkills[skill.progressSkillId] : null;
-    rate *= progress && progress.cooldownRate ? progress.cooldownRate : 1;
+    var intervalScale = progress && typeof progress.cooldownRate === "number" && isFinite(progress.cooldownRate) && progress.cooldownRate > 0 ? progress.cooldownRate : 1;
+    rate /= intervalScale;
     skill.fireTimer = Math.max(0, skill.fireTimer - dt * rate);
   };
   Game.updateSkills = function (dt) {

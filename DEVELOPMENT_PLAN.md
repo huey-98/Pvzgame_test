@@ -396,6 +396,7 @@ git diff --check
 - 12 个核心技能各有 Lv.1–31 账户等级，保存在 `skill_progress`，由 `Game.skillProgress` 读取。
 - `player.skills[id].level` 只表示局内词条等级，禁止与账户等级混写。
 - 每级提供暴击率 +0.5%、对应技能伤害 +8%、冷却间隔 ×0.985；暴击受 95% 上限。
+- 快照里的 `cooldownRate` 是冷却间隔倍率。`Game.tickSkillCooldown` 用它去除倒计时速度，倍率越小，冷却越短。
 - 高级节点固定在 Lv.2/7/12/18/22/26，12 个技能共 72 个节点，配置在 `config.skillProgressTraits`。
 - 升级价格、图纸校验与扣费只由服务端 `server/app/skills.py` 计算，客户端只展示 `nextCost`。
 - 开局把账户等级快照到 `player.accountSkills`，战斗中不读取 `Game.accounts`；测试场固定 Lv.1。
@@ -408,6 +409,7 @@ git diff --check
 - 升级由服务端 `server/app/rifle.py` 计算与扣费。
 - 六个节点：Lv.4 分裂子弹、Lv.14 快速换弹、Lv.24 射速解锁、Lv.36 火力同步、Lv.44 子弹弹射、Lv.52 战术穿透。
 - 节点分两类：直接生效（换弹、射速、穿透）与只解锁词条（分裂子弹、子弹弹射、射速词条）。
+- 直接生效的节点在 `rifleProgressTraits` 上用 `stat` 标记。战斗快照只认这个标记和 `milestones`，不要在代码里再写一套等级门槛。
 - 局内词条 `player.rifleSplit` / `player.rifleRicochet` 才是实际效果来源，不要从账户等级直接读取。
 
 ## 10. 关卡与波次
@@ -544,6 +546,7 @@ git diff --check
 - 统一错误体 `{"error": {"code", "message"}}`；写接口只接受 `POST` / `DELETE` 并校验同源。
 - 服务只绑定 `127.0.0.1`；静态服务只暴露 `index.html`、`src/`、`styles/`、`assets/`、`pictures/`，绝不暴露 `server/` 或 `data/`。
 - 前端可提示格式问题，但用户名、密码、装备、城墙、宝石与奖励的最终校验必须在服务端。
+- 写操作发出时记下会话代号。`forgetAccount`、登出和 `applyMe` 都会更换代号；代号不一致的响应不得再写账户缓存。
 - `/api/me/resources`、`/api/me/gems/grant`、`/api/me/rewards` 是调试 / 本地单机接口，缺少幂等或额度保护，不可信。
 
 ## 17. 养成系统
@@ -552,6 +555,7 @@ git diff --check
 
 - `Game.attributes` 是唯一计算层：基础值来自 `config.attributes.base`，装备 / 城墙 / 宝石 / 技能各自提供修正。
 - 攻击力与六系攻击为数值制、无上限；冷却、暴击、暴伤与负面时间有上限。
+- `applyPlayer` 会按账户属性重写暴击率与暴击伤害。进行中的对局（战斗、暂停、升级、测试场、撤退）只更新属性层，不调用 `applyPlayer`，避免抹掉局内暴击词条。
 - 伤害结算顺序：护甲格挡 → 攻击倍率 → 元素倍率 → 宝石条件增伤 → 敌人属性抗性 → 来源减伤 → 致残易伤。
 
 ### 17.2 装备
