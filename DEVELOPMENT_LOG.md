@@ -2,6 +2,13 @@
 
 > 这是一份**按日期记录的历史日志**（最后一篇停在 2026-10-03），每条记录只描述当时的实现与数值，其中被后续改动覆盖的数字不会回填。**当前生效的规则与数值以 `README.md`、`DEVELOPMENT_PLAN.md`、`AGENTS.md` 与 `src/config.js` 为准**；新增功能时优先同步这三份文档，本日志仅在需要留档时追加。
 
+## 2026-11-16 · 修复步枪快照污染与登出缓存残留
+
+- 修复 `src/rifle.js` 的 `getCombatSnapshot(true)`：原实现在生成测试场 Lv.1 快照时直接把模块级 `level` / `milestones` 重置为基础值，导致离开测试场后的第一个正式关卡沿用 Lv.1 步枪快照（伤害与 14/36/52 节点全部丢失），直到结算领奖重新 `applyAccount` 才恢复。改为纯函数式快照（与 `skills.js` 对齐），`force` 参数只影响返回值，不再写模块缓存。
+- 修复 `src/accounts.js` 的 `forgetAccount`：补齐 `state.rifle` / `rifleBusy` / `rifleError` / `rifleNotice` 的重置，与 skills 系列字段对齐，登出 / 401 后不再残留上一账户的步枪数据。
+- 新增 `tmp/check-rifle-snapshot.js`（13 项）：覆盖 force 快照不污染缓存、普通快照保留等级与节点、重复 force、`getView` 与 `clear` 行为。
+- 验证：`check-rifle-snapshot.js` 13/13、`src/*.js` 语法检查、`node tmp/check-docs.js`、`git diff --check`、`npm --prefix frontend run build`、`check-react-ssr.mjs` 19/19 通过。
+
 ## 2026-11-15 · 补齐本机 tmp 验证脚本
 
 - 按当前前端实况重建不入库脚本：`tmp/check-react-ssr.mjs`（Vite SSR 覆盖 12 个局外页 + 3 个浮层 + App SSR + 引擎挂载/销毁/重复挂载，共 19 项）、`tmp/trace-draw.js`（记录型 Canvas 桩写出 `draw-ops.json`）、`tmp/replay-draw.py`（Pillow 回放 PNG）、`tmp/perf-harness.js`（约 300 混合小怪 + 4 技能压测并写 `perf-report.md`）。

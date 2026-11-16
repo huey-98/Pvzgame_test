@@ -114,6 +114,10 @@
     state.skillBusyId = null;
     state.skillError = "";
     state.skillNotice = "";
+    state.rifle = null;
+    state.rifleBusy = false;
+    state.rifleError = "";
+    state.rifleNotice = "";
     if (Game.equipment) Game.equipment.clear();
     if (Game.wall) Game.wall.clear();
     if (Game.gems) Game.gems.clear();
